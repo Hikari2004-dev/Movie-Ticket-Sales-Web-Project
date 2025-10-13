@@ -363,5 +363,4 @@ public class User {
     public void setUpdatedBy(User updatedBy) {
         this.updatedBy = updatedBy;
     }
-
 }
