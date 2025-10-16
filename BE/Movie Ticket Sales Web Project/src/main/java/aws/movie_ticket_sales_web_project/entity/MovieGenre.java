@@ -1,8 +1,12 @@
 package aws.movie_ticket_sales_web_project.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "movie_genres")
 public class MovieGenre {
@@ -23,45 +27,5 @@ public class MovieGenre {
     @ColumnDefault("1")
     @Column(name = "is_active")
     private Boolean isActive;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getGenreName() {
-        return genreName;
-    }
-
-    public void setGenreName(String genreName) {
-        this.genreName = genreName;
-    }
-
-    public String getGenreNameEn() {
-        return genreNameEn;
-    }
-
-    public void setGenreNameEn(String genreNameEn) {
-        this.genreNameEn = genreNameEn;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
-    }
 
 }

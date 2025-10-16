@@ -1,11 +1,15 @@
 package aws.movie_ticket_sales_web_project.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "membership_tiers")
 public class MembershipTier {
@@ -65,125 +69,5 @@ public class MembershipTier {
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "updated_at")
     private Instant updatedAt;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getTierName() {
-        return tierName;
-    }
-
-    public void setTierName(String tierName) {
-        this.tierName = tierName;
-    }
-
-    public String getTierNameDisplay() {
-        return tierNameDisplay;
-    }
-
-    public void setTierNameDisplay(String tierNameDisplay) {
-        this.tierNameDisplay = tierNameDisplay;
-    }
-
-    public BigDecimal getMinAnnualSpending() {
-        return minAnnualSpending;
-    }
-
-    public void setMinAnnualSpending(BigDecimal minAnnualSpending) {
-        this.minAnnualSpending = minAnnualSpending;
-    }
-
-    public Integer getMinVisitsPerYear() {
-        return minVisitsPerYear;
-    }
-
-    public void setMinVisitsPerYear(Integer minVisitsPerYear) {
-        this.minVisitsPerYear = minVisitsPerYear;
-    }
-
-    public BigDecimal getPointsEarnRate() {
-        return pointsEarnRate;
-    }
-
-    public void setPointsEarnRate(BigDecimal pointsEarnRate) {
-        this.pointsEarnRate = pointsEarnRate;
-    }
-
-    public String getBirthdayGiftDescription() {
-        return birthdayGiftDescription;
-    }
-
-    public void setBirthdayGiftDescription(String birthdayGiftDescription) {
-        this.birthdayGiftDescription = birthdayGiftDescription;
-    }
-
-    public BigDecimal getDiscountPercentage() {
-        return discountPercentage;
-    }
-
-    public void setDiscountPercentage(BigDecimal discountPercentage) {
-        this.discountPercentage = discountPercentage;
-    }
-
-    public Integer getFreeTicketsPerYear() {
-        return freeTicketsPerYear;
-    }
-
-    public void setFreeTicketsPerYear(Integer freeTicketsPerYear) {
-        this.freeTicketsPerYear = freeTicketsPerYear;
-    }
-
-    public Boolean getPriorityBooking() {
-        return priorityBooking;
-    }
-
-    public void setPriorityBooking(Boolean priorityBooking) {
-        this.priorityBooking = priorityBooking;
-    }
-
-    public Boolean getFreeUpgrades() {
-        return freeUpgrades;
-    }
-
-    public void setFreeUpgrades(Boolean freeUpgrades) {
-        this.freeUpgrades = freeUpgrades;
-    }
-
-    public Integer getTierLevel() {
-        return tierLevel;
-    }
-
-    public void setTierLevel(Integer tierLevel) {
-        this.tierLevel = tierLevel;
-    }
-
-    public Boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 
 }

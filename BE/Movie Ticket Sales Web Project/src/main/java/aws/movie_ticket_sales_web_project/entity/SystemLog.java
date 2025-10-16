@@ -1,6 +1,9 @@
 package aws.movie_ticket_sales_web_project.entity;
 
+import aws.movie_ticket_sales_web_project.enums.LogLevel;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -8,6 +11,8 @@ import org.hibernate.type.SqlTypes;
 import java.time.Instant;
 import java.util.Map;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "system_logs")
 public class SystemLog {
@@ -15,9 +20,9 @@ public class SystemLog {
     @Column(name = "log_id", nullable = false)
     private Integer id;
 
-    @Lob
+    @Enumerated(EnumType.STRING)
     @Column(name = "log_level", nullable = false)
-    private String logLevel;
+    private LogLevel logLevel;
 
     @Column(name = "component", length = 100)
     private String component;
@@ -57,109 +62,5 @@ public class SystemLog {
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at")
     private Instant createdAt;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getLogLevel() {
-        return logLevel;
-    }
-
-    public void setLogLevel(String logLevel) {
-        this.logLevel = logLevel;
-    }
-
-    public String getComponent() {
-        return component;
-    }
-
-    public void setComponent(String component) {
-        this.component = component;
-    }
-
-    public String getAction() {
-        return action;
-    }
-
-    public void setAction(String action) {
-        this.action = action;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public String getSessionId() {
-        return sessionId;
-    }
-
-    public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
-    }
-
-    public String getIpAddress() {
-        return ipAddress;
-    }
-
-    public void setIpAddress(String ipAddress) {
-        this.ipAddress = ipAddress;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public String getExceptionDetails() {
-        return exceptionDetails;
-    }
-
-    public void setExceptionDetails(String exceptionDetails) {
-        this.exceptionDetails = exceptionDetails;
-    }
-
-    public Map<String, Object> getRequestData() {
-        return requestData;
-    }
-
-    public void setRequestData(Map<String, Object> requestData) {
-        this.requestData = requestData;
-    }
-
-    public Map<String, Object> getResponseData() {
-        return responseData;
-    }
-
-    public void setResponseData(Map<String, Object> responseData) {
-        this.responseData = responseData;
-    }
-
-    public Integer getDurationMs() {
-        return durationMs;
-    }
-
-    public void setDurationMs(Integer durationMs) {
-        this.durationMs = durationMs;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
 
 }

@@ -1,10 +1,15 @@
 package aws.movie_ticket_sales_web_project.entity;
 
+import aws.movie_ticket_sales_web_project.enums.SeatType;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "seats")
 public class Seat {
@@ -24,9 +29,9 @@ public class Seat {
     private Integer seatNumber;
 
     @ColumnDefault("'STANDARD'")
-    @Lob
+    @Enumerated(EnumType.STRING)
     @Column(name = "seat_type")
-    private String seatType;
+    private SeatType seatType;
 
     @Column(name = "position_x")
     private Integer positionX;
@@ -37,69 +42,5 @@ public class Seat {
     @ColumnDefault("1")
     @Column(name = "is_active")
     private Boolean isActive;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public CinemaHall getHall() {
-        return hall;
-    }
-
-    public void setHall(CinemaHall hall) {
-        this.hall = hall;
-    }
-
-    public String getSeatRow() {
-        return seatRow;
-    }
-
-    public void setSeatRow(String seatRow) {
-        this.seatRow = seatRow;
-    }
-
-    public Integer getSeatNumber() {
-        return seatNumber;
-    }
-
-    public void setSeatNumber(Integer seatNumber) {
-        this.seatNumber = seatNumber;
-    }
-
-    public String getSeatType() {
-        return seatType;
-    }
-
-    public void setSeatType(String seatType) {
-        this.seatType = seatType;
-    }
-
-    public Integer getPositionX() {
-        return positionX;
-    }
-
-    public void setPositionX(Integer positionX) {
-        this.positionX = positionX;
-    }
-
-    public Integer getPositionY() {
-        return positionY;
-    }
-
-    public void setPositionY(Integer positionY) {
-        this.positionY = positionY;
-    }
-
-    public Boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
-    }
 
 }

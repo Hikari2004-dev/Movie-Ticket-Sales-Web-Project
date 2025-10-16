@@ -1,6 +1,10 @@
 package aws.movie_ticket_sales_web_project.entity;
 
+import aws.movie_ticket_sales_web_project.enums.FormatType;
+import aws.movie_ticket_sales_web_project.enums.ShowtimeStatus;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
@@ -8,6 +12,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "showtimes")
 public class Showtime {
@@ -33,17 +39,17 @@ public class Showtime {
     private LocalTime endTime;
 
     @ColumnDefault("'2D'")
-    @Lob
+    @Enumerated(EnumType.STRING)
     @Column(name = "format_type")
-    private String formatType;
+    private FormatType formatType;
 
     @Column(name = "subtitle_language", length = 50)
     private String subtitleLanguage;
 
     @ColumnDefault("'SCHEDULED'")
-    @Lob
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status;
+    private ShowtimeStatus status;
 
     @Column(name = "available_seats")
     private Integer availableSeats;
@@ -58,109 +64,5 @@ public class Showtime {
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "updated_at")
     private Instant updatedAt;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Movie getMovie() {
-        return movie;
-    }
-
-    public void setMovie(Movie movie) {
-        this.movie = movie;
-    }
-
-    public CinemaHall getHall() {
-        return hall;
-    }
-
-    public void setHall(CinemaHall hall) {
-        this.hall = hall;
-    }
-
-    public LocalDate getShowDate() {
-        return showDate;
-    }
-
-    public void setShowDate(LocalDate showDate) {
-        this.showDate = showDate;
-    }
-
-    public LocalTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public LocalTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(LocalTime endTime) {
-        this.endTime = endTime;
-    }
-
-    public String getFormatType() {
-        return formatType;
-    }
-
-    public void setFormatType(String formatType) {
-        this.formatType = formatType;
-    }
-
-    public String getSubtitleLanguage() {
-        return subtitleLanguage;
-    }
-
-    public void setSubtitleLanguage(String subtitleLanguage) {
-        this.subtitleLanguage = subtitleLanguage;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Integer getAvailableSeats() {
-        return availableSeats;
-    }
-
-    public void setAvailableSeats(Integer availableSeats) {
-        this.availableSeats = availableSeats;
-    }
-
-    public BigDecimal getBasePrice() {
-        return basePrice;
-    }
-
-    public void setBasePrice(BigDecimal basePrice) {
-        this.basePrice = basePrice;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 
 }

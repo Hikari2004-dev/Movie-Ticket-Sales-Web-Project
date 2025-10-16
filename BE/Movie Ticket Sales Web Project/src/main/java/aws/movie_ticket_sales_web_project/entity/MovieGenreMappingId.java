@@ -2,11 +2,15 @@ package aws.movie_ticket_sales_web_project.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.Hibernate;
 
 import java.io.Serializable;
 import java.util.Objects;
 
+@Getter
+@Setter
 @Embeddable
 public class MovieGenreMappingId implements Serializable {
     private static final long serialVersionUID = -2179077751647710643L;
@@ -15,22 +19,6 @@ public class MovieGenreMappingId implements Serializable {
 
     @Column(name = "genre_id", nullable = false)
     private Integer genreId;
-
-    public Integer getMovieId() {
-        return movieId;
-    }
-
-    public void setMovieId(Integer movieId) {
-        this.movieId = movieId;
-    }
-
-    public Integer getGenreId() {
-        return genreId;
-    }
-
-    public void setGenreId(Integer genreId) {
-        this.genreId = genreId;
-    }
 
     @Override
     public boolean equals(Object o) {

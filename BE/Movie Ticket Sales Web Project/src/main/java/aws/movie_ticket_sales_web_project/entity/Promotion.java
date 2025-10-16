@@ -1,6 +1,9 @@
 package aws.movie_ticket_sales_web_project.entity;
 
+import aws.movie_ticket_sales_web_project.enums.PromotionType;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -9,6 +12,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Map;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "promotions")
 public class Promotion {
@@ -26,9 +31,9 @@ public class Promotion {
     @Column(name = "description")
     private String description;
 
-    @Lob
+    @Enumerated(EnumType.STRING)
     @Column(name = "promotion_type", nullable = false)
-    private String promotionType;
+    private PromotionType promotionType;
 
     @Column(name = "discount_percentage", precision = 5, scale = 2)
     private BigDecimal discountPercentage;
@@ -83,165 +88,5 @@ public class Promotion {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getPromotionCode() {
-        return promotionCode;
-    }
-
-    public void setPromotionCode(String promotionCode) {
-        this.promotionCode = promotionCode;
-    }
-
-    public String getPromotionName() {
-        return promotionName;
-    }
-
-    public void setPromotionName(String promotionName) {
-        this.promotionName = promotionName;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getPromotionType() {
-        return promotionType;
-    }
-
-    public void setPromotionType(String promotionType) {
-        this.promotionType = promotionType;
-    }
-
-    public BigDecimal getDiscountPercentage() {
-        return discountPercentage;
-    }
-
-    public void setDiscountPercentage(BigDecimal discountPercentage) {
-        this.discountPercentage = discountPercentage;
-    }
-
-    public BigDecimal getDiscountAmount() {
-        return discountAmount;
-    }
-
-    public void setDiscountAmount(BigDecimal discountAmount) {
-        this.discountAmount = discountAmount;
-    }
-
-    public BigDecimal getMinPurchaseAmount() {
-        return minPurchaseAmount;
-    }
-
-    public void setMinPurchaseAmount(BigDecimal minPurchaseAmount) {
-        this.minPurchaseAmount = minPurchaseAmount;
-    }
-
-    public BigDecimal getMaxDiscountAmount() {
-        return maxDiscountAmount;
-    }
-
-    public void setMaxDiscountAmount(BigDecimal maxDiscountAmount) {
-        this.maxDiscountAmount = maxDiscountAmount;
-    }
-
-    public Map<String, Object> getApplicableTo() {
-        return applicableTo;
-    }
-
-    public void setApplicableTo(Map<String, Object> applicableTo) {
-        this.applicableTo = applicableTo;
-    }
-
-    public Instant getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(Instant startDate) {
-        this.startDate = startDate;
-    }
-
-    public Instant getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(Instant endDate) {
-        this.endDate = endDate;
-    }
-
-    public Integer getMaxUsageTotal() {
-        return maxUsageTotal;
-    }
-
-    public void setMaxUsageTotal(Integer maxUsageTotal) {
-        this.maxUsageTotal = maxUsageTotal;
-    }
-
-    public Integer getMaxUsagePerUser() {
-        return maxUsagePerUser;
-    }
-
-    public void setMaxUsagePerUser(Integer maxUsagePerUser) {
-        this.maxUsagePerUser = maxUsagePerUser;
-    }
-
-    public Integer getCurrentUsage() {
-        return currentUsage;
-    }
-
-    public void setCurrentUsage(Integer currentUsage) {
-        this.currentUsage = currentUsage;
-    }
-
-    public Map<String, Object> getTargetUserSegments() {
-        return targetUserSegments;
-    }
-
-    public void setTargetUserSegments(Map<String, Object> targetUserSegments) {
-        this.targetUserSegments = targetUserSegments;
-    }
-
-    public Boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public User getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(User createdBy) {
-        this.createdBy = createdBy;
-    }
 
 }
