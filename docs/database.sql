@@ -29,7 +29,6 @@ CREATE TABLE roles (
 -- Bảng người dùng chính
 CREATE TABLE users (
     user_id INT PRIMARY KEY AUTO_INCREMENT,
-    username VARCHAR(100) UNIQUE,
     email VARCHAR(255) UNIQUE,
     phone_number VARCHAR(20) UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
