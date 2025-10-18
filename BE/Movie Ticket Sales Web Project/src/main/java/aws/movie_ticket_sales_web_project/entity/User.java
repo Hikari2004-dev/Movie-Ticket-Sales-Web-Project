@@ -15,11 +15,10 @@ import java.time.LocalDate;
 @Table(name = "users")
 public class User {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id", nullable = false)
     private Integer id;
 
-    @Column(name = "username", length = 100)
-    private String username;
 
     @Column(name = "email")
     private String email;
