@@ -1,6 +1,7 @@
 package aws.movie_ticket_sales_web_project.entity;
 
 import aws.movie_ticket_sales_web_project.enums.AgeRating;
+import aws.movie_ticket_sales_web_project.enums.MovieStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -80,9 +81,9 @@ public class Movie {
     private String trailerUrl;
 
     @ColumnDefault("'COMING_SOON'")
-    @Lob
-    @Column(name = "status", columnDefinition = "ENUM('COMING_SOON', 'NOW_SHOWING', 'END_SHOWING') NOT NULL")
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private MovieStatus status;
 
     @ColumnDefault("0")
     @Column(name = "is_featured")

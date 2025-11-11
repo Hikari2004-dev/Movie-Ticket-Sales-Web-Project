@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,4 +16,5 @@ public class RegisterResponse {
     private Boolean isEmailVerified;
     private String membershipNumber;
     private String tierName;
+    private List<String> roles;
 }
