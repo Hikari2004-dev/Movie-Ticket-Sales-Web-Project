@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -138,6 +140,7 @@ public class AuthenticationService {
             response.setIsEmailVerified(savedUser.getIsEmailVerified());
             response.setMembershipNumber(membership.getMembershipNumber());
             response.setTierName(bronzeTier.getTierName());
+            response.setRoles(List.of(customerRole.getRoleName()));
 
             log.info("User registered successfully with email: {}", request.getEmail());
 
@@ -178,12 +181,16 @@ public class AuthenticationService {
             User user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
+
             // Generate tokens
             String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), user.getId());
             String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail(), user.getId());
 
             // Get user roles
-            userRoleRepository.findByUserId(user.getId());
+            List<UserRole> userRoles = userRoleRepository.findByUserId(user.getId());
+            List<String> roleNames = userRoles.stream()
+                    .map(userRole -> userRole.getRole().getRoleName())
+                    .collect(Collectors.toList());
 
             // Get membership info
             Membership membership = membershipRepository.findByUserId(user.getId())
@@ -196,6 +203,7 @@ public class AuthenticationService {
             userInfo.setFullName(user.getFullName());
             userInfo.setMembershipTier(membership != null ? membership.getTier().getTierName() : null);
             userInfo.setAvailablePoints(membership != null ? membership.getAvailablePoints() : 0);
+            userInfo.setRoles(roleNames);
 
             LoginResponse loginResponse = new LoginResponse();
             loginResponse.setAccessToken(accessToken);
