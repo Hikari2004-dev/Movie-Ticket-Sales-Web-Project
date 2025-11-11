@@ -220,6 +220,16 @@
   color: #ff4b2b;
 }
 
+.admin-link {
+  color: #4CAF50;
+  font-weight: 600;
+}
+
+.admin-link:hover {
+  background: rgba(76, 175, 80, 0.1);
+  color: #45a049;
+}
+
 .logout-btn {
   color: #ff4b2b;
 }
@@ -256,6 +266,61 @@
   width: 20px;
   height: 14px;
   border-radius: 2px;
+  object-fit: cover;
+}
+
+.language-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: #2d2d3f;
+  border-radius: 12px;
+  min-width: 200px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  overflow: hidden;
+  animation: fadeIn 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.language-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.language-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.language-option.active {
+  background: rgba(255, 75, 43, 0.2);
+  color: #ff4b2b;
+  font-weight: 600;
+}
+
+.language-option .flag-icon {
+  flex-shrink: 0;
+}
+
+.language-option span:first-of-type {
+  flex: 1;
+}
+
+.check-icon {
+  color: #ff4b2b;
+  font-size: 16px;
+  font-weight: bold;
+  margin-left: auto;
 }
 
 /* Bottom Navigation */

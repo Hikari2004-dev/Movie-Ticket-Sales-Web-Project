@@ -17,6 +17,13 @@ export const API_ENDPOINTS = {
   GET_MOVIE_DETAIL: (id) => `/movies/${id}`,
   GET_MOVIE_SHOWTIMES: (id) => `/movies/${id}/showtimes`,
   
+  // Admin - Movie Management endpoints
+  ADMIN_GET_MOVIES: '/admin/movies',
+  ADMIN_CREATE_MOVIE: '/admin/movies',
+  ADMIN_UPDATE_MOVIE: (id) => `/admin/movies/${id}`,
+  ADMIN_DELETE_MOVIE: (id) => `/admin/movies/${id}`,
+  GET_GENRES: '/genres',
+  
   // Booking endpoints
   GET_SEAT_MAP: (showtimeId) => `/showtimes/${showtimeId}/seats`,
   HOLD_SEATS: (showtimeId) => `/showtimes/${showtimeId}/seats/hold`,
