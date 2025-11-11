@@ -12,7 +12,7 @@ const api = axios.create({
 // Interceptor để tự động thêm token vào mỗi request
 api.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('authToken');
+    const token = Cookies.get('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -29,7 +29,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token hết hạn hoặc không hợp lệ
-      Cookies.remove('authToken');
+      Cookies.remove('accessToken');
+      Cookies.remove('refreshToken');
+      localStorage.removeItem('user');
       window.location.href = '/login';
     }
     return Promise.reject(error);

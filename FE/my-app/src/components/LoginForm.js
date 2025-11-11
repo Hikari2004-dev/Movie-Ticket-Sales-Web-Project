@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import PrivacyPolicy from './PrivacyPolicy';
+import { getDashboardPath, getRoleDisplayName, getHighestRole } from '../utils/roleUtils';
 import './LoginForm.css';
 
 // API Base URL
@@ -98,11 +99,20 @@ const LoginForm = () => {
           // Dispatch event để Header cập nhật
           window.dispatchEvent(new Event('userChanged'));
 
-          toast.success(`Chào mừng ${user.fullName}!`);
+          // Xác định dashboard path dựa trên role
+          const dashboardPath = getDashboardPath(user.roles);
+          const highestRole = getHighestRole(user.roles);
+          const roleDisplay = getRoleDisplayName(highestRole);
+
+          toast.success(
+            `Chào mừng ${user.fullName}!\n` +
+            `Vai trò: ${roleDisplay}`,
+            { autoClose: 2000 }
+          );
           
-          // Chuyển về trang chủ sau 1 giây
+          // Chuyển đến dashboard phù hợp sau 1 giây
           setTimeout(() => {
-            navigate('/');
+            navigate(dashboardPath);
           }, 1000);
         }
       } else {

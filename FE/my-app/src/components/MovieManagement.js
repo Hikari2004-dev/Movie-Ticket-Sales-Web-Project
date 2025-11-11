@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaFilter } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaFilter, FaEye } from 'react-icons/fa';
 import movieService from '../services/movieService';
 import MovieForm from './MovieForm';
+import { hasRole, ROLES } from '../utils/roleUtils';
 import './MovieManagement.css';
 
 const MovieManagement = () => {
@@ -11,6 +12,11 @@ const MovieManagement = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingMovie, setEditingMovie] = useState(null);
   const [genres, setGenres] = useState([]);
+  
+  // Check user permissions
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const canEdit = hasRole(user.roles, ROLES.SYSTEM_ADMIN);
+  const canView = hasRole(user.roles, ROLES.CINEMA_MANAGER) || canEdit;
   
   // Pagination and filter states
   const [currentPage, setCurrentPage] = useState(0);
@@ -147,10 +153,17 @@ const MovieManagement = () => {
   return (
     <div className="movie-management-container">
       <div className="movie-management-header">
-        <h1>Quản Lý Phim</h1>
-        <button className="btn-primary" onClick={handleCreate}>
-          <FaPlus /> Thêm Phim Mới
-        </button>
+        <h1>{canEdit ? 'Quản Lý Phim' : 'Danh Sách Phim'}</h1>
+        {canEdit && (
+          <button className="btn-primary" onClick={handleCreate}>
+            <FaPlus /> Thêm Phim Mới
+          </button>
+        )}
+        {!canEdit && canView && (
+          <div className="view-only-badge">
+            <FaEye /> Chỉ xem
+          </div>
+        )}
       </div>
 
         {/* Filters and Search */}
@@ -202,66 +215,97 @@ const MovieManagement = () => {
         </div>
       </div>
 
-      {/* Movies Grid */}
+      {/* Movies Table */}
       {loading ? (
         <div className="loading-spinner">Đang tải...</div>
       ) : (
         <>
-          <div className="movies-grid">
-            {filteredMovies.map((movie) => (
-              <div key={movie.movieId} className="movie-card">
-                <div className="movie-poster">
-                  <img src={movie.posterUrl} alt={movie.title} />
-                  <div className="movie-overlay">
-                    <button 
-                      className="btn-edit" 
-                      onClick={() => handleEdit(movie)}
-                      title="Chỉnh sửa"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button 
-                      className="btn-delete" 
-                      onClick={() => handleDelete(movie.movieId)}
-                      title="Xóa"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
-                </div>
-                <div className="movie-info">
-                  <h3>{movie.title}</h3>
-                  <p className="movie-title-en">{movie.titleEn}</p>
-                  <div className="movie-meta">
-                    <span className={`badge badge-${movie.status}`}>
-                      {movie.status === 'NOW_SHOWING' ? 'Đang chiếu' : 'Sắp chiếu'}
-                    </span>
-                    <span className="badge badge-age">{movie.ageRating}</span>
-                    <span className="movie-duration">{movie.duration} phút</span>
-                  </div>
-                  <div className="movie-genres">
-                    {movie.genres?.map((genre) => (
-                      <span key={genre.id} className="genre-tag">
-                        {genre.name}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="movie-formats">
-                    {movie.formats?.map((format) => (
-                      <span key={format} className="format-badge">
-                        {format}
-                      </span>
-                    ))}
-                  </div>
-                  {movie.imdbRating && (
-                    <div className="movie-rating">
-                      ⭐ {movie.imdbRating}/10
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          {filteredMovies.length === 0 ? (
+            <div className="no-movies">
+              <p>Không tìm thấy phim nào</p>
+            </div>
+          ) : (
+            <div className="table-container">
+              <table className="movies-table">
+                <thead>
+                  <tr>
+                    <th>Poster</th>
+                    <th>Tên Phim</th>
+                    <th>Thể Loại</th>
+                    <th>Độ Tuổi</th>
+                    <th>Thời Lượng</th>
+                    <th>Ngày Phát Hành</th>
+                    <th>Trạng Thái</th>
+                    <th>Đánh Giá</th>
+                    {canEdit && <th>Thao Tác</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredMovies.map((movie) => (
+                    <tr key={movie.movieId} className="movie-table-row">
+                      <td className="poster-cell">
+                        {movie.posterUrl ? (
+                          <img src={movie.posterUrl} alt={movie.title} className="table-poster" />
+                        ) : (
+                          <div className="table-poster-placeholder">🎬</div>
+                        )}
+                      </td>
+                      <td className="title-cell">
+                        <div className="title-content">
+                          <strong>{movie.title}</strong>
+                          <span className="title-en">{movie.titleEn}</span>
+                        </div>
+                      </td>
+                      <td className="genres-cell">
+                        {movie.genres && movie.genres.length > 0 ? (
+                          movie.genres.map(g => g.name).join(', ')
+                        ) : (
+                          <span className="text-muted">Chưa có</span>
+                        )}
+                      </td>
+                      <td className="age-cell">
+                        <span className={`badge badge-age-${movie.ageRating}`}>{movie.ageRating}</span>
+                      </td>
+                      <td className="duration-cell">{movie.duration} phút</td>
+                      <td className="date-cell">{new Date(movie.releaseDate).toLocaleDateString('vi-VN')}</td>
+                      <td className="status-cell">
+                        <span className={`badge badge-${movie.status.toLowerCase()}`}>
+                          {movie.status === 'NOW_SHOWING' ? 'Đang chiếu' : 'Sắp chiếu'}
+                        </span>
+                      </td>
+                      <td className="rating-cell">
+                        {movie.imdbRating ? (
+                          <span className="rating">⭐ {movie.imdbRating}</span>
+                        ) : (
+                          <span className="text-muted">N/A</span>
+                        )}
+                      </td>
+                      {canEdit && (
+                        <td className="actions-cell">
+                          <button 
+                            className="btn-action btn-edit-small" 
+                            onClick={() => handleEdit(movie)}
+                            title="Chỉnh sửa"
+                          >
+                            <FaEdit />
+                          </button>
+                          <button 
+                            className="btn-action btn-delete-small" 
+                            onClick={() => handleDelete(movie.movieId)}
+                            title="Xóa"
+                          >
+                            <FaTrash />
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+
 
           {/* Pagination */}
           {totalPages > 1 && (

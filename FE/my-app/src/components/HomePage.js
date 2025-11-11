@@ -1,11 +1,16 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import movieService from '../services/movieService';
 import './HomePage.css';
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [nowShowingMovies, setNowShowingMovies] = useState([]);
+  const [comingSoonMovies, setComingSoonMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Dữ liệu banner slides cho trailer phim
   const bannerSlides = [
@@ -29,6 +34,45 @@ const HomePage = () => {
     }
   ];
 
+  // Fetch movies from API
+  useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch phim đang chiếu - chỉ lấy 4 phim
+        const nowShowingResponse = await movieService.getMovies({
+          status: 'NOW_SHOWING',
+          page: 0,
+          size: 4
+        });
+        
+        if (nowShowingResponse.success) {
+          setNowShowingMovies(nowShowingResponse.data.content);
+        }
+        
+        // Fetch phim sắp chiếu - chỉ lấy 4 phim
+        const comingSoonResponse = await movieService.getMovies({
+          status: 'COMING_SOON',
+          page: 0,
+          size: 4
+        });
+        
+        if (comingSoonResponse.success) {
+          setComingSoonMovies(comingSoonResponse.data.content);
+        }
+        
+      } catch (error) {
+        console.error('Error fetching movies:', error);
+        toast.error('Không thể tải danh sách phim');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMovies();
+  }, []);
+
   // Auto slide banner mỗi 3 giây
   useEffect(() => {
     const timer = setInterval(() => {
@@ -45,67 +89,18 @@ const HomePage = () => {
     setCurrentSlide((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length);
   };
 
-  const nowShowingMovies = [
-    {
-      id: 1,
-      title: 'CỨC ZÀNG CỦA NGOẠI',
-      image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300&h=420&fit=crop',
-      ageRating: 'T13',
-      genre: 'Hài, Gia đình'
-    },
-    {
-      id: 2,
-      title: 'CẬU THỨ 13 HÙNG MẠNH ĐẠO CHÍCH CHÓC',
-      image: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300&h=420&fit=crop',
-      ageRating: 'T18',
-      genre: 'Hành động'
-    },
-    {
-      id: 3,
-      title: 'GODZILLA MINUS ONE',
-      image: 'https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=300&h=420&fit=crop',
-      ageRating: 'T13',
-      genre: 'Hành động, Khoa học viễn tưởng'
-    },
-    {
-      id: 4,
-      title: 'TRÁI TIM QUỶ DỮ',
-      image: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=300&h=420&fit=crop',
-      ageRating: 'T18',
-      genre: 'Kinh dị'
-    }
-  ];
+  // Helper function to get genre names
+  const getGenreNames = (genres) => {
+    if (!genres || genres.length === 0) return 'Đang cập nhật';
+    return genres.map(g => g.name).join(', ');
+  };
 
-  const comingSoonMovies = [
-    {
-      id: 5,
-      title: 'THÁM TỬ LỪNG DANH CONAN',
-      image: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=300&h=420&fit=crop',
-      releaseDate: '07.12.2025',
-      ageRating: 'T13'
-    },
-    {
-      id: 6,
-      title: 'MẬT MÃ ĐỎ',
-      image: 'https://images.unsplash.com/photo-1594908900066-3f47337549d8?w=300&h=420&fit=crop',
-      releaseDate: '14.12.2025',
-      ageRating: 'T18'
-    },
-    {
-      id: 7,
-      title: 'CÁN BỘ HÀNH THƯƠNG VỤ',
-      image: 'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=300&h=420&fit=crop',
-      releaseDate: '21.12.2025',
-      ageRating: 'T16'
-    },
-    {
-      id: 8,
-      title: 'SỰ TRẠY SỤ LẠC',
-      image: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=300&h=420&fit=crop',
-      releaseDate: '28.12.2025',
-      ageRating: 'T13'
-    }
-  ];
+  // Helper function to format release date
+  const formatReleaseDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN');
+  };
 
   const promotions = [
     {
@@ -178,26 +173,42 @@ const HomePage = () => {
         <div className="container">
           <div className="section-header">
             <h2>PHIM ĐANG CHIẾU</h2>
-            <button className="btn-see-more">XEM THÊM</button>
+            <button className="btn-see-more" onClick={() => navigate('/now-showing')}>
+              XEM THÊM
+            </button>
           </div>
-          <div className="movies-grid">
-            {nowShowingMovies.map((movie) => (
-              <div key={movie.id} className="movie-card" onClick={() => navigate(`/movie/${movie.id}`)}>
-                <div className="movie-poster">
-                  <div className="age-rating">{movie.ageRating}</div>
-                  <img src={movie.image} alt={movie.title} />
-                  <div className="movie-overlay">
-                    <button className="btn-play">▶</button>
+          {loading ? (
+            <div className="loading-spinner">Đang tải...</div>
+          ) : (
+            <div className="movies-grid">
+              {nowShowingMovies.length > 0 ? (
+                nowShowingMovies.map((movie) => (
+                  <div key={movie.movieId} className="movie-card" onClick={() => navigate(`/movie/${movie.movieId}`)}>
+                    <div className="movie-poster">
+                      <div className="age-rating">{movie.ageRating}</div>
+                      {movie.posterUrl ? (
+                        <img src={movie.posterUrl} alt={movie.title} />
+                      ) : (
+                        <div className="poster-placeholder">
+                          <span>Chưa có poster</span>
+                        </div>
+                      )}
+                      <div className="movie-overlay">
+                        <button className="btn-play">▶</button>
+                      </div>
+                    </div>
+                    <div className="movie-info">
+                      <h3>{movie.title}</h3>
+                      <p className="movie-genre">{getGenreNames(movie.genres)}</p>
+                      <button className="btn-book">ĐẶT VÉ</button>
+                    </div>
                   </div>
-                </div>
-                <div className="movie-info">
-                  <h3>{movie.title}</h3>
-                  <p className="movie-genre">{movie.genre}</p>
-                  <button className="btn-book">ĐẶT VÉ</button>
-                </div>
-              </div>
-            ))}
-          </div>
+                ))
+              ) : (
+                <p className="no-movies">Hiện chưa có phim đang chiếu</p>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
@@ -205,26 +216,42 @@ const HomePage = () => {
         <div className="container">
           <div className="section-header">
             <h2>PHIM SẮP CHIẾU</h2>
-            <button className="btn-see-more">XEM THÊM</button>
+            <button className="btn-see-more" onClick={() => navigate('/coming-soon')}>
+              XEM THÊM
+            </button>
           </div>
-          <div className="movies-grid">
-            {comingSoonMovies.map((movie) => (
-              <div key={movie.id} className="movie-card" onClick={() => navigate(`/movie/${movie.id}`)}>
-                <div className="movie-poster">
-                  <div className="age-rating">{movie.ageRating}</div>
-                  <img src={movie.image} alt={movie.title} />
-                  <div className="movie-overlay">
-                    <button className="btn-play">▶</button>
+          {loading ? (
+            <div className="loading-spinner">Đang tải...</div>
+          ) : (
+            <div className="movies-grid">
+              {comingSoonMovies.length > 0 ? (
+                comingSoonMovies.map((movie) => (
+                  <div key={movie.movieId} className="movie-card" onClick={() => navigate(`/movie/${movie.movieId}`)}>
+                    <div className="movie-poster">
+                      <div className="age-rating">{movie.ageRating}</div>
+                      {movie.posterUrl ? (
+                        <img src={movie.posterUrl} alt={movie.title} />
+                      ) : (
+                        <div className="poster-placeholder">
+                          <span>Chưa có poster</span>
+                        </div>
+                      )}
+                      <div className="movie-overlay">
+                        <button className="btn-play">▶</button>
+                      </div>
+                    </div>
+                    <div className="movie-info">
+                      <h3>{movie.title}</h3>
+                      <p className="release-info">Khởi chiếu: {formatReleaseDate(movie.releaseDate)}</p>
+                      <button className="btn-book outline">TÌM HIỂU THÊM</button>
+                    </div>
                   </div>
-                </div>
-                <div className="movie-info">
-                  <h3>{movie.title}</h3>
-                  <p className="release-info">Khởi chiếu: {movie.releaseDate}</p>
-                  <button className="btn-book outline">TÌM HIỂU THÊM</button>
-                </div>
-              </div>
-            ))}
-          </div>
+                ))
+              ) : (
+                <p className="no-movies">Hiện chưa có phim sắp chiếu</p>
+              )}
+            </div>
+          )}
         </div>
       </section>
 

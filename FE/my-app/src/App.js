@@ -17,6 +17,10 @@ import SystemAdminDashboard from './components/SystemAdminDashboard';
 import StaffLayout from './components/StaffLayout';
 import StaffDashboard from './components/StaffDashboard';
 import ComingSoon from './components/ComingSoon';
+import NowShowingPage from './components/NowShowingPage';
+import ComingSoonPage from './components/ComingSoonPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import { ROLES } from './utils/roleUtils';
 
 function App() {
   return (
@@ -24,42 +28,68 @@ function App() {
       <div className="App">
         <Header />
         <Routes>
-          {/* Public Routes - CUSTOMER */}
+          {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/movie/:id" element={<MovieDetail />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/bookings" element={<BookingHistory />} />
+          <Route path="/now-showing" element={<NowShowingPage />} />
+          <Route path="/coming-soon" element={<ComingSoonPage />} />
           
-          {/* Cinema Manager Routes - CINEMA_MANAGER */}
-          <Route path="/admin" element={<AdminLayout />}>
+          {/* Protected Customer Routes */}
+          <Route path="/profile" element={
+            <ProtectedRoute allowedRoles={[ROLES.CUSTOMER, ROLES.CINEMA_STAFF, ROLES.CINEMA_MANAGER, ROLES.SYSTEM_ADMIN]}>
+              <ProfilePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/bookings" element={
+            <ProtectedRoute allowedRoles={[ROLES.CUSTOMER, ROLES.CINEMA_STAFF, ROLES.CINEMA_MANAGER, ROLES.SYSTEM_ADMIN]}>
+              <BookingHistory />
+            </ProtectedRoute>
+          } />
+          
+          {/* Unified Admin Routes - CINEMA_MANAGER & SYSTEM_ADMIN */}
+          <Route path="/admin" element={
+            <ProtectedRoute allowedRoles={[ROLES.CINEMA_MANAGER, ROLES.SYSTEM_ADMIN]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }>
+            {/* Core Management */}
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="movies" element={<MovieManagement />} />
             <Route path="cinemas" element={<ComingSoon feature="Quản Lý Rạp" />} />
             <Route path="showtimes" element={<ComingSoon feature="Quản Lý Suất Chiếu" />} />
+            
+            {/* Sales */}
             <Route path="bookings" element={<ComingSoon feature="Quản Lý Đặt Vé" />} />
-            <Route path="users" element={<ComingSoon feature="Quản Lý Khách Hàng" />} />
             <Route path="promotions" element={<ComingSoon feature="Quản Lý Khuyến Mãi" />} />
-            <Route path="reports" element={<ComingSoon feature="Báo Cáo & Thống Kê" />} />
-          </Route>
-
-          {/* System Admin Routes - SYSTEM_ADMIN */}
-          <Route path="/system-admin" element={<SystemAdminLayout />}>
-            <Route path="dashboard" element={<SystemAdminDashboard />} />
-            <Route path="cinemas" element={<ComingSoon feature="Quản Lý Rạp (Hệ Thống)" />} />
-            <Route path="movies" element={<ComingSoon feature="Quản Lý Phim (Hệ Thống)" />} />
-            <Route path="showtimes" element={<ComingSoon feature="Quản Lý Suất Chiếu" />} />
+            
+            {/* User Management */}
             <Route path="accounts" element={<ComingSoon feature="Quản Lý Tài Khoản" />} />
             <Route path="staff" element={<ComingSoon feature="Quản Lý Nhân Viên" />} />
-            <Route path="promotions" element={<ComingSoon feature="Quản Lý Khuyến Mãi" />} />
+            
+            {/* System & Reports */}
             <Route path="reports" element={<ComingSoon feature="Báo Cáo & Thống Kê" />} />
             <Route path="notifications" element={<ComingSoon feature="Thông Báo Hệ Thống" />} />
             <Route path="audit-logs" element={<ComingSoon feature="Nhật Ký Hệ Thống" />} />
             <Route path="settings" element={<ComingSoon feature="Cấu Hình Hệ Thống" />} />
           </Route>
 
+          {/* Redirect old system-admin routes to /admin */}
+          <Route path="/system-admin/*" element={
+            <ProtectedRoute allowedRoles={[ROLES.SYSTEM_ADMIN]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }>
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="*" element={<ComingSoon feature="Tính năng này" />} />
+          </Route>
+
           {/* Staff Routes - CINEMA_STAFF */}
-          <Route path="/staff" element={<StaffLayout />}>
+          <Route path="/staff" element={
+            <ProtectedRoute allowedRoles={[ROLES.CINEMA_STAFF]}>
+              <StaffLayout />
+            </ProtectedRoute>
+          }>
             <Route path="dashboard" element={<StaffDashboard />} />
             <Route path="pos" element={<ComingSoon feature="Bán Vé Tại Quầy" />} />
             <Route path="check-in" element={<ComingSoon feature="Xác Nhận Vé" />} />

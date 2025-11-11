@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FaSearch, FaCamera, FaUser, FaSignOutAlt, FaThumbtack } from 'react-icons/fa';
+import { FaSearch, FaCamera, FaUser, FaSignOutAlt, FaThumbtack, FaTachometerAlt } from 'react-icons/fa';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
+import { getDashboardPath, getRoleDisplayName, getHighestRole, isStaffMember } from '../utils/roleUtils';
 import './Header.css';
 
 const Header = () => {
@@ -155,7 +156,13 @@ const Header = () => {
                   <div className="user-info">
                     <p className="user-name">{user.fullName}</p>
                     <p className="user-email">{user.email}</p>
-                    <p className="user-tier">Hạng: {user.membershipTier}</p>
+                    <p className="user-tier">
+                      {user.roles && user.roles.length > 0 ? (
+                        <>Vai trò: {getRoleDisplayName(getHighestRole(user.roles))}</>
+                      ) : (
+                        <>Hạng: {user.membershipTier}</>
+                      )}
+                    </p>
                   </div>
                   <div className="dropdown-divider"></div>
                   <Link to="/profile" className="dropdown-item" onClick={() => setShowUserMenu(false)}>
@@ -165,30 +172,16 @@ const Header = () => {
                     <FaCamera /> Lịch sử đặt vé
                   </Link>
                   
-                  {/* Hiển thị dashboard tương ứng với role */}
-                  {user.role === 'SYSTEM_ADMIN' && (
+                  {/* Hiển thị dashboard tương ứng với role - Dùng roles array */}
+                  {user.roles && isStaffMember(user.roles) && (
                     <>
                       <div className="dropdown-divider"></div>
-                      <Link to="/system-admin/dashboard" className="dropdown-item admin-link" onClick={() => setShowUserMenu(false)}>
-                        🔐 System Admin
-                      </Link>
-                    </>
-                  )}
-                  
-                  {user.role === 'CINEMA_MANAGER' && (
-                    <>
-                      <div className="dropdown-divider"></div>
-                      <Link to="/admin/dashboard" className="dropdown-item admin-link" onClick={() => setShowUserMenu(false)}>
-                        🎬 Manager Dashboard
-                      </Link>
-                    </>
-                  )}
-                  
-                  {user.role === 'CINEMA_STAFF' && (
-                    <>
-                      <div className="dropdown-divider"></div>
-                      <Link to="/staff/dashboard" className="dropdown-item admin-link" onClick={() => setShowUserMenu(false)}>
-                        🎫 Staff Dashboard
+                      <Link 
+                        to={getDashboardPath(user.roles)} 
+                        className="dropdown-item admin-link" 
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        <FaTachometerAlt /> {getRoleDisplayName(getHighestRole(user.roles))} Dashboard
                       </Link>
                     </>
                   )}
