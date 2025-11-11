@@ -2,7 +2,6 @@ package aws.movie_ticket_sales_web_project.service;
 
 import aws.movie_ticket_sales_web_project.dto.*;
 import aws.movie_ticket_sales_web_project.entity.*;
-import aws.movie_ticket_sales_web_project.enums.RoleName;
 import aws.movie_ticket_sales_web_project.repository.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,10 @@ public class RoleManagementService {
     public boolean isUserAdmin(Integer userId) {
         List<UserRole> userRoles = userRoleRepository.findByUserId(userId);
         return userRoles.stream()
-                .anyMatch(userRole -> RoleName.ADMIN.getRoleName().equals(userRole.getRole().getRoleName()));
+                .anyMatch(userRole -> {
+                    String roleName = userRole.getRole().getRoleName();
+                    return "SYSTEM_ADMIN".equals(roleName) || "ADMIN".equals(roleName);
+                });
     }
 
     /**
@@ -81,16 +83,13 @@ public class RoleManagementService {
         }
 
         try {
-            // Validate role name
-            RoleName.fromString(request.getRoleName());
+            // Validate role exists in database
+            Role role = roleRepository.findByRoleName(request.getRoleName())
+                    .orElseThrow(() -> new RuntimeException("Role not found: " + request.getRoleName()));
 
             // Find user
             User user = userRepository.findById(request.getUserId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
-
-            // Find role
-            Role role = roleRepository.findByRoleName(request.getRoleName())
-                    .orElseThrow(() -> new RuntimeException("Role not found: " + request.getRoleName()));
 
             // Remove existing roles
             List<UserRole> existingRoles = userRoleRepository.findByUserId(request.getUserId());
@@ -119,11 +118,6 @@ public class RoleManagementService {
                     .data(userInfo)
                     .build();
 
-        } catch (IllegalArgumentException e) {
-            return ApiResponse.<UserInfo>builder()
-                    .success(false)
-                    .message("Invalid role name: " + request.getRoleName())
-                    .build();
         } catch (Exception e) {
             log.error("Error updating user role", e);
             return ApiResponse.<UserInfo>builder()
@@ -153,5 +147,83 @@ public class RoleManagementService {
         userInfo.setAvailablePoints(0);
 
         return userInfo;
+    }
+
+    /**
+     * Get all available roles (Admin only)
+     */
+    public ApiResponse<List<Role>> getAllRoles(Integer requestingUserId) {
+        log.info("Getting all roles, requested by user: {}", requestingUserId);
+
+        if (!isUserAdmin(requestingUserId)) {
+            return ApiResponse.<List<Role>>builder()
+                    .success(false)
+                    .message("Access denied. Only administrators can view all roles.")
+                    .build();
+        }
+
+        try {
+            List<Role> roles = roleRepository.findAll();
+
+            return ApiResponse.<List<Role>>builder()
+                    .success(true)
+                    .message("Roles retrieved successfully")
+                    .data(roles)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Error retrieving roles", e);
+            return ApiResponse.<List<Role>>builder()
+                    .success(false)
+                    .message("Failed to retrieve roles: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * Add new role (Admin only)
+     */
+    @Transactional
+    public ApiResponse<Role> addRole(String roleName, String description, Integer requestingUserId) {
+        log.info("Adding new role: {} by user: {}", roleName, requestingUserId);
+
+        if (!isUserAdmin(requestingUserId)) {
+            return ApiResponse.<Role>builder()
+                    .success(false)
+                    .message("Access denied. Only administrators can add new roles.")
+                    .build();
+        }
+
+        try {
+            // Check if role already exists
+            if (roleRepository.findByRoleName(roleName).isPresent()) {
+                return ApiResponse.<Role>builder()
+                        .success(false)
+                        .message("Role already exists: " + roleName)
+                        .build();
+            }
+
+            Role newRole = new Role();
+            newRole.setRoleName(roleName.toUpperCase());
+            newRole.setDescription(description);
+            newRole.setCreatedAt(Instant.now());
+
+            Role savedRole = roleRepository.save(newRole);
+
+            log.info("Role added successfully: {}", roleName);
+
+            return ApiResponse.<Role>builder()
+                    .success(true)
+                    .message("Role added successfully")
+                    .data(savedRole)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Error adding role", e);
+            return ApiResponse.<Role>builder()
+                    .success(false)
+                    .message("Failed to add role: " + e.getMessage())
+                    .build();
+        }
     }
 }
