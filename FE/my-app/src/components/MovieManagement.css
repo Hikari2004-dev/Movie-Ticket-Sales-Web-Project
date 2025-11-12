@@ -60,24 +60,26 @@
 /* Controls Section */
 .movie-management-controls {
   display: flex;
-  gap: 1rem;
+  gap: 7rem;
   margin-bottom: 2rem;
   padding: 1.5rem;
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .search-box {
   position: relative;
-  flex: 1;
-  min-width: 250px;
+  width: 280px;
+  flex-shrink: 0;
+  margin-right: 2rem;
 }
 
 .search-box input {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  padding: 0.75rem 1rem 0.75rem 3rem;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 1rem;
@@ -102,11 +104,13 @@
   display: flex;
   gap: 0.75rem;
   align-items: center;
+  flex-wrap: nowrap;
 }
 
 .filter-icon {
   color: #666;
   font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 .filter-select {
@@ -117,6 +121,7 @@
   background: white;
   cursor: pointer;
   transition: all 0.3s ease;
+  min-width: 150px;
 }
 
 .filter-select:focus {
