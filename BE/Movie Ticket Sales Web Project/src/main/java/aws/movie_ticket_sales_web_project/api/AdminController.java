@@ -1,6 +1,7 @@
 package aws.movie_ticket_sales_web_project.api;
 
 import aws.movie_ticket_sales_web_project.dto.*;
+import aws.movie_ticket_sales_web_project.entity.Role;
 import aws.movie_ticket_sales_web_project.service.RoleManagementService;
 import aws.movie_ticket_sales_web_project.security.JwtTokenProvider;
 import lombok.AllArgsConstructor;
@@ -82,5 +83,64 @@ public class AdminController {
     private Integer getUserIdFromToken(String token) {
         String actualToken = token.replace("Bearer ", "");
         return jwtTokenProvider.getUserIdFromToken(actualToken);
+    }
+
+    /**
+     * Get all roles (Admin only)
+     * GET /api/admin/roles
+     */
+    @GetMapping("/roles")
+    public ResponseEntity<ApiResponse<List<Role>>> getAllRoles(
+            @RequestHeader("Authorization") String token) {
+        
+        try {
+            Integer userId = getUserIdFromToken(token);
+            ApiResponse<List<Role>> response = roleManagementService.getAllRoles(userId);
+
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+        } catch (Exception e) {
+            log.error("Error getting roles", e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.<List<Role>>builder()
+                            .success(false)
+                            .message("Invalid or expired token")
+                            .build());
+        }
+    }
+
+    /**
+     * Add new role (Admin only)
+     * POST /api/admin/roles
+     */
+    @PostMapping("/roles")
+    public ResponseEntity<ApiResponse<Role>> addRole(
+            @RequestBody AddRoleRequest request,
+            @RequestHeader("Authorization") String token) {
+        
+        try {
+            Integer userId = getUserIdFromToken(token);
+            ApiResponse<Role> response = roleManagementService.addRole(
+                    request.getRoleName(), 
+                    request.getDescription(), 
+                    userId
+            );
+
+            if (response.getSuccess()) {
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+        } catch (Exception e) {
+            log.error("Error adding role", e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.<Role>builder()
+                            .success(false)
+                            .message("Invalid or expired token")
+                            .build());
+        }
     }
 }

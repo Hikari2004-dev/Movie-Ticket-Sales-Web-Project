@@ -187,7 +187,7 @@
           }
         },
         {
-          "name": "Check Admin Role",
+          "name": "Get All Users (Admin Only)",
           "request": {
             "method": "GET",
             "header": [
@@ -198,11 +198,84 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/auth/check-admin",
+              "raw": "{{baseUrl}}/admin/users",
               "host": ["{{baseUrl}}"],
-              "path": ["auth", "check-admin"]
+              "path": ["admin", "users"]
             },
-            "description": "Check if current user has admin role"
+            "description": "Get all users with their roles (Admin only)"
+          }
+        },
+        {
+          "name": "Update User Role (Admin Only)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "description": "Add admin token from login response"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 2,\n  \"roleName\": \"SYSTEM_ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/role",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "role"]
+            },
+            "description": "Update user role (Admin only)"
+          }
+        },
+        {
+          "name": "Get All Roles (Admin Only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "description": "Add admin token from login response"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/roles",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "roles"]
+            },
+            "description": "Get all available roles in the system (Admin only)"
+          }
+        },
+        {
+          "name": "Add New Role (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "description": "Add admin token from login response"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roleName\": \"MANAGER\",\n  \"description\": \"Manager role with moderate system access\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/roles",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "roles"]
+            },
+            "description": "Add a new role to the system (Admin only)"
           }
         }
       ]

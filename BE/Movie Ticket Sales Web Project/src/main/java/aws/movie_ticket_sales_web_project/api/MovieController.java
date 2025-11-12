@@ -4,6 +4,7 @@ import aws.movie_ticket_sales_web_project.dto.*;
 import aws.movie_ticket_sales_web_project.service.MovieService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,11 +48,11 @@ public class MovieController {
         log.info("GET /api/movies/{}", movieId);
 
         ApiResponse<MovieDetailDto> response = movieService.getMovieById(movieId);
-        
+
         if (response.getSuccess()) {
             return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 }

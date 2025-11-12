@@ -101,7 +101,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/movies", "/api/movies/**").permitAll()
                         
                         // Admin-only endpoints
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("SYSTEM_ADMIN")
                         
                         // Static resources
                         .requestMatchers(HttpMethod.GET, "/", "/favicon.ico", "/**/*.png", "/**/*.gif", "/**/*.svg", "/**/*.jpg", "/**/*.html", "/**/*.css", "/**/*.js").permitAll()
