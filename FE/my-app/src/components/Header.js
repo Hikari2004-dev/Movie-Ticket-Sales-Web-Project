@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FaSearch, FaCamera, FaUser, FaSignOutAlt, FaThumbtack, FaTachometerAlt } from 'react-icons/fa';
+import { FaSearch, FaUser, FaSignOutAlt, FaThumbtack, FaTachometerAlt } from 'react-icons/fa';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { getDashboardPath, getRoleDisplayName, getHighestRole, isStaffMember } from '../utils/roleUtils';
@@ -122,9 +122,7 @@ const Header = () => {
       <div className="header-container">
         {/* Logo */}
         <Link to="/" className="logo">
-          <div className="logo-icon">
-            <FaCamera size={24} />
-          </div>
+          <img src="/q2k-logo.png" alt="Q2K Cinema" className="logo-image" />
         </Link>
 
         {/* Search Bar */}
@@ -169,7 +167,7 @@ const Header = () => {
                     <FaUser /> Thông tin cá nhân
                   </Link>
                   <Link to="/bookings" className="dropdown-item" onClick={() => setShowUserMenu(false)}>
-                    <FaCamera /> Lịch sử đặt vé
+                    <FaThumbtack /> Lịch sử đặt vé
                   </Link>
                   
                   {/* Hiển thị dashboard tương ứng với role - Dùng roles array */}
@@ -196,9 +194,6 @@ const Header = () => {
           ) : (
             <Link to="/login" className="menu-item">Đăng nhập</Link>
           )}
-          <Link to="/" className="menu-item">
-            <FaCamera size={16} />
-          </Link>
           <div className="language-selector">
             <button 
               className="language-button"

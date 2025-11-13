@@ -13,10 +13,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 40px;
-  max-width: 1200px;
+  padding: 10px 60px;
+  max-width: 1280px;
   margin: 0 auto;
-  gap: 20px;
+  gap: 30px;
 }
 
 /* Logo */
@@ -25,43 +25,41 @@
   align-items: center;
   flex: 0 0 auto;
   text-decoration: none;
-}
-
-.logo-icon {
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(135deg, #ff416c, #ff4b2b);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  box-shadow: 0 4px 15px rgba(255, 65, 108, 0.4);
   cursor: pointer;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
+  padding: 5px;
 }
 
-.logo-icon:hover {
-  transform: scale(1.05);
+.logo:hover {
+  transform: scale(1.08);
+  filter: brightness(1.1);
+}
+
+.logo-image {
+  height: 55px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 10px rgba(255, 215, 0, 0.3));
 }
 
 /* Search Bar */
 .search-bar {
-  flex: 0 0 auto;
-  width: 350px;
-  margin-left: auto;
-  margin-right: 20px;
+  flex: 1;
+  max-width: 450px;
+  margin: 0 auto;
   display: flex;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 30px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .search-bar:focus-within {
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 215, 0, 0.4);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
 }
 
 .search-input {
@@ -98,23 +96,39 @@
 .header-menu {
   display: flex;
   align-items: center;
-  gap: 25px;
+  gap: 30px;
   flex: 0 0 auto;
 }
 
 .menu-item {
-  color: white;
+  color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  position: relative;
+}
+
+.menu-item::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #ffd700, #ffed4e);
+  transition: width 0.3s ease;
 }
 
 .menu-item:hover {
-  color: #ff4b2b;
+  color: #ffd700;
+}
+
+.menu-item:hover::after {
+  width: 100%;
 }
 
 /* User Menu */
