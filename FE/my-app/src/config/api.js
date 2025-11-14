@@ -24,6 +24,11 @@ export const API_ENDPOINTS = {
   ADMIN_DELETE_MOVIE: (id) => `/admin/movies/${id}`,
   GET_GENRES: '/genres',
   
+  // Cinema endpoints
+  GET_CINEMAS: '/cinemas',
+  GET_CINEMA_DETAIL: (id) => `/cinemas/${id}`,
+  GET_CINEMA_SHOWTIMES: (cinemaId) => `/cinemas/${cinemaId}/showtimes`,
+  
   // Booking endpoints
   GET_SEAT_MAP: (showtimeId) => `/showtimes/${showtimeId}/seats`,
   HOLD_SEATS: (showtimeId) => `/showtimes/${showtimeId}/seats/hold`,

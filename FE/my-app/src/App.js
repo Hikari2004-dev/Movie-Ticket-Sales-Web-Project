@@ -19,6 +19,11 @@ import StaffDashboard from './components/StaffDashboard';
 import ComingSoon from './components/ComingSoon';
 import NowShowingPage from './components/NowShowingPage';
 import ComingSoonPage from './components/ComingSoonPage';
+import CinemaListingPage from './components/CinemaListingPage';
+import PromotionsPage from './components/PromotionsPage';
+import EventsPage from './components/EventsPage';
+import EntertainmentPage from './components/EntertainmentPage';
+import AboutPage from './components/AboutPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ROLES } from './utils/roleUtils';
 
@@ -34,6 +39,11 @@ function App() {
           <Route path="/movie/:id" element={<MovieDetail />} />
           <Route path="/now-showing" element={<NowShowingPage />} />
           <Route path="/coming-soon" element={<ComingSoonPage />} />
+          <Route path="/cinemas" element={<CinemaListingPage />} />
+          <Route path="/promotions" element={<PromotionsPage />} />
+          <Route path="/events" element={<EventsPage />} />
+          <Route path="/entertainment" element={<EntertainmentPage />} />
+          <Route path="/about" element={<AboutPage />} />
           
           {/* Protected Customer Routes */}
           <Route path="/profile" element={

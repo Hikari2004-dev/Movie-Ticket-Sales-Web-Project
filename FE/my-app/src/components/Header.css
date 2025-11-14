@@ -45,8 +45,9 @@
 /* Search Bar */
 .search-bar {
   flex: 1;
-  max-width: 450px;
-  margin: 0 auto;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: 20px;
   display: flex;
   background: rgba(255, 255, 255, 0.12);
   border-radius: 30px;
@@ -404,49 +405,6 @@
   pointer-events: auto;
 }
 
-/* Pin button */
-.nav-pin-btn {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.6);
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  z-index: 10;
-  opacity: 0;
-}
-
-.bottom-nav.expanded .nav-pin-btn,
-.bottom-nav:hover .nav-pin-btn {
-  opacity: 1;
-}
-
-.nav-pin-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  transform: translateY(-50%) scale(1.1);
-}
-
-.nav-pin-btn.pinned {
-  background: linear-gradient(135deg, #ff416c, #ff4b2b);
-  color: white;
-  border-color: transparent;
-  box-shadow: 0 0 15px rgba(255, 65, 108, 0.5);
-}
-
-.nav-pin-btn.pinned svg {
-  transform: rotate(45deg);
-}
-
 .nav-link {
   color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
@@ -454,26 +412,51 @@
   font-weight: 500;
   transition: all 0.3s ease;
   position: relative;
-  padding: 5px 0;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: transparent;
 }
 
 .nav-link:hover {
   color: white;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
 }
 
 .nav-link::after {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: 0;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
   width: 0;
-  height: 2px;
-  background: #ff4b2b;
+  height: 3px;
+  background: linear-gradient(90deg, #ffd700, #ffed4e);
+  border-radius: 2px;
   transition: width 0.3s ease;
 }
 
 .nav-link:hover::after {
-  width: 100%;
+  width: 60%;
+}
+
+/* Active state - trang hiện tại */
+.nav-link.active {
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.15);
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.nav-link.active::after {
+  width: 70%;
+  background: linear-gradient(90deg, #ffd700, #ffed4e);
+  box-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+}
+
+.nav-link.active:hover {
+  background: rgba(255, 215, 0, 0.2);
 }
 
 /* Responsive */
@@ -503,12 +486,6 @@
   .nav-link {
     white-space: nowrap;
     font-size: 12px;
-  }
-  
-  .nav-pin-btn {
-    left: 10px;
-    width: 28px;
-    height: 28px;
   }
 }
 

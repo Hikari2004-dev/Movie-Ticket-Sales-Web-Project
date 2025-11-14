@@ -32,7 +32,7 @@
 /* Controls Section */
 .controls-section {
   display: flex;
-  gap: 20px;
+  gap: 50px;
   margin-bottom: 40px;
   align-items: center;
   flex-wrap: wrap;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FaSearch, FaUser, FaSignOutAlt, FaThumbtack, FaTachometerAlt } from 'react-icons/fa';
+import { FaSearch, FaUser, FaSignOutAlt, FaTachometerAlt } from 'react-icons/fa';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { getDashboardPath, getRoleDisplayName, getHighestRole, isStaffMember } from '../utils/roleUtils';
@@ -15,11 +15,6 @@ const Header = () => {
   const [selectedLanguage, setSelectedLanguage] = useState(() => {
     return localStorage.getItem('language') || 'vi';
   });
-  const [navPinned, setNavPinned] = useState(() => {
-    // Lấy trạng thái pin từ localStorage
-    return localStorage.getItem('navPinned') === 'true';
-  });
-  const [navExpanded, setNavExpanded] = useState(false);
 
   const languages = [
     { code: 'vi', name: 'Tiếng Việt', flag: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"%3E%3Crect width="30" height="20" fill="%23da251d"/%3E%3Cpolygon points="15,4 11.47,14.85 20.71,8.15 9.29,8.15 18.53,14.85" fill="%23ff0"/%3E%3C/svg%3E' },
@@ -103,20 +98,6 @@ const Header = () => {
     toast.success(`Đã chuyển sang ${langName}`);
   };
 
-  const toggleNavPin = () => {
-    const newPinState = !navPinned;
-    setNavPinned(newPinState);
-    localStorage.setItem('navPinned', newPinState.toString());
-    if (newPinState) {
-      toast.info('Đã ghim thanh điều hướng');
-    } else {
-      toast.info('Đã bỏ ghim thanh điều hướng');
-    }
-  };
-
-  // Xác định xem thanh nav có nên hiển thị đầy đủ không
-  const shouldShowFullNav = isHomePage || navPinned || navExpanded;
-
   return (
     <header className="header">
       <div className="header-container">
@@ -167,7 +148,7 @@ const Header = () => {
                     <FaUser /> Thông tin cá nhân
                   </Link>
                   <Link to="/bookings" className="dropdown-item" onClick={() => setShowUserMenu(false)}>
-                    <FaThumbtack /> Lịch sử đặt vé
+                    <FaUser /> Lịch sử đặt vé
                   </Link>
                   
                   {/* Hiển thị dashboard tương ứng với role - Dùng roles array */}
@@ -232,28 +213,15 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Bottom Navigation - Chỉ hiển thị cho người dùng, không hiển thị ở trang admin */}
+      {/* Bottom Navigation - Luôn hiển thị cho người dùng, không hiển thị ở trang admin */}
       {!isAdminPage && (
-        <nav 
-          className={`bottom-nav ${shouldShowFullNav ? 'expanded' : 'collapsed'}`}
-          onMouseEnter={() => !isHomePage && setNavExpanded(true)}
-          onMouseLeave={() => !isHomePage && setNavExpanded(false)}
-        >
-          {!isHomePage && (
-            <button 
-              className={`nav-pin-btn ${navPinned ? 'pinned' : ''}`}
-              onClick={toggleNavPin}
-              title={navPinned ? 'Bỏ ghim' : 'Ghim thanh điều hướng'}
-            >
-              <FaThumbtack />
-            </button>
-          )}
-          <Link to="/" className="nav-link">Chọn rạp</Link>
-          <Link to="/" className="nav-link">Lịch chiếu</Link>
-          <Link to="/" className="nav-link">Khuyến mãi</Link>
-          <Link to="/" className="nav-link">Tổ chức sự kiện</Link>
-          <Link to="/" className="nav-link">Dịch vụ giải trí khác</Link>
-          <Link to="/" className="nav-link">Giới thiệu</Link>
+        <nav className="bottom-nav expanded">
+          <Link to="/cinemas" className={`nav-link ${location.pathname === '/cinemas' ? 'active' : ''}`}>Chọn rạp</Link>
+          <Link to="/now-showing" className={`nav-link ${location.pathname === '/now-showing' ? 'active' : ''}`}>Lịch chiếu</Link>
+          <Link to="/promotions" className={`nav-link ${location.pathname === '/promotions' ? 'active' : ''}`}>Khuyến mãi</Link>
+          <Link to="/events" className={`nav-link ${location.pathname === '/events' ? 'active' : ''}`}>Tổ chức sự kiện</Link>
+          <Link to="/entertainment" className={`nav-link ${location.pathname === '/entertainment' ? 'active' : ''}`}>Dịch vụ giải trí khác</Link>
+          <Link to="/about" className={`nav-link ${location.pathname === '/about' ? 'active' : ''}`}>Giới thiệu</Link>
         </nav>
       )}
     </header>
