@@ -94,11 +94,13 @@ const MovieManagement = () => {
       const response = await movieService.deleteMovie(movieId);
       if (response.success) {
         toast.success('Xóa phim thành công!');
-        fetchMovies();
+        await fetchMovies();
+      } else {
+        toast.error(response.message || 'Không thể xóa phim!');
       }
     } catch (error) {
       console.error('Error deleting movie:', error);
-      toast.error('Không thể xóa phim!');
+      toast.error(error.response?.data?.message || 'Không thể xóa phim!');
     }
   };
 
@@ -107,19 +109,22 @@ const MovieManagement = () => {
       let response;
       if (editingMovie) {
         response = await movieService.updateMovie(editingMovie.movieId, movieData);
-        toast.success('Cập nhật phim thành công!');
       } else {
         response = await movieService.createMovie(movieData);
-        toast.success('Thêm phim mới thành công!');
       }
       
       if (response.success) {
+        toast.success(editingMovie ? 'Cập nhật phim thành công!' : 'Thêm phim mới thành công!');
         setShowModal(false);
-        fetchMovies();
+        setEditingMovie(null);
+        await fetchMovies();
+      } else {
+        toast.error(response.message || 'Lỗi khi lưu phim!');
+        throw new Error(response.message);
       }
     } catch (error) {
       console.error('Error saving movie:', error);
-      toast.error(editingMovie ? 'Không thể cập nhật phim!' : 'Không thể thêm phim!');
+      toast.error(error.response?.data?.message || (editingMovie ? 'Không thể cập nhật phim!' : 'Không thể thêm phim!'));
       throw error;
     }
   };
@@ -143,6 +148,11 @@ const MovieManagement = () => {
       setSortDir('asc');
     }
     setCurrentPage(0);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingMovie(null);
   };
 
   const filteredMovies = movies.filter(movie => 
@@ -343,7 +353,7 @@ const MovieManagement = () => {
           movie={editingMovie}
           genres={genres}
           onSubmit={handleFormSubmit}
-          onClose={() => setShowModal(false)}
+          onClose={handleCloseModal}
         />
       )}
     </div>

@@ -23,25 +23,25 @@ export const movieService = {
 
   // Tạo phim mới (Admin)
   createMovie: async (movieData) => {
-    const response = await api.post('/admin/movies', movieData);
+    const response = await api.post('/movies', movieData);
     return response.data;
   },
 
   // Cập nhật thông tin phim (Admin)
   updateMovie: async (movieId, movieData) => {
-    const response = await api.put(`/admin/movies/${movieId}`, movieData);
+    const response = await api.put(`/movies/${movieId}`, movieData);
     return response.data;
   },
 
   // Xóa phim (Admin)
   deleteMovie: async (movieId) => {
-    const response = await api.delete(`/admin/movies/${movieId}`);
+    const response = await api.delete(`/movies/${movieId}`);
     return response.data;
   },
 
   // Lấy danh sách thể loại
   getGenres: async () => {
-    const response = await api.get('/genres');
+    const response = await api.get('/movies/genres');
     return response.data;
   },
 };

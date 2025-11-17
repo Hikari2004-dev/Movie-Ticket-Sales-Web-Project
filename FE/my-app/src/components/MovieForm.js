@@ -114,7 +114,14 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
 
     setSubmitting(true);
     try {
-      await onSubmit(formData);
+      // Transform data to match backend DTO
+      const submitData = {
+        ...formData,
+        durationMinutes: parseInt(formData.duration),
+        duration: undefined, // Remove old field
+      };
+      
+      await onSubmit(submitData);
     } catch (error) {
       console.error('Error submitting form:', error);
     } finally {
@@ -123,7 +130,7 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{movie ? 'Chỉnh Sửa Phim' : 'Thêm Phim Mới'}</h2>

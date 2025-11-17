@@ -71,9 +71,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedOriginPatterns(Arrays.asList("*")); // Changed from setAllowedOrigins
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true); // Added this
         configuration.setExposedHeaders(Arrays.asList("Authorization"));
         configuration.setMaxAge(3600L);
 
@@ -97,8 +98,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/check-admin").authenticated()
                         
-                        // Public movie endpoints
-                        .requestMatchers(HttpMethod.GET, "/api/movies", "/api/movies/**").permitAll()
+                        // Admin-only movie endpoints (must come BEFORE the permitAll GET)
+                        .requestMatchers(HttpMethod.POST, "/api/movies").hasRole("SYSTEM_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/movies/{movieId}").hasRole("SYSTEM_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/movies/{movieId}").hasRole("SYSTEM_ADMIN")
+                        
+                        // Public movie endpoints (GET only)
+                        .requestMatchers(HttpMethod.GET, "/api/movies/**").permitAll()
                         
                         // Admin-only endpoints
                         .requestMatchers("/api/admin/**").hasRole("SYSTEM_ADMIN")

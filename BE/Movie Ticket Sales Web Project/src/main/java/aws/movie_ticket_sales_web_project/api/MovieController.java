@@ -2,11 +2,15 @@ package aws.movie_ticket_sales_web_project.api;
 
 import aws.movie_ticket_sales_web_project.dto.*;
 import aws.movie_ticket_sales_web_project.service.MovieService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/movies")
@@ -54,5 +58,80 @@ public class MovieController {
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
+    }
+
+    /**
+     * Create a new movie (Admin only)
+     * POST /api/movies
+     */
+    @PostMapping
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+    public ResponseEntity<ApiResponse<MovieDetailDto>> createMovie(
+            @RequestBody CreateMovieRequest request) {
+        
+        log.info("POST /api/movies - Creating movie: {}", request.getTitle());
+
+        ApiResponse<MovieDetailDto> response = movieService.createMovie(request);
+
+        if (response.getSuccess()) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    /**
+     * Update a movie (Admin only)
+     * PUT /api/movies/{movieId}
+     */
+    @PutMapping("/{movieId}")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+    public ResponseEntity<ApiResponse<MovieDetailDto>> updateMovie(
+            @PathVariable Integer movieId,
+            @RequestBody UpdateMovieRequest request) {
+        
+        log.info("PUT /api/movies/{} - Updating movie", movieId);
+
+        ApiResponse<MovieDetailDto> response = movieService.updateMovie(movieId, request);
+
+        if (response.getSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    /**
+     * Delete a movie (Admin only)
+     * DELETE /api/movies/{movieId}
+     */
+    @DeleteMapping("/{movieId}")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteMovie(
+            @PathVariable Integer movieId) {
+        
+        log.info("DELETE /api/movies/{} - Deleting movie", movieId);
+
+        ApiResponse<Void> response = movieService.deleteMovie(movieId);
+
+        if (response.getSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+    /**
+     * Get all genres
+     * GET /api/movies/genres
+     */
+    @GetMapping("/genres")
+    public ResponseEntity<ApiResponse<List<GenreDto>>> getAllGenres() {
+        
+        log.info("GET /api/movies/genres");
+
+        ApiResponse<List<GenreDto>> response = movieService.getAllGenres();
+
+        return ResponseEntity.ok(response);
     }
 }

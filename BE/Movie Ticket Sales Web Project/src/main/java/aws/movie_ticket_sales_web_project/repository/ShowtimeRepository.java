@@ -14,4 +14,7 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Integer> {
     
     @Query("SELECT DISTINCT s.formatType FROM Showtime s WHERE s.movie.id = :movieId")
     List<FormatType> findDistinctFormatTypesByMovieId(@Param("movieId") Integer movieId);
+    
+    @Query("SELECT s FROM Showtime s WHERE s.movie.id = :movieId")
+    List<Showtime> findByMovieId(@Param("movieId") Integer movieId);
 }
