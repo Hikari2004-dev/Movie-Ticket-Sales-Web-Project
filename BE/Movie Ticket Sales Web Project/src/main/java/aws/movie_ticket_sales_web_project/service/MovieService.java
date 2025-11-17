@@ -256,11 +256,14 @@ public class MovieService {
             movie.setCast(request.getCast());
             movie.setCountry(request.getCountry());
             movie.setLanguage(request.getLanguage());
-            movie.setSubtitleLanguage(request.getSubtitles());
+            movie.setSubtitleLanguage(request.getSubtitleLanguage());
+            movie.setProducer(request.getProducer());
             movie.setPosterUrl(request.getPosterUrl());
             movie.setBackdropUrl(request.getBackdropUrl());
             movie.setTrailerUrl(request.getTrailerUrl());
-            movie.setIsFeatured(false);
+            movie.setImdbRating(request.getImdbRating());
+            movie.setImdbId(request.getImdbId());
+            movie.setIsFeatured(request.getIsFeatured() != null ? request.getIsFeatured() : false);
 
             // Save movie first to get ID
             Movie savedMovie = movieRepository.save(movie);
@@ -327,10 +330,14 @@ public class MovieService {
             if (request.getCast() != null) movie.setCast(request.getCast());
             if (request.getCountry() != null) movie.setCountry(request.getCountry());
             if (request.getLanguage() != null) movie.setLanguage(request.getLanguage());
-            if (request.getSubtitles() != null) movie.setSubtitleLanguage(request.getSubtitles());
+            if (request.getSubtitleLanguage() != null) movie.setSubtitleLanguage(request.getSubtitleLanguage());
+            if (request.getProducer() != null) movie.setProducer(request.getProducer());
             if (request.getPosterUrl() != null) movie.setPosterUrl(request.getPosterUrl());
             if (request.getBackdropUrl() != null) movie.setBackdropUrl(request.getBackdropUrl());
             if (request.getTrailerUrl() != null) movie.setTrailerUrl(request.getTrailerUrl());
+            if (request.getImdbRating() != null) movie.setImdbRating(request.getImdbRating());
+            if (request.getImdbId() != null) movie.setImdbId(request.getImdbId());
+            if (request.getIsFeatured() != null) movie.setIsFeatured(request.getIsFeatured());
 
             // Update genre mappings if provided
             if (request.getGenreIds() != null) {

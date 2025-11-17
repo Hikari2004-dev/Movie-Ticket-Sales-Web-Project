@@ -80,9 +80,20 @@ const MovieManagement = () => {
     setShowModal(true);
   };
 
-  const handleEdit = (movie) => {
-    setEditingMovie(movie);
-    setShowModal(true);
+  const handleEdit = async (movie) => {
+    try {
+      // Fetch full movie details before editing
+      const response = await movieService.getMovieById(movie.movieId);
+      if (response.success) {
+        setEditingMovie(response.data);
+        setShowModal(true);
+      } else {
+        toast.error('Không thể tải thông tin phim!');
+      }
+    } catch (error) {
+      console.error('Error fetching movie details:', error);
+      toast.error('Không thể tải thông tin phim!');
+    }
   };
 
   const handleDelete = async (movieId) => {

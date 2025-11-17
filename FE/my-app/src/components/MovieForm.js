@@ -40,7 +40,20 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
 
   useEffect(() => {
     if (movie) {
-      setFormData({
+      console.log('=== Loading movie data into form ===');
+      console.log('Full movie object:', JSON.stringify(movie, null, 2));
+      
+      // Map genres correctly - backend returns array of {id, name}
+      const genreIds = Array.isArray(movie.genres) 
+        ? movie.genres.map(g => g.id) 
+        : [];
+      
+      // Map available formats - backend returns array of strings
+      const formats = Array.isArray(movie.availableFormats) 
+        ? movie.availableFormats 
+        : [];
+      
+      const newFormData = {
         title: movie.title || '',
         titleEn: movie.titleEn || '',
         ageRating: movie.ageRating || 'P',
@@ -60,12 +73,17 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
         backdropUrl: movie.backdropUrl || '',
         trailerUrl: movie.trailerUrl || '',
         status: movie.status || 'COMING_SOON',
-        isFeatured: movie.isFeatured || false,
-        genreIds: movie.genres?.map(g => g.id) || [],
-        availableFormats: movie.availableFormats || [],
-        imdbRating: movie.imdbRating || '',
+        isFeatured: movie.isFeatured !== null ? movie.isFeatured : false,
+        genreIds: genreIds,
+        availableFormats: formats,
+        imdbRating: movie.imdbRating !== null ? movie.imdbRating : '',
         imdbId: movie.imdbId || '',
-      });
+      };
+      
+      setFormData(newFormData);
+      
+      console.log('=== Form data set ===');
+      console.log('Full form data:', JSON.stringify(newFormData, null, 2));
     }
   }, [movie]);
 

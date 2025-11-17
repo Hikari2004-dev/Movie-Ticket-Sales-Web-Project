@@ -52,7 +52,9 @@ public class CreateMovieRequest {
     
     private String language;
     
-    private String subtitles;
+    private String subtitleLanguage;
+    
+    private String producer;
     
     private String posterUrl;
     
@@ -60,5 +62,13 @@ public class CreateMovieRequest {
     
     private String trailerUrl;
     
+    private java.math.BigDecimal imdbRating;
+    
+    private String imdbId;
+    
     private List<Integer> genreIds;
+    
+    private List<String> availableFormats;
+    
+    private Boolean isFeatured;
 }
