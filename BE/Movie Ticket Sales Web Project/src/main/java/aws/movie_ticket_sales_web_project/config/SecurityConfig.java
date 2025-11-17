@@ -103,6 +103,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/movies/{movieId}").hasRole("SYSTEM_ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/movies/{movieId}").hasRole("SYSTEM_ADMIN")
                         
+                        // Admin-only upload endpoints
+                        .requestMatchers("/api/upload/**").hasRole("SYSTEM_ADMIN")
+                        
                         // Public movie endpoints (GET only)
                         .requestMatchers(HttpMethod.GET, "/api/movies/**").permitAll()
                         

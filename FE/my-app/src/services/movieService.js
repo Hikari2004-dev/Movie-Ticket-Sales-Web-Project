@@ -44,6 +44,32 @@ export const movieService = {
     const response = await api.get('/movies/genres');
     return response.data;
   },
+
+  // Upload poster
+  uploadPoster: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await api.post('/upload/poster', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  // Upload backdrop
+  uploadBackdrop: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await api.post('/upload/backdrop', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
 };
 
 export default movieService;

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaUpload, FaImage } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import movieService from '../services/movieService';
 import './MovieForm.css';
 
 const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
@@ -32,6 +34,9 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
 
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingPoster, setUploadingPoster] = useState(false);
+  const [uploadingBackdrop, setUploadingBackdrop] = useState(false);
+
 
   useEffect(() => {
     if (movie) {
@@ -98,11 +103,85 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
     if (!formData.duration || formData.duration <= 0) newErrors.duration = 'Thời lượng không hợp lệ';
     if (!formData.releaseDate) newErrors.releaseDate = 'Vui lòng chọn ngày phát hành';
     if (!formData.synopsis.trim()) newErrors.synopsis = 'Vui lòng nhập nội dung phim';
-    if (!formData.posterUrl.trim()) newErrors.posterUrl = 'Vui lòng nhập URL poster';
+    if (!formData.posterUrl.trim()) newErrors.posterUrl = 'Vui lòng upload hoặc nhập URL poster';
     if (formData.genreIds.length === 0) newErrors.genres = 'Vui lòng chọn ít nhất một thể loại';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handlePosterUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Chỉ chấp nhận file ảnh!');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File quá lớn! Tối đa 10MB');
+      return;
+    }
+
+    setUploadingPoster(true);
+    try {
+      const response = await movieService.uploadPoster(file);
+      
+      if (response.success) {
+        setFormData(prev => ({
+          ...prev,
+          posterUrl: response.data.url
+        }));
+        toast.success('Upload poster thành công!');
+      } else {
+        toast.error(response.message || 'Upload thất bại!');
+      }
+    } catch (error) {
+      console.error('Error uploading poster:', error);
+      toast.error(error.response?.data?.message || 'Lỗi khi upload poster!');
+    } finally {
+      setUploadingPoster(false);
+    }
+  };
+
+  const handleBackdropUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Chỉ chấp nhận file ảnh!');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File quá lớn! Tối đa 10MB');
+      return;
+    }
+
+    setUploadingBackdrop(true);
+    try {
+      const response = await movieService.uploadBackdrop(file);
+      
+      if (response.success) {
+        setFormData(prev => ({
+          ...prev,
+          backdropUrl: response.data.url
+        }));
+        toast.success('Upload backdrop thành công!');
+      } else {
+        toast.error(response.message || 'Upload thất bại!');
+      }
+    } catch (error) {
+      console.error('Error uploading backdrop:', error);
+      toast.error(error.response?.data?.message || 'Lỗi khi upload backdrop!');
+    } finally {
+      setUploadingBackdrop(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -397,25 +476,69 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
               <h3>Hình ảnh & Video</h3>
               
               <div className="form-group">
-                <label>URL Poster *</label>
-                <input
-                  type="url"
-                  name="posterUrl"
-                  value={formData.posterUrl}
-                  onChange={handleChange}
-                  className={errors.posterUrl ? 'error' : ''}
-                />
+                <label>Poster *</label>
+                <div className="upload-container">
+                  <div className="upload-buttons">
+                    <label className="btn-upload" style={{ opacity: uploadingPoster ? 0.6 : 1 }}>
+                      <FaUpload /> {uploadingPoster ? 'Đang upload...' : 'Upload Poster'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePosterUpload}
+                        disabled={uploadingPoster}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                    <span className="upload-hint">hoặc nhập URL</span>
+                  </div>
+                  <input
+                    type="url"
+                    name="posterUrl"
+                    value={formData.posterUrl}
+                    onChange={handleChange}
+                    placeholder="https://example.com/poster.jpg"
+                    className={errors.posterUrl ? 'error' : ''}
+                  />
+                  {formData.posterUrl && (
+                    <div className="image-preview">
+                      <FaImage />
+                      <img src={formData.posterUrl} alt="Poster preview" onError={(e) => e.target.style.display = 'none'} />
+                    </div>
+                  )}
+                </div>
                 {errors.posterUrl && <span className="error-message">{errors.posterUrl}</span>}
               </div>
 
               <div className="form-group">
-                <label>URL Backdrop</label>
-                <input
-                  type="url"
-                  name="backdropUrl"
-                  value={formData.backdropUrl}
-                  onChange={handleChange}
-                />
+                <label>Backdrop</label>
+                <div className="upload-container">
+                  <div className="upload-buttons">
+                    <label className="btn-upload" style={{ opacity: uploadingBackdrop ? 0.6 : 1 }}>
+                      <FaUpload /> {uploadingBackdrop ? 'Đang upload...' : 'Upload Backdrop'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBackdropUpload}
+                        disabled={uploadingBackdrop}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                    <span className="upload-hint">hoặc nhập URL</span>
+                  </div>
+                  <input
+                    type="url"
+                    name="backdropUrl"
+                    value={formData.backdropUrl}
+                    onChange={handleChange}
+                    placeholder="https://example.com/backdrop.jpg"
+                  />
+                  {formData.backdropUrl && (
+                    <div className="image-preview">
+                      <FaImage />
+                      <img src={formData.backdropUrl} alt="Backdrop preview" onError={(e) => e.target.style.display = 'none'} />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="form-group">
