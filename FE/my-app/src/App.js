@@ -11,6 +11,7 @@ import ProfilePage from './components/ProfilePage';
 import BookingHistory from './components/BookingHistory';
 import Dashboard from './components/Dashboard';
 import MovieManagement from './components/MovieManagement';
+import AccountManagement from './components/AccountManagement';
 import AdminLayout from './components/AdminLayout';
 import SystemAdminLayout from './components/SystemAdminLayout';
 import SystemAdminDashboard from './components/SystemAdminDashboard';
@@ -74,7 +75,7 @@ function App() {
             <Route path="promotions" element={<ComingSoon feature="Quản Lý Khuyến Mãi" />} />
             
             {/* User Management */}
-            <Route path="accounts" element={<ComingSoon feature="Quản Lý Tài Khoản" />} />
+            <Route path="accounts" element={<AccountManagement />} />
             <Route path="staff" element={<ComingSoon feature="Quản Lý Nhân Viên" />} />
             
             {/* System & Reports */}

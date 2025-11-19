@@ -88,7 +88,6 @@ const AdminLayout = () => {
       icon: <FaUsers />,
       path: '/admin/accounts',
       description: 'Quản lý tài khoản người dùng',
-      disabled: true,
       section: 'users'
     },
     {

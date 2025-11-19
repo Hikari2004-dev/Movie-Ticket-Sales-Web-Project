@@ -36,6 +36,7 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
   const [submitting, setSubmitting] = useState(false);
   const [uploadingPoster, setUploadingPoster] = useState(false);
   const [uploadingBackdrop, setUploadingBackdrop] = useState(false);
+  const [activeTab, setActiveTab] = useState('basic'); // 'basic', 'media', 'imdb'
 
 
   useEffect(() => {
@@ -237,10 +238,37 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="movie-form">
-          <div className="form-grid">
-            {/* Thông tin cơ bản */}
+          {/* Tab Navigation */}
+          <div className="tab-navigation">
+            <button
+              type="button"
+              className={`tab-button ${activeTab === 'basic' ? 'active' : ''}`}
+              onClick={() => setActiveTab('basic')}
+            >
+              Thông tin cơ bản
+            </button>
+            <button
+              type="button"
+              className={`tab-button ${activeTab === 'imdb' ? 'active' : ''}`}
+              onClick={() => setActiveTab('imdb')}
+            >
+              Nội dung phim
+            </button>
+            <button
+              type="button"
+              className={`tab-button ${activeTab === 'media' ? 'active' : ''}`}
+              onClick={() => setActiveTab('media')}
+            >
+              Hình ảnh & Video
+            </button>
+          </div>
+
+          {/* Tab 1: Thông tin cơ bản */}
+          {activeTab === 'basic' && (
+            <div className="tab-content">
+              <div className="form-grid">
             <div className="form-section">
-              <h3>Thông tin cơ bản</h3>
+              <h3>Thông tin phim</h3>
               
               <div className="form-group">
                 <label>Tên phim (Tiếng Việt) *</label>
@@ -343,43 +371,6 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                   />
                   Phim nổi bật
                 </label>
-              </div>
-            </div>
-
-            {/* Nội dung phim */}
-            <div className="form-section">
-              <h3>Nội dung phim</h3>
-              
-              <div className="form-group">
-                <label>Nội dung (Tiếng Việt) *</label>
-                <textarea
-                  name="synopsis"
-                  value={formData.synopsis}
-                  onChange={handleChange}
-                  rows="4"
-                  className={errors.synopsis ? 'error' : ''}
-                />
-                {errors.synopsis && <span className="error-message">{errors.synopsis}</span>}
-              </div>
-
-              <div className="form-group">
-                <label>Nội dung (Tiếng Anh)</label>
-                <textarea
-                  name="synopsisEn"
-                  value={formData.synopsisEn}
-                  onChange={handleChange}
-                  rows="4"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Cảnh báo nội dung</label>
-                <textarea
-                  name="contentWarning"
-                  value={formData.contentWarning}
-                  onChange={handleChange}
-                  rows="2"
-                />
               </div>
             </div>
 
@@ -489,7 +480,44 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
               </div>
             </div>
 
-            {/* Media URLs */}
+            {/* Thông tin IMDB */}
+            <div className="form-section">
+              <h3>Thông tin IMDB</h3>
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label>IMDB Rating</label>
+                  <input
+                    type="number"
+                    name="imdbRating"
+                    value={formData.imdbRating}
+                    onChange={handleChange}
+                    step="0.1"
+                    min="0"
+                    max="10"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>IMDB ID</label>
+                  <input
+                    type="text"
+                    name="imdbId"
+                    value={formData.imdbId}
+                    onChange={handleChange}
+                    placeholder="tt1234567"
+                  />
+                </div>
+              </div>
+            </div>
+              </div>
+            </div>
+            )}
+
+            {/* Tab 2: Hình ảnh & Video */}
+            {activeTab === 'media' && (
+            <div className="tab-content">
+              <div className="form-grid">
             <div className="form-section">
               <h3>Hình ảnh & Video</h3>
               
@@ -570,38 +598,52 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                 />
               </div>
             </div>
-
-            {/* IMDB Info */}
-            <div className="form-section">
-              <h3>Thông tin IMDB</h3>
-              
-              <div className="form-row">
-                <div className="form-group">
-                  <label>IMDB Rating</label>
-                  <input
-                    type="number"
-                    name="imdbRating"
-                    value={formData.imdbRating}
-                    onChange={handleChange}
-                    step="0.1"
-                    min="0"
-                    max="10"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>IMDB ID</label>
-                  <input
-                    type="text"
-                    name="imdbId"
-                    value={formData.imdbId}
-                    onChange={handleChange}
-                    placeholder="tt1234567"
-                  />
-                </div>
               </div>
             </div>
-          </div>
+            )}
+
+            {/* Tab 3: Nội dung phim */}
+            {activeTab === 'imdb' && (
+            <div className="tab-content">
+              <div className="form-grid">
+            <div className="form-section">
+              <h3>Nội dung phim</h3>
+              
+              <div className="form-group">
+                <label>Nội dung (Tiếng Việt) *</label>
+                <textarea
+                  name="synopsis"
+                  value={formData.synopsis}
+                  onChange={handleChange}
+                  rows="6"
+                  className={errors.synopsis ? 'error' : ''}
+                />
+                {errors.synopsis && <span className="error-message">{errors.synopsis}</span>}
+              </div>
+
+              <div className="form-group">
+                <label>Nội dung (Tiếng Anh)</label>
+                <textarea
+                  name="synopsisEn"
+                  value={formData.synopsisEn}
+                  onChange={handleChange}
+                  rows="6"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Cảnh báo nội dung</label>
+                <textarea
+                  name="contentWarning"
+                  value={formData.contentWarning}
+                  onChange={handleChange}
+                  rows="3"
+                />
+              </div>
+            </div>
+              </div>
+            </div>
+            )}
 
           <div className="form-actions">
             <button type="button" onClick={onClose} className="btn-cancel">
