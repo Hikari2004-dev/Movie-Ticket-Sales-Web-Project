@@ -13,10 +13,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 60px;
+  padding: 5px 60px;
   max-width: 1280px;
   margin: 0 auto;
   gap: 30px;
+  min-height: 70px;
 }
 
 /* Logo */
@@ -28,6 +29,8 @@
   cursor: pointer;
   transition: all 0.3s ease;
   padding: 5px;
+  position: relative;
+  z-index: 10;
 }
 
 .logo:hover {
@@ -36,10 +39,11 @@
 }
 
 .logo-image {
-  height: 55px;
+  height: 100px;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 3px 10px rgba(255, 215, 0, 0.3));
+  filter: drop-shadow(0 3px 10px rgba(255, 215, 0, 0.4));
+  margin: -10px 0;
 }
 
 /* Search Bar */
