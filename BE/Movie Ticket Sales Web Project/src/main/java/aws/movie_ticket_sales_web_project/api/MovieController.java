@@ -2,7 +2,6 @@ package aws.movie_ticket_sales_web_project.api;
 
 import aws.movie_ticket_sales_web_project.dto.*;
 import aws.movie_ticket_sales_web_project.service.MovieService;
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
