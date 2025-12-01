@@ -103,7 +103,7 @@ const Header = () => {
       <div className="header-container">
         {/* Logo */}
         <Link to="/" className="logo">
-          <img src="/q2k-logo.png" alt="Q2K Cinema" className="logo-image" />
+          <img src="/cinema-logo.png" alt="Q Cinema" className="logo-image" />
         </Link>
 
         {/* Search Bar */}
