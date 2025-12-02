@@ -25,6 +25,7 @@ import PromotionsPage from './components/PromotionsPage';
 import EventsPage from './components/EventsPage';
 import EntertainmentPage from './components/EntertainmentPage';
 import AboutPage from './components/AboutPage';
+import BookingPage from './components/BookingPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ROLES } from './utils/roleUtils';
 
@@ -38,6 +39,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/movie/:id" element={<MovieDetail />} />
+          <Route path="/booking" element={<BookingPage />} />
           <Route path="/now-showing" element={<NowShowingPage />} />
           <Route path="/coming-soon" element={<ComingSoonPage />} />
           <Route path="/cinemas" element={<CinemaListingPage />} />
@@ -110,7 +112,7 @@ function App() {
           </Route>
         </Routes>
         <ToastContainer
-          position="top-right"
+          position="bottom-right"
           autoClose={3000}
           hideProgressBar={false}
           newestOnTop={false}
@@ -120,6 +122,7 @@ function App() {
           draggable
           pauseOnHover
           theme="light"
+          style={{ fontSize: '14px', width: '320px' }}
         />
       </div>
     </Router>

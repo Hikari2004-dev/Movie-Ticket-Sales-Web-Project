@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaChevronDown } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import movieService from '../services/movieService';
 import './HomePage.css';
@@ -11,6 +11,18 @@ const HomePage = () => {
   const [nowShowingMovies, setNowShowingMovies] = useState([]);
   const [comingSoonMovies, setComingSoonMovies] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Quick Booking States
+  const [activeStep, setActiveStep] = useState(null);
+  const [selectedCinema, setSelectedCinema] = useState(null);
+  const [selectedMovie, setSelectedMovie] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedTime, setSelectedTime] = useState(null);
+  
+  const [cinemas, setCinemas] = useState([]);
+  const [movies, setMovies] = useState([]);
+  const [dates, setDates] = useState([]);
+  const [times, setTimes] = useState([]);
 
   // Dữ liệu banner slides cho trailer phim
   const bannerSlides = [
@@ -34,13 +46,42 @@ const HomePage = () => {
     }
   ];
 
+  // Mock data for quick booking
+  const mockCinemas = [
+    { id: 1, name: 'CGV Vincom Center', location: 'Hà Nội' },
+    { id: 2, name: 'CGV Aeon Long Biên', location: 'Hà Nội' },
+    { id: 3, name: 'Galaxy Nguyễn Du', location: 'Hà Nội' },
+    { id: 4, name: 'Lotte Cinema Landmark', location: 'HCM' }
+  ];
+
+  const mockMovies = [
+    { id: 1, title: 'Godzilla Minus One', duration: '125 phút' },
+    { id: 2, title: 'Trái Tim Quỷ Dữ', duration: '110 phút' },
+    { id: 3, title: 'Cậu Thứ 13', duration: '98 phút' },
+    { id: 4, title: 'Oppenheimer', duration: '180 phút' }
+  ];
+
+  const promotions = [
+    {
+      id: 1,
+      image: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=400&h=200&fit=crop'
+    },
+    {
+      id: 2,
+      image: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=400&h=200&fit=crop'
+    },
+    {
+      id: 3,
+      image: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=400&h=200&fit=crop'
+    }
+  ];
+
   // Fetch movies from API
   useEffect(() => {
     const fetchMovies = async () => {
       try {
         setLoading(true);
         
-        // Fetch phim đang chiếu - chỉ lấy 4 phim
         const nowShowingResponse = await movieService.getMovies({
           status: 'NOW_SHOWING',
           page: 0,
@@ -51,7 +92,6 @@ const HomePage = () => {
           setNowShowingMovies(nowShowingResponse.data.content);
         }
         
-        // Fetch phim sắp chiếu - chỉ lấy 4 phim
         const comingSoonResponse = await movieService.getMovies({
           status: 'COMING_SOON',
           page: 0,
@@ -73,7 +113,7 @@ const HomePage = () => {
     fetchMovies();
   }, []);
 
-  // Auto slide banner mỗi 3 giây
+  // Auto slide banner
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
@@ -89,37 +129,90 @@ const HomePage = () => {
     setCurrentSlide((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length);
   };
 
-  // Helper function to get genre names
   const getGenreNames = (genres) => {
     if (!genres || genres.length === 0) return 'Đang cập nhật';
     return genres.map(g => g.name).join(', ');
   };
 
-  // Helper function to format release date
   const formatReleaseDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('vi-VN');
   };
 
-  const promotions = [
-    {
-      id: 1,
-      image: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=400&h=200&fit=crop'
-    },
-    {
-      id: 2,
-      image: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=400&h=200&fit=crop'
-    },
-    {
-      id: 3,
-      image: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=400&h=200&fit=crop'
+  // Quick Booking Functions
+  const toggleStep = (step) => {
+    if (step === 1) {
+      setActiveStep(activeStep === 1 ? null : 1);
+      setCinemas(mockCinemas);
+    } else if (step === 2 && selectedCinema) {
+      setActiveStep(activeStep === 2 ? null : 2);
+      setMovies(mockMovies);
+    } else if (step === 3 && selectedMovie) {
+      setActiveStep(activeStep === 3 ? null : 3);
+      const nextDays = [];
+      for (let i = 0; i < 7; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() + i);
+        nextDays.push({
+          id: i + 1,
+          date: date.toISOString().split('T')[0],
+          display: date.toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' })
+        });
+      }
+      setDates(nextDays);
+    } else if (step === 4 && selectedDate) {
+      setActiveStep(activeStep === 4 ? null : 4);
+      setTimes([
+        { id: 1, time: '09:00', room: 'Phòng 1' },
+        { id: 2, time: '11:30', room: 'Phòng 2' },
+        { id: 3, time: '14:00', room: 'Phòng 1' },
+        { id: 4, time: '16:30', room: 'Phòng 3' },
+        { id: 5, time: '19:00', room: 'Phòng 2' },
+        { id: 6, time: '21:30', room: 'Phòng 1' }
+      ]);
+    } else {
+      toast.warning('Vui lòng chọn thông tin ở bước trước');
     }
-  ];
+  };
+
+  const handleCinemaSelect = (cinema) => {
+    setSelectedCinema(cinema);
+    setActiveStep(null);
+    setSelectedMovie(null);
+    setSelectedDate(null);
+    setSelectedTime(null);
+  };
+
+  const handleMovieSelect = (movie) => {
+    setSelectedMovie(movie);
+    setActiveStep(null);
+    setSelectedDate(null);
+    setSelectedTime(null);
+  };
+
+  const handleDateSelect = (date) => {
+    setSelectedDate(date);
+    setActiveStep(null);
+    setSelectedTime(null);
+  };
+
+  const handleTimeSelect = (time) => {
+    setSelectedTime(time);
+    setActiveStep(null);
+  };
+
+  const handleBookTicket = () => {
+    if (!selectedCinema || !selectedMovie || !selectedDate || !selectedTime) {
+      toast.warning('Vui lòng chọn đầy đủ thông tin để đặt vé');
+      return;
+    }
+    toast.success('Chuyển đến trang đặt vé...');
+    navigate(`/booking?cinema=${selectedCinema.id}&movie=${selectedMovie.id}&date=${selectedDate.date}&time=${selectedTime.id}`);
+  };
 
   return (
     <div className="homepage">
-      {/* Hero Banner Carousel */}
       <section className="hero-banner">
         <div className="banner-carousel">
           {bannerSlides.map((slide, index) => (
@@ -160,11 +253,114 @@ const HomePage = () => {
         <div className="container">
           <div className="booking-header">ĐẶT VÉ NHANH</div>
           <div className="booking-tabs">
-            <button className="booking-tab">1. Chọn Rạp</button>
-            <button className="booking-tab">2. Chọn Phim</button>
-            <button className="booking-tab">3. Chọn Ngày</button>
-            <button className="booking-tab">4. Chọn giờ</button>
-            <button className="btn-book-ticket">ĐẶT VÉ</button>
+            <div className="booking-step-wrapper">
+              <button 
+                className={`booking-tab ${selectedCinema ? 'selected' : ''} ${activeStep === 1 ? 'active' : ''}`}
+                onClick={() => toggleStep(1)}
+              >
+                <span>1. Chọn Rạp</span>
+                {selectedCinema && <span className="selected-text">{selectedCinema.name}</span>}
+                <FaChevronDown className={`dropdown-icon ${activeStep === 1 ? 'rotated' : ''}`} />
+              </button>
+              {activeStep === 1 && (
+                <div className="dropdown-menu">
+                  {cinemas.map(cinema => (
+                    <div 
+                      key={cinema.id}
+                      className={`dropdown-item ${selectedCinema?.id === cinema.id ? 'selected' : ''}`}
+                      onClick={() => handleCinemaSelect(cinema)}
+                    >
+                      <div className="item-name">{cinema.name}</div>
+                      <div className="item-location">{cinema.location}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="booking-step-wrapper">
+              <button 
+                className={`booking-tab ${selectedMovie ? 'selected' : ''} ${activeStep === 2 ? 'active' : ''}`}
+                onClick={() => toggleStep(2)}
+                disabled={!selectedCinema}
+              >
+                <span>2. Chọn Phim</span>
+                {selectedMovie && <span className="selected-text">{selectedMovie.title}</span>}
+                <FaChevronDown className={`dropdown-icon ${activeStep === 2 ? 'rotated' : ''}`} />
+              </button>
+              {activeStep === 2 && (
+                <div className="dropdown-menu">
+                  {movies.map(movie => (
+                    <div 
+                      key={movie.id}
+                      className={`dropdown-item ${selectedMovie?.id === movie.id ? 'selected' : ''}`}
+                      onClick={() => handleMovieSelect(movie)}
+                    >
+                      <div className="item-name">{movie.title}</div>
+                      <div className="item-location">{movie.duration}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="booking-step-wrapper">
+              <button 
+                className={`booking-tab ${selectedDate ? 'selected' : ''} ${activeStep === 3 ? 'active' : ''}`}
+                onClick={() => toggleStep(3)}
+                disabled={!selectedMovie}
+              >
+                <span>3. Chọn Ngày</span>
+                {selectedDate && <span className="selected-text">{selectedDate.display}</span>}
+                <FaChevronDown className={`dropdown-icon ${activeStep === 3 ? 'rotated' : ''}`} />
+              </button>
+              {activeStep === 3 && (
+                <div className="dropdown-menu">
+                  {dates.map(date => (
+                    <div 
+                      key={date.id}
+                      className={`dropdown-item ${selectedDate?.id === date.id ? 'selected' : ''}`}
+                      onClick={() => handleDateSelect(date)}
+                    >
+                      <div className="item-name">{date.display}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="booking-step-wrapper">
+              <button 
+                className={`booking-tab ${selectedTime ? 'selected' : ''} ${activeStep === 4 ? 'active' : ''}`}
+                onClick={() => toggleStep(4)}
+                disabled={!selectedDate}
+              >
+                <span>4. Chọn Giờ</span>
+                {selectedTime && <span className="selected-text">{selectedTime.time}</span>}
+                <FaChevronDown className={`dropdown-icon ${activeStep === 4 ? 'rotated' : ''}`} />
+              </button>
+              {activeStep === 4 && (
+                <div className="dropdown-menu time-menu">
+                  {times.map(time => (
+                    <div 
+                      key={time.id}
+                      className={`dropdown-item time-item ${selectedTime?.id === time.id ? 'selected' : ''}`}
+                      onClick={() => handleTimeSelect(time)}
+                    >
+                      <div className="item-name">{time.time}</div>
+                      <div className="item-location">{time.room}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button 
+              className="btn-book-ticket"
+              onClick={handleBookTicket}
+            >
+              ĐẶT VÉ
+            </button>
           </div>
         </div>
       </section>

@@ -36,3 +36,25 @@
     transform: rotate(360deg);
   }
 }
+
+/* Custom Toast Notification Styles */
+.Toastify__toast {
+  font-size: 14px !important;
+  padding: 12px !important;
+  min-height: 50px !important;
+  border-radius: 8px !important;
+}
+
+.Toastify__toast-body {
+  padding: 4px !important;
+  font-size: 13px !important;
+}
+
+.Toastify__toast-icon {
+  width: 20px !important;
+  margin-right: 8px !important;
+}
+
+.Toastify__close-button {
+  font-size: 14px !important;
+}

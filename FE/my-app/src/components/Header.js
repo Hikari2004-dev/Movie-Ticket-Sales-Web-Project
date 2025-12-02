@@ -137,9 +137,9 @@ const Header = () => {
                     <p className="user-email">{user.email}</p>
                     <p className="user-tier">
                       {user.roles && user.roles.length > 0 ? (
-                        <>Vai trò: {getRoleDisplayName(getHighestRole(user.roles))}</>
+                        <>{getRoleDisplayName(getHighestRole(user.roles))}</>
                       ) : (
-                        <>Hạng: {user.membershipTier}</>
+                        <>{user.membershipTier}</>
                       )}
                     </p>
                   </div>

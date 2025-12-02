@@ -143,7 +143,7 @@
 
 .booking-section .container {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 20px;
 }
 
@@ -155,44 +155,171 @@
   letter-spacing: 1px;
   white-space: nowrap;
   margin: 0;
+  padding-top: 14px;
 }
 
 .booking-tabs {
   display: flex;
   gap: 15px;
-  align-items: center;
+  align-items: flex-start;
   flex: 1;
+  flex-wrap: wrap;
+}
+
+.booking-step-wrapper {
+  flex: 1;
+  min-width: 180px;
+  position: relative;
 }
 
 .booking-tab {
-  flex: 1;
-  min-width: 180px;
-  padding: 14px 24px;
+  width: 100%;
+  padding: 14px 40px 14px 24px;
   background: white;
-  border: 1px solid #d0d0d8;
+  border: 2px solid #d0d0d8;
   border-radius: 8px;
-  color: #ffc107;
+  color: #2c2c54;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
   text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.booking-tab::after {
-  content: '▼';
+.booking-tab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f5f5f5;
+}
+
+.booking-tab.selected {
+  border-color: #ffc107;
+  background: #fffbf0;
+}
+
+.booking-tab.active {
+  border-color: #ffc107;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.booking-tab:hover:not(:disabled) {
+  border-color: #ffc107;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
+}
+
+.booking-tab span:first-child {
+  color: #2c2c54;
+  font-size: 14px;
+}
+
+.selected-text {
+  color: #ffc107 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-icon {
   position: absolute;
-  right: 20px;
+  right: 15px;
   top: 50%;
   transform: translateY(-50%);
   font-size: 12px;
   color: #ffc107;
+  transition: transform 0.3s ease;
 }
 
-.booking-tab:hover {
-  border-color: #ffc107;
-  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+.dropdown-icon.rotated {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #ffc107;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 100;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-menu::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+  background: #ffc107;
+  border-radius: 4px;
+}
+
+.dropdown-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f0f0f5;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: #fffbf0;
+}
+
+.dropdown-item.selected {
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+}
+
+.item-name {
+  color: #2c2c54;
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+
+.item-location {
+  color: #999;
+  font-size: 13px;
+}
+
+.time-menu {
+  max-height: 250px;
+}
+
+.time-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .btn-book-ticket {
@@ -208,6 +335,8 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
+  align-self: flex-start;
+  margin-top: 0;
 }
 
 .btn-book-ticket:hover {
