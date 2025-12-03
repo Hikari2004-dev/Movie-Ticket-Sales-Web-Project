@@ -282,6 +282,10 @@
   display: flex;
   gap: 0.75rem;
   margin-bottom: 1rem;
+  background: #2d3748;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  border-left: 4px solid #3b82f6;
 }
 
 .info-item:last-child {
@@ -289,8 +293,8 @@
 }
 
 .info-icon {
-  font-size: 1rem;
-  color: #1e3a8a;
+  font-size: 1.1rem;
+  color: #60a5fa;
   margin-top: 0.25rem;
   flex-shrink: 0;
 }
@@ -300,32 +304,38 @@
 }
 
 .info-content .label {
-  margin: 0 0 0.25rem 0;
-  color: #6b7280;
-  font-size: 0.8rem;
-  font-weight: 600;
+  margin: 0 0 0.4rem 0;
+  color: #9ca3af;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.8px;
 }
 
 .info-content .value {
   margin: 0;
-  color: #1f2937;
-  font-size: 0.9rem;
+  color: #f3f4f6;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
 .info-content a {
-  color: #0891b2;
+  color: #60a5fa;
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .info-content a:hover {
   text-decoration: underline;
+  color: #93c5fd;
 }
 
 .text-muted {
-  color: #9ca3af !important;
-  font-size: 0.85rem !important;
+  color: #d1d5db !important;
+  font-size: 0.9rem !important;
+  font-weight: 400 !important;
 }
 
 .cinema-footer {

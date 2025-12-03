@@ -390,20 +390,22 @@ const CinemaChainManagement = () => {
                       >
                         <FaBuilding /> Quản Lý Rạp
                       </button>
-                      <button
-                        className="btn btn-sm btn-info"
-                        onClick={() => handleOpenEditModal(chain)}
-                        title="Chỉnh sửa"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        className="btn btn-sm btn-danger"
-                        onClick={() => handleDeleteCinemaChain(chain.chainId)}
-                        title="Xóa"
-                      >
-                        <FaTrash />
-                      </button>
+                      <div className="action-buttons-group">
+                        <button
+                          className="btn btn-sm btn-info"
+                          onClick={() => handleOpenEditModal(chain)}
+                          title="Chỉnh sửa"
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={() => handleDeleteCinemaChain(chain.chainId)}
+                          title="Xóa"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
