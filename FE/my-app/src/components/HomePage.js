@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaChevronLeft, FaChevronRight, FaChevronDown } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import movieService from '../services/movieService';
+import bookingService from '../services/bookingService';
 import './HomePage.css';
 
 const HomePage = () => {
@@ -46,20 +47,7 @@ const HomePage = () => {
     }
   ];
 
-  // Mock data for quick booking
-  const mockCinemas = [
-    { id: 1, name: 'CGV Vincom Center', location: 'Hà Nội' },
-    { id: 2, name: 'CGV Aeon Long Biên', location: 'Hà Nội' },
-    { id: 3, name: 'Galaxy Nguyễn Du', location: 'Hà Nội' },
-    { id: 4, name: 'Lotte Cinema Landmark', location: 'HCM' }
-  ];
 
-  const mockMovies = [
-    { id: 1, title: 'Godzilla Minus One', duration: '125 phút' },
-    { id: 2, title: 'Trái Tim Quỷ Dữ', duration: '110 phút' },
-    { id: 3, title: 'Cậu Thứ 13', duration: '98 phút' },
-    { id: 4, title: 'Oppenheimer', duration: '180 phút' }
-  ];
 
   const promotions = [
     {
@@ -141,74 +129,245 @@ const HomePage = () => {
   };
 
   // Quick Booking Functions
-  const toggleStep = (step) => {
+  const toggleStep = async (step) => {
     if (step === 1) {
       setActiveStep(activeStep === 1 ? null : 1);
-      setCinemas(mockCinemas);
-    } else if (step === 2 && selectedCinema) {
-      setActiveStep(activeStep === 2 ? null : 2);
-      setMovies(mockMovies);
-    } else if (step === 3 && selectedMovie) {
-      setActiveStep(activeStep === 3 ? null : 3);
-      const nextDays = [];
-      for (let i = 0; i < 7; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() + i);
-        nextDays.push({
-          id: i + 1,
-          date: date.toISOString().split('T')[0],
-          display: date.toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' })
-        });
+      if (cinemas.length === 0) {
+        try {
+          const response = await bookingService.getAllCinemas();
+          if (response.success && response.data) {
+            setCinemas(response.data);
+          }
+        } catch (error) {
+          console.error('Error loading cinemas:', error);
+          toast.error('Không thể tải danh sách rạp');
+        }
       }
-      setDates(nextDays);
+    } else if (step === 2 && selectedCinema) {
+      // Toggle step 2
+      if (activeStep === 2) {
+        setActiveStep(null);
+      } else {
+        setActiveStep(2);
+        // Chỉ load lại movies nếu chưa có
+        if (movies.length === 0) {
+          try {
+            const response = await bookingService.getMovies();
+            if (response.success && response.data) {
+              setMovies(response.data);
+            }
+          } catch (error) {
+            console.error('Error loading movies:', error);
+            toast.error('Không thể tải danh sách phim');
+          }
+        }
+      }
+    } else if (step === 3 && selectedMovie) {
+      // Toggle step 3
+      if (activeStep === 3) {
+        setActiveStep(null);
+      } else {
+        setActiveStep(3);
+        // Chỉ load lại dates nếu chưa có
+        if (dates.length === 0) {
+          try {
+            const response = await bookingService.getAvailableDates(
+              selectedMovie.movieId, 
+              selectedCinema.cinemaId
+            );
+            if (response.success && response.data) {
+              const formattedDates = response.data.map((dateStr, index) => {
+                const date = new Date(dateStr);
+                return {
+                  id: index + 1,
+                  date: dateStr,
+                  display: date.toLocaleDateString('vi-VN', { 
+                    weekday: 'short', 
+                    day: '2-digit', 
+                    month: '2-digit' 
+                  })
+                };
+              });
+              setDates(formattedDates);
+            }
+          } catch (error) {
+            console.error('Error loading dates:', error);
+            toast.error('Không thể tải danh sách ngày chiếu');
+          }
+        }
+      }
     } else if (step === 4 && selectedDate) {
-      setActiveStep(activeStep === 4 ? null : 4);
-      setTimes([
-        { id: 1, time: '09:00', room: 'Phòng 1' },
-        { id: 2, time: '11:30', room: 'Phòng 2' },
-        { id: 3, time: '14:00', room: 'Phòng 1' },
-        { id: 4, time: '16:30', room: 'Phòng 3' },
-        { id: 5, time: '19:00', room: 'Phòng 2' },
-        { id: 6, time: '21:30', room: 'Phòng 1' }
-      ]);
+      // Toggle step 4
+      if (activeStep === 4) {
+        setActiveStep(null);
+      } else {
+        setActiveStep(4);
+        // Chỉ load lại times nếu chưa có
+        if (times.length === 0) {
+          try {
+            const response = await bookingService.getShowtimes(
+              selectedMovie.movieId,
+              selectedCinema.cinemaId,
+              selectedDate.date
+            );
+            if (response.success && response.data) {
+              const formattedTimes = response.data.map(showtime => ({
+                id: showtime.showtimeId,
+                time: showtime.startTime,
+                room: showtime.hallName,
+                availableSeats: showtime.availableSeats,
+                basePrice: showtime.basePrice
+              }));
+              setTimes(formattedTimes);
+            }
+          } catch (error) {
+            console.error('Error loading showtimes:', error);
+            toast.error('Không thể tải danh sách suất chiếu');
+          }
+        }
+      }
     } else {
       toast.warning('Vui lòng chọn thông tin ở bước trước');
     }
   };
 
-  const handleCinemaSelect = (cinema) => {
+  const handleCinemaSelect = async (cinema) => {
+    console.log('Selected cinema:', cinema);
     setSelectedCinema(cinema);
-    setActiveStep(null);
     setSelectedMovie(null);
     setSelectedDate(null);
     setSelectedTime(null);
+    setMovies([]);
+    setDates([]);
+    setTimes([]);
+    
+    // Tự động chuyển sang step 2 và load phim
+    setActiveStep(2);
+    try {
+      console.log('Fetching movies for cinema:', cinema.cinemaId);
+      // Tạm thời lấy tất cả phim đang chiếu thay vì theo rạp (do chưa có showtimes)
+      const response = await bookingService.getMovies(); // Không truyền cinemaId
+      console.log('Movies response:', response);
+      
+      if (response.success && response.data) {
+        console.log('Setting movies:', response.data);
+        setMovies(response.data);
+        if (response.data.length === 0) {
+          toast.info('Rạp này chưa có lịch chiếu. Vui lòng quay lại sau.');
+        }
+      } else {
+        console.log('No movies data in response');
+      }
+    } catch (error) {
+      console.error('Error loading movies:', error);
+      toast.error('Không thể tải danh sách phim');
+    }
   };
 
-  const handleMovieSelect = (movie) => {
+  const handleMovieSelect = async (movie) => {
     setSelectedMovie(movie);
-    setActiveStep(null);
     setSelectedDate(null);
     setSelectedTime(null);
+    setDates([]);
+    setTimes([]);
+    
+    // Tự động chuyển sang step 3 và load ngày chiếu
+    setActiveStep(3);
+    try {
+      console.log('Loading dates for movie:', movie.movieId, 'cinema:', selectedCinema.cinemaId);
+      const response = await bookingService.getAvailableDates(
+        movie.movieId, 
+        selectedCinema.cinemaId
+      );
+      console.log('Dates response:', response);
+      if (response.success && response.data) {
+        console.log('Raw dates data:', response.data);
+        const formattedDates = response.data.map((dateStr, index) => {
+          const date = new Date(dateStr);
+          return {
+            id: index + 1,
+            date: dateStr,
+            display: date.toLocaleDateString('vi-VN', { 
+              weekday: 'short', 
+              day: '2-digit', 
+              month: '2-digit' 
+            })
+          };
+        });
+        console.log('Formatted dates:', formattedDates);
+        setDates(formattedDates);
+        if (formattedDates.length === 0) {
+          toast.info('Phim này chưa có lịch chiếu tại rạp này');
+        }
+      } else {
+        console.log('No dates data or unsuccessful response');
+        toast.info('Không có lịch chiếu cho phim này');
+      }
+    } catch (error) {
+      console.error('Error loading dates:', error);
+      toast.error('Không thể tải danh sách ngày chiếu');
+    }
   };
 
-  const handleDateSelect = (date) => {
+  const handleDateSelect = async (date) => {
     setSelectedDate(date);
-    setActiveStep(null);
     setSelectedTime(null);
+    setTimes([]);
+    
+    // Tự động chuyển sang step 4 và load giờ chiếu
+    setActiveStep(4);
+    try {
+      console.log('Loading showtimes for cinema:', selectedCinema.cinemaId, 'movie:', selectedMovie.movieId, 'date:', date.date);
+      const response = await bookingService.getShowtimes(
+        selectedMovie.movieId,
+        selectedCinema.cinemaId,
+        date.date
+      );
+      console.log('Showtimes response:', response);
+      if (response.success && response.data) {
+        console.log('Raw showtimes data:', response.data);
+        const formattedTimes = response.data.map(showtime => ({
+          id: showtime.showtimeId,
+          time: showtime.startTime.substring(0, 5), // HH:MM
+          room: showtime.hallName,
+          availableSeats: showtime.availableSeats,
+          basePrice: showtime.basePrice
+        }));
+        console.log('Formatted times:', formattedTimes);
+        setTimes(formattedTimes);
+        if (formattedTimes.length === 0) {
+          toast.info('Không có suất chiếu cho ngày này');
+        }
+      } else {
+        console.log('No showtimes data or unsuccessful response');
+        toast.info('Không có suất chiếu');
+      }
+    } catch (error) {
+      console.error('Error loading showtimes:', error);
+      toast.error('Không thể tải danh sách suất chiếu');
+    }
   };
 
   const handleTimeSelect = (time) => {
+    console.log('Time selected:', time);
     setSelectedTime(time);
     setActiveStep(null);
   };
 
   const handleBookTicket = () => {
+    console.log('Book ticket clicked!');
+    console.log('Selected data:', { selectedCinema, selectedMovie, selectedDate, selectedTime });
+    
     if (!selectedCinema || !selectedMovie || !selectedDate || !selectedTime) {
+      console.log('Missing data - showing warning');
       toast.warning('Vui lòng chọn đầy đủ thông tin để đặt vé');
       return;
     }
+    
+    const bookingUrl = `/booking?cinema=${selectedCinema.cinemaId}&movie=${selectedMovie.movieId}&date=${selectedDate.date}&time=${selectedTime.id}`;
+    console.log('Navigating to:', bookingUrl);
     toast.success('Chuyển đến trang đặt vé...');
-    navigate(`/booking?cinema=${selectedCinema.id}&movie=${selectedMovie.id}&date=${selectedDate.date}&time=${selectedTime.id}`);
+    navigate(bookingUrl);
   };
 
   return (
@@ -259,19 +418,19 @@ const HomePage = () => {
                 onClick={() => toggleStep(1)}
               >
                 <span>1. Chọn Rạp</span>
-                {selectedCinema && <span className="selected-text">{selectedCinema.name}</span>}
+                {selectedCinema && <span className="selected-text">{selectedCinema.cinemaName}</span>}
                 <FaChevronDown className={`dropdown-icon ${activeStep === 1 ? 'rotated' : ''}`} />
               </button>
               {activeStep === 1 && (
                 <div className="dropdown-menu">
                   {cinemas.map(cinema => (
                     <div 
-                      key={cinema.id}
-                      className={`dropdown-item ${selectedCinema?.id === cinema.id ? 'selected' : ''}`}
+                      key={cinema.cinemaId}
+                      className={`dropdown-item ${selectedCinema?.cinemaId === cinema.cinemaId ? 'selected' : ''}`}
                       onClick={() => handleCinemaSelect(cinema)}
                     >
-                      <div className="item-name">{cinema.name}</div>
-                      <div className="item-location">{cinema.location}</div>
+                      <div className="item-name">{cinema.cinemaName}</div>
+                      <div className="item-location">{cinema.city} - {cinema.district}</div>
                     </div>
                   ))}
                 </div>
@@ -290,16 +449,20 @@ const HomePage = () => {
               </button>
               {activeStep === 2 && (
                 <div className="dropdown-menu">
-                  {movies.map(movie => (
-                    <div 
-                      key={movie.id}
-                      className={`dropdown-item ${selectedMovie?.id === movie.id ? 'selected' : ''}`}
-                      onClick={() => handleMovieSelect(movie)}
-                    >
-                      <div className="item-name">{movie.title}</div>
-                      <div className="item-location">{movie.duration}</div>
-                    </div>
-                  ))}
+                  {movies.length === 0 ? (
+                    <div className="dropdown-item">Đang tải phim...</div>
+                  ) : (
+                    movies.map(movie => (
+                      <div 
+                        key={movie.movieId}
+                        className={`dropdown-item ${selectedMovie?.movieId === movie.movieId ? 'selected' : ''}`}
+                        onClick={() => handleMovieSelect(movie)}
+                      >
+                        <div className="item-name">{movie.title}</div>
+                        <div className="item-location">{movie.durationMinutes} phút</div>
+                      </div>
+                    ))
+                  )}
                 </div>
               )}
             </div>
@@ -316,15 +479,19 @@ const HomePage = () => {
               </button>
               {activeStep === 3 && (
                 <div className="dropdown-menu">
-                  {dates.map(date => (
-                    <div 
-                      key={date.id}
-                      className={`dropdown-item ${selectedDate?.id === date.id ? 'selected' : ''}`}
-                      onClick={() => handleDateSelect(date)}
-                    >
-                      <div className="item-name">{date.display}</div>
-                    </div>
-                  ))}
+                  {dates.length === 0 ? (
+                    <div className="dropdown-item">Đang tải ngày chiếu...</div>
+                  ) : (
+                    dates.map(date => (
+                      <div 
+                        key={date.id}
+                        className={`dropdown-item ${selectedDate?.id === date.id ? 'selected' : ''}`}
+                        onClick={() => handleDateSelect(date)}
+                      >
+                        <div className="item-name">{date.display}</div>
+                      </div>
+                    ))
+                  )}
                 </div>
               )}
             </div>
@@ -341,16 +508,20 @@ const HomePage = () => {
               </button>
               {activeStep === 4 && (
                 <div className="dropdown-menu time-menu">
-                  {times.map(time => (
-                    <div 
-                      key={time.id}
-                      className={`dropdown-item time-item ${selectedTime?.id === time.id ? 'selected' : ''}`}
-                      onClick={() => handleTimeSelect(time)}
-                    >
-                      <div className="item-name">{time.time}</div>
-                      <div className="item-location">{time.room}</div>
-                    </div>
-                  ))}
+                  {times.length === 0 ? (
+                    <div className="dropdown-item">Đang tải giờ chiếu...</div>
+                  ) : (
+                    times.map(time => (
+                      <div 
+                        key={time.id}
+                        className={`dropdown-item time-item ${selectedTime?.id === time.id ? 'selected' : ''}`}
+                        onClick={() => handleTimeSelect(time)}
+                      >
+                        <div className="item-name">{time.time}</div>
+                        <div className="item-location">{time.room}</div>
+                      </div>
+                    ))
+                  )}
                 </div>
               )}
             </div>
