@@ -24,7 +24,7 @@ public class SystemConfiguration {
     private String configKey;
 
     @Lob
-    @Column(name = "config_value", nullable = false)
+    @Column(name = "config_value", nullable = false, columnDefinition = "TEXT")
     private String configValue;
 
     @ColumnDefault("'STRING'")
@@ -33,7 +33,7 @@ public class SystemConfiguration {
     private DataType dataType;
 
     @Lob
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "category", length = 100)

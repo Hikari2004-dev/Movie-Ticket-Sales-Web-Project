@@ -27,7 +27,7 @@ public class UserSession {
     private String ipAddress;
 
     @Lob
-    @Column(name = "user_agent")
+    @Column(name = "user_agent", columnDefinition = "TEXT")
     private String userAgent;
 
     @ColumnDefault("1")

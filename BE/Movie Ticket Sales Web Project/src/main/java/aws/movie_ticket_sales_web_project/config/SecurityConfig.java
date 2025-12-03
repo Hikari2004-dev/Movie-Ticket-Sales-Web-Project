@@ -75,7 +75,7 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(Arrays.asList("*")); // Changed from setAllowedOrigins
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true); // Added this
+        configuration.setAllowCredentials(false); // Don't set to true with allowedOriginPatterns("*")
         configuration.setExposedHeaders(Arrays.asList("Authorization"));
         configuration.setMaxAge(3600L);
 
@@ -95,6 +95,9 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
+                        // Public health check endpoint
+                        .requestMatchers("/api/health/**").permitAll()
+                        
                         // Public authentication endpoints
                         .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/check-admin").authenticated()
@@ -109,6 +112,24 @@ public class SecurityConfig {
                         
                         // Public movie endpoints (GET only)
                         .requestMatchers(HttpMethod.GET, "/api/movies/**").permitAll()
+                        
+                        // Admin-only cinema chain endpoints
+                        .requestMatchers(HttpMethod.POST, "/api/cinema-chains/admin").hasRole("SYSTEM_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/cinema-chains/admin/**").hasRole("SYSTEM_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/cinema-chains/admin/**").hasRole("SYSTEM_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/cinema-chains/admin/**").hasRole("SYSTEM_ADMIN")
+                        
+                        // Public cinema chain endpoints (GET only)
+                        .requestMatchers(HttpMethod.GET, "/api/cinema-chains/**").permitAll()
+                        
+                        // Admin-only cinema endpoints
+                        .requestMatchers(HttpMethod.POST, "/api/cinemas/admin").hasRole("SYSTEM_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/cinemas/admin/**").hasRole("SYSTEM_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/cinemas/admin/**").hasRole("SYSTEM_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/cinemas/chain/{chainId}/admin").hasRole("SYSTEM_ADMIN")
+                        
+                        // Public cinema endpoints (GET only)
+                        .requestMatchers(HttpMethod.GET, "/api/cinemas/**").permitAll()
                         
                         // Admin-only endpoints
                         .requestMatchers("/api/admin/**").hasRole("SYSTEM_ADMIN")
