@@ -67,11 +67,11 @@ public class Payment {
     private Instant completedAt;
 
     @Lob
-    @Column(name = "failure_reason")
+    @Column(name = "failure_reason", columnDefinition = "TEXT")
     private String failureReason;
 
     @Lob
-    @Column(name = "refund_reason")
+    @Column(name = "refund_reason", columnDefinition = "TEXT")
     private String refundReason;
 
     @ColumnDefault("CURRENT_TIMESTAMP")

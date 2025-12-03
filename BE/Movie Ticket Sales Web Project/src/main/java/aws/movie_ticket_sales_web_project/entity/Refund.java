@@ -42,7 +42,7 @@ public class Refund {
     private RefundReason reason;
 
     @Lob
-    @Column(name = "reason_description")
+    @Column(name = "reason_description", columnDefinition = "TEXT")
     private String reasonDescription;
 
     @ColumnDefault("'PENDING'")

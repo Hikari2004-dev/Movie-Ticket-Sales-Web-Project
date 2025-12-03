@@ -26,7 +26,7 @@ public class PricingRule {
     private String ruleName;
 
     @Lob
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "conditions")

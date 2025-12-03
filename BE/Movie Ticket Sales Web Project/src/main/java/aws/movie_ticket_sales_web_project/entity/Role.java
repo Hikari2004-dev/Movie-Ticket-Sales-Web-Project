@@ -24,7 +24,7 @@ public class Role {
     private String roleName;
 
     @Lob
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @ColumnDefault("CURRENT_TIMESTAMP")

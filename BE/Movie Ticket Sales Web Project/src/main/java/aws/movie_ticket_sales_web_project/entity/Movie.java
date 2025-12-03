@@ -33,15 +33,15 @@ public class Movie {
     private AgeRating ageRating;
 
     @Lob
-    @Column(name = "content_warning")
+    @Column(name = "content_warning", columnDefinition = "TEXT")
     private String contentWarning;
 
     @Lob
-    @Column(name = "synopsis")
+    @Column(name = "synopsis", columnDefinition = "TEXT")
     private String synopsis;
 
     @Lob
-    @Column(name = "synopsis_en")
+    @Column(name = "synopsis_en", columnDefinition = "TEXT")
     private String synopsisEn;
 
     @Column(name = "duration_minutes", nullable = false)
@@ -66,7 +66,7 @@ public class Movie {
     private String director;
 
     @Lob
-    @Column(name = "cast")
+    @Column(name = "cast", columnDefinition = "TEXT")
     private String cast;
 
     @Column(name = "producer")

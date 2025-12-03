@@ -28,7 +28,7 @@ public class Promotion {
     private String promotionName;
 
     @Lob
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Enumerated(EnumType.STRING)

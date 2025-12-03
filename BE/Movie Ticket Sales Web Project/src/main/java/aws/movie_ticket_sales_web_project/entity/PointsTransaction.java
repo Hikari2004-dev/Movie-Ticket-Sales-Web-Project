@@ -38,7 +38,7 @@ public class PointsTransaction {
     private Integer sourceId;
 
     @Lob
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "balance_before", nullable = false)

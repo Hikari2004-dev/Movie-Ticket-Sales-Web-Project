@@ -18,6 +18,7 @@ import java.util.Map;
 public class Cinema {
     @Id
     @Column(name = "cinema_id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -41,11 +41,11 @@ public class SystemLog {
     private String ipAddress;
 
     @Lob
-    @Column(name = "message")
+    @Column(name = "message", columnDefinition = "TEXT")
     private String message;
 
     @Lob
-    @Column(name = "exception_details")
+    @Column(name = "exception_details", columnDefinition = "TEXT")
     private String exceptionDetails;
 
     @Column(name = "request_data")

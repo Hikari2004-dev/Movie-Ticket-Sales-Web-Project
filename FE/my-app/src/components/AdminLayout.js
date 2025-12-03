@@ -16,7 +16,8 @@ import {
   FaUserShield,
   FaBell,
   FaClipboardList,
-  FaCog
+  FaCog,
+  FaBuilding
 } from 'react-icons/fa';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
@@ -45,6 +46,13 @@ const AdminLayout = () => {
       icon: <FaFilm />,
       path: '/admin/movies',
       description: 'Thêm, sửa, xóa phim',
+      section: 'core'
+    },
+    {
+      title: 'Quản lý chuỗi rạp',
+      icon: <FaBuilding />,
+      path: '/admin/cinema-chains',
+      description: 'Quản lý chuỗi rạp chiếu',
       section: 'core'
     },
     {
