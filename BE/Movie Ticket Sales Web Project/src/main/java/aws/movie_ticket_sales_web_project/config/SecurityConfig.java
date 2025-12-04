@@ -136,18 +136,18 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/cinemas/**").permitAll()
                         
                         // Admin-only cinema hall endpoints
-                        .requestMatchers(HttpMethod.POST, "/api/cinema-halls/admin").hasRole("SYSTEM_ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/cinema-halls/admin/**").hasRole("SYSTEM_ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/cinema-halls/admin/**").hasRole("SYSTEM_ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/cinema-halls/cinema/{cinemaId}/admin").hasRole("SYSTEM_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/cinema-halls/admin/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/cinema-halls/admin/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/cinema-halls/admin/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/cinema-halls/cinema/{cinemaId}/admin").authenticated()
                         
                         // Public cinema hall endpoints (GET only)
                         .requestMatchers(HttpMethod.GET, "/api/cinema-halls/**").permitAll()
                         
                         // Admin-only showtime endpoints
-                        .requestMatchers(HttpMethod.POST, "/api/showtimes/admin").hasRole("SYSTEM_ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/showtimes/admin/**").hasRole("SYSTEM_ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/showtimes/admin/**").hasRole("SYSTEM_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/showtimes/admin/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/showtimes/admin/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/showtimes/admin/**").authenticated()
                         
                         // Public showtime endpoints (GET only)
                         .requestMatchers(HttpMethod.GET, "/api/showtimes/**").permitAll()

@@ -213,4 +213,156 @@ public class CinemaHallController {
                             .build());
         }
     }
+
+    /**
+     * Regenerate seats for a specific hall (admin only)
+     * POST /api/cinema-halls/admin/{hallId}/regenerate-seats
+     */
+    @PostMapping("/admin/{hallId}/regenerate-seats")
+    public ResponseEntity<ApiResponse<String>> regenerateSeatsForHall(
+            @PathVariable Integer hallId,
+            @RequestHeader("Authorization") String token) {
+
+        log.info("Regenerating seats for hall: {}", hallId);
+
+        try {
+            Integer userId = getUserIdFromToken(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.<String>builder()
+                                .success(false)
+                                .message("Token không hợp lệ hoặc đã hết hạn")
+                                .build());
+            }
+
+            ApiResponse<String> response = cinemaHallService.regenerateSeatsForHall(hallId, userId);
+
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+        } catch (Exception e) {
+            log.error("Error regenerating seats for hall", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.<String>builder()
+                            .success(false)
+                            .message("Lỗi server: " + e.getMessage())
+                            .build());
+        }
+    }
+
+    /**
+     * Regenerate seats for all halls in a cinema (admin only)
+     * POST /api/cinema-halls/admin/cinema/{cinemaId}/regenerate-seats
+     */
+    @PostMapping("/admin/cinema/{cinemaId}/regenerate-seats")
+    public ResponseEntity<ApiResponse<String>> regenerateSeatsForAllHalls(
+            @PathVariable Integer cinemaId,
+            @RequestHeader("Authorization") String token) {
+
+        log.info("Regenerating seats for all halls in cinema: {}", cinemaId);
+
+        try {
+            Integer userId = getUserIdFromToken(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.<String>builder()
+                                .success(false)
+                                .message("Token không hợp lệ hoặc đã hết hạn")
+                                .build());
+            }
+
+            ApiResponse<String> response = cinemaHallService.regenerateSeatsForAllHalls(cinemaId, userId);
+
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+        } catch (Exception e) {
+            log.error("Error regenerating seats for all halls", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.<String>builder()
+                            .success(false)
+                            .message("Lỗi server: " + e.getMessage())
+                            .build());
+        }
+    }
+
+    /**
+     * Delete all seats in a specific hall (admin only)
+     * DELETE /api/cinema-halls/admin/{hallId}/seats
+     */
+    @DeleteMapping("/admin/{hallId}/seats")
+    public ResponseEntity<ApiResponse<String>> deleteAllSeatsInHall(
+            @PathVariable Integer hallId,
+            @RequestHeader("Authorization") String token) {
+
+        log.info("Deleting all seats for hall: {}", hallId);
+
+        try {
+            Integer userId = getUserIdFromToken(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.<String>builder()
+                                .success(false)
+                                .message("Token không hợp lệ hoặc đã hết hạn")
+                                .build());
+            }
+
+            ApiResponse<String> response = cinemaHallService.deleteAllSeatsInHall(hallId, userId);
+
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+        } catch (Exception e) {
+            log.error("Error deleting seats for hall", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.<String>builder()
+                            .success(false)
+                            .message("Lỗi server: " + e.getMessage())
+                            .build());
+        }
+    }
+
+    /**
+     * Delete all seats in all halls of a cinema (admin only)
+     * DELETE /api/cinema-halls/admin/cinema/{cinemaId}/seats
+     */
+    @DeleteMapping("/admin/cinema/{cinemaId}/seats")
+    public ResponseEntity<ApiResponse<String>> deleteAllSeatsInCinema(
+            @PathVariable Integer cinemaId,
+            @RequestHeader("Authorization") String token) {
+
+        log.info("Deleting all seats for cinema: {}", cinemaId);
+
+        try {
+            Integer userId = getUserIdFromToken(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.<String>builder()
+                                .success(false)
+                                .message("Token không hợp lệ hoặc đã hết hạn")
+                                .build());
+            }
+
+            ApiResponse<String> response = cinemaHallService.deleteAllSeatsInCinema(cinemaId, userId);
+
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+        } catch (Exception e) {
+            log.error("Error deleting seats for cinema", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.<String>builder()
+                            .success(false)
+                            .message("Lỗi server: " + e.getMessage())
+                            .build());
+        }
+    }
 }

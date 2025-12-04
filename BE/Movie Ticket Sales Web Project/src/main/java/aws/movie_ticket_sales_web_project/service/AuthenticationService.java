@@ -182,18 +182,15 @@ public class AuthenticationService {
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
 
+            // Generate tokens
+            String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), user.getId());
+            String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail(), user.getId());
+
             // Get user roles
             List<UserRole> userRoles = userRoleRepository.findByUserId(user.getId());
             List<String> roleNames = userRoles.stream()
                     .map(userRole -> userRole.getRole().getRoleName())
                     .collect(Collectors.toList());
-
-            // Generate tokens with roles (add ROLE_ prefix for Spring Security)
-            List<String> authorities = roleNames.stream()
-                    .map(role -> "ROLE_" + role)
-                    .collect(Collectors.toList());
-            String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), user.getId(), authorities);
-            String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail(), user.getId());
 
             // Get membership info
             Membership membership = membershipRepository.findByUserId(user.getId())

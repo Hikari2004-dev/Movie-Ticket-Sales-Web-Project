@@ -3,9 +3,12 @@ package aws.movie_ticket_sales_web_project.service;
 import aws.movie_ticket_sales_web_project.dto.*;
 import aws.movie_ticket_sales_web_project.entity.Cinema;
 import aws.movie_ticket_sales_web_project.entity.CinemaHall;
+import aws.movie_ticket_sales_web_project.entity.Seat;
 import aws.movie_ticket_sales_web_project.entity.UserRole;
+import aws.movie_ticket_sales_web_project.enums.SeatType;
 import aws.movie_ticket_sales_web_project.repository.CinemaHallRepository;
 import aws.movie_ticket_sales_web_project.repository.CinemaRepository;
+import aws.movie_ticket_sales_web_project.repository.SeatRepository;
 import aws.movie_ticket_sales_web_project.repository.UserRoleRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -29,6 +34,7 @@ public class CinemaHallService {
     private final CinemaHallRepository cinemaHallRepository;
     private final CinemaRepository cinemaRepository;
     private final UserRoleRepository userRoleRepository;
+    private final SeatRepository seatRepository;
 
     /**
      * Check if user has SYSTEM_ADMIN or ADMIN role
@@ -265,6 +271,9 @@ public class CinemaHallService {
             hall.setUpdatedAt(Instant.now());
 
             CinemaHall savedHall = cinemaHallRepository.save(hall);
+            
+            // Generate seats for the newly created hall
+            generateSeatsForHall(savedHall);
 
             log.info("Cinema hall created successfully with ID: {}", savedHall.getId());
             return ApiResponse.<CinemaHallDto>builder()
@@ -332,6 +341,11 @@ public class CinemaHallService {
                 hall.setHallName(request.getHallName());
             }
 
+            // Track if seat regeneration is needed
+            boolean needRegenerateSeats = false;
+            Integer oldRowsCount = hall.getRowsCount();
+            Integer oldSeatsPerRow = hall.getSeatsPerRow();
+            
             if (request.getHallType() != null) {
                 try {
                     hall.setHallType(aws.movie_ticket_sales_web_project.enums.HallType.valueOf(request.getHallType()));
@@ -342,11 +356,13 @@ public class CinemaHallService {
             if (request.getTotalSeats() != null && request.getTotalSeats() > 0) {
                 hall.setTotalSeats(request.getTotalSeats());
             }
-            if (request.getRowsCount() != null) {
+            if (request.getRowsCount() != null && !request.getRowsCount().equals(oldRowsCount)) {
                 hall.setRowsCount(request.getRowsCount());
+                needRegenerateSeats = true;
             }
-            if (request.getSeatsPerRow() != null) {
+            if (request.getSeatsPerRow() != null && !request.getSeatsPerRow().equals(oldSeatsPerRow)) {
                 hall.setSeatsPerRow(request.getSeatsPerRow());
+                needRegenerateSeats = true;
             }
             if (request.getScreenType() != null) {
                 hall.setScreenType(request.getScreenType());
@@ -356,6 +372,8 @@ public class CinemaHallService {
             }
             if (request.getSeatLayout() != null) {
                 hall.setSeatLayout(request.getSeatLayout());
+                // Regenerate seats if seat layout changes
+                needRegenerateSeats = true;
             }
             if (request.getIsActive() != null) {
                 hall.setIsActive(request.getIsActive());
@@ -364,6 +382,15 @@ public class CinemaHallService {
             hall.setUpdatedAt(Instant.now());
 
             CinemaHall updatedHall = cinemaHallRepository.save(hall);
+            
+            // Regenerate seats if needed
+            if (needRegenerateSeats) {
+                log.info("Regenerating seats for hall ID: {} due to configuration changes", updatedHall.getId());
+                // Delete existing seats
+                seatRepository.deleteByHallId(updatedHall.getId());
+                // Generate new seats
+                generateSeatsForHall(updatedHall);
+            }
 
             log.info("Cinema hall updated successfully with ID: {}", updatedHall.getId());
             return ApiResponse.<CinemaHallDto>builder()
@@ -427,6 +454,338 @@ public class CinemaHallService {
             return ApiResponse.<Void>builder()
                     .success(false)
                     .message("Lỗi khi xóa phòng chiếu: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * Generate seats for a cinema hall
+     */
+    private void generateSeatsForHall(CinemaHall hall) {
+        log.info("Generating seats for hall ID: {}", hall.getId());
+        
+        List<Seat> seats = new ArrayList<>();
+        Integer rowsCount = hall.getRowsCount();
+        Integer seatsPerRow = hall.getSeatsPerRow();
+        Map<String, Object> seatLayout = hall.getSeatLayout();
+        
+        if (rowsCount == null || seatsPerRow == null || rowsCount <= 0 || seatsPerRow <= 0) {
+            log.warn("Invalid rowsCount or seatsPerRow for hall ID: {}", hall.getId());
+            return;
+        }
+        
+        // Generate seats based on rowsCount and seatsPerRow
+        for (int row = 0; row < rowsCount; row++) {
+            // Convert row number to letter (0->A, 1->B, etc.)
+            String rowLetter = String.valueOf((char) ('A' + row));
+            
+            for (int seatNum = 1; seatNum <= seatsPerRow; seatNum++) {
+                Seat seat = new Seat();
+                seat.setHall(hall);
+                seat.setSeatRow(rowLetter);
+                seat.setSeatNumber(seatNum);
+                
+                // Determine seat type based on seatLayout
+                SeatType seatType = determineSeatType(rowLetter, seatNum, seatLayout);
+                seat.setSeatType(seatType);
+                
+                seat.setPositionX(seatNum);
+                seat.setPositionY(row + 1);
+                seat.setIsActive(true);
+                
+                seats.add(seat);
+            }
+        }
+        
+        // Save all seats in batch
+        if (!seats.isEmpty()) {
+            seatRepository.saveAll(seats);
+            log.info("Successfully generated {} seats for hall ID: {}", seats.size(), hall.getId());
+        }
+    }
+    
+    /**
+     * Determine seat type based on seatLayout configuration
+     */
+    private SeatType determineSeatType(String rowLetter, Integer seatNumber, Map<String, Object> seatLayout) {
+        if (seatLayout == null || seatLayout.isEmpty()) {
+            // Default logic: First 2 rows (A, B) are VIP
+            if ("A".equals(rowLetter) || "B".equals(rowLetter)) {
+                return SeatType.VIP;
+            }
+            return SeatType.STANDARD;
+        }
+        
+        // Check specific seat configuration (e.g., "A1": "premium")
+        String seatKey = rowLetter + seatNumber;
+        if (seatLayout.containsKey(seatKey)) {
+            String seatTypeStr = String.valueOf(seatLayout.get(seatKey)).toUpperCase();
+            try {
+                // Map layout values to SeatType enum
+                switch (seatTypeStr) {
+                    case "PREMIUM":
+                    case "VIP":
+                        return SeatType.VIP;
+                    case "COUPLE":
+                        return SeatType.COUPLE;
+                    case "WHEELCHAIR":
+                        return SeatType.WHEELCHAIR;
+                    default:
+                        return SeatType.STANDARD;
+                }
+            } catch (Exception e) {
+                log.warn("Invalid seat type in layout: {}", seatTypeStr);
+            }
+        }
+        
+        // Default logic: First 2 rows (A, B) are VIP
+        if ("A".equals(rowLetter) || "B".equals(rowLetter)) {
+            return SeatType.VIP;
+        }
+        
+        return SeatType.STANDARD;
+    }
+
+    /**
+     * Regenerate seats for a specific hall (admin only)
+     */
+    @Transactional
+    public ApiResponse<String> regenerateSeatsForHall(Integer hallId, Integer userId) {
+        log.info("Regenerating seats for hall ID: {}, requested by user: {}", hallId, userId);
+        
+        try {
+            Optional<CinemaHall> hallOpt = cinemaHallRepository.findById(hallId);
+            if (hallOpt.isEmpty()) {
+                return ApiResponse.<String>builder()
+                        .success(false)
+                        .message("Phòng chiếu không tồn tại")
+                        .build();
+            }
+            
+            CinemaHall hall = hallOpt.get();
+            
+            // Check authorization
+            boolean isAdmin = isSystemAdmin(userId);
+            boolean isManager = isCinemaManager(userId, hall.getCinema().getId());
+            
+            if (!isAdmin && !isManager) {
+                return ApiResponse.<String>builder()
+                        .success(false)
+                        .message("Bạn không có quyền tạo lại ghế cho phòng chiếu này")
+                        .build();
+            }
+            
+            // Delete existing seats
+            seatRepository.deleteByHallId(hallId);
+            log.info("Deleted existing seats for hall ID: {}", hallId);
+            
+            // Generate new seats
+            generateSeatsForHall(hall);
+            
+            long seatCount = seatRepository.countByHallId(hallId);
+            
+            return ApiResponse.<String>builder()
+                    .success(true)
+                    .message("Tạo lại ghế thành công")
+                    .data("Đã tạo " + seatCount + " ghế cho phòng chiếu " + hall.getHallName())
+                    .build();
+                    
+        } catch (Exception e) {
+            log.error("Error regenerating seats for hall", e);
+            return ApiResponse.<String>builder()
+                    .success(false)
+                    .message("Lỗi khi tạo lại ghế: " + e.getMessage())
+                    .build();
+        }
+    }
+    
+    /**
+     * Regenerate seats for all halls in a cinema (admin only)
+     */
+    @Transactional
+    public ApiResponse<String> regenerateSeatsForAllHalls(Integer cinemaId, Integer userId) {
+        log.info("Regenerating seats for all halls in cinema ID: {}, requested by user: {}", cinemaId, userId);
+        
+        try {
+            // Check authorization
+            boolean isAdmin = isSystemAdmin(userId);
+            boolean isManager = isCinemaManager(userId, cinemaId);
+            
+            if (!isAdmin && !isManager) {
+                return ApiResponse.<String>builder()
+                        .success(false)
+                        .message("Bạn không có quyền tạo lại ghế cho rạp này")
+                        .build();
+            }
+            
+            List<CinemaHall> halls = cinemaHallRepository.findByCinemaId(cinemaId);
+            
+            if (halls.isEmpty()) {
+                return ApiResponse.<String>builder()
+                        .success(false)
+                        .message("Không tìm thấy phòng chiếu nào trong rạp này")
+                        .build();
+            }
+            
+            int totalSeatsGenerated = 0;
+            int hallsProcessed = 0;
+            
+            for (CinemaHall hall : halls) {
+                if (hall.getRowsCount() != null && hall.getSeatsPerRow() != null) {
+                    // Delete existing seats
+                    seatRepository.deleteByHallId(hall.getId());
+                    
+                    // Generate new seats
+                    generateSeatsForHall(hall);
+                    
+                    long seatCount = seatRepository.countByHallId(hall.getId());
+                    totalSeatsGenerated += seatCount;
+                    hallsProcessed++;
+                    
+                    log.info("Regenerated {} seats for hall: {}", seatCount, hall.getHallName());
+                }
+            }
+            
+            return ApiResponse.<String>builder()
+                    .success(true)
+                    .message("Tạo lại ghế thành công")
+                    .data("Đã tạo " + totalSeatsGenerated + " ghế cho " + hallsProcessed + " phòng chiếu")
+                    .build();
+                    
+        } catch (Exception e) {
+            log.error("Error regenerating seats for all halls", e);
+            return ApiResponse.<String>builder()
+                    .success(false)
+                    .message("Lỗi khi tạo lại ghế: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * Delete all seats in a specific hall (admin only)
+     */
+    @Transactional
+    public ApiResponse<String> deleteAllSeatsInHall(Integer hallId, Integer userId) {
+        log.info("Deleting all seats for hall ID: {}, requested by user: {}", hallId, userId);
+        
+        try {
+            Optional<CinemaHall> hallOpt = cinemaHallRepository.findById(hallId);
+            if (hallOpt.isEmpty()) {
+                return ApiResponse.<String>builder()
+                        .success(false)
+                        .message("Phòng chiếu không tồn tại")
+                        .build();
+            }
+            
+            CinemaHall hall = hallOpt.get();
+            
+            // Check authorization
+            boolean isAdmin = isSystemAdmin(userId);
+            boolean isManager = isCinemaManager(userId, hall.getCinema().getId());
+            
+            if (!isAdmin && !isManager) {
+                return ApiResponse.<String>builder()
+                        .success(false)
+                        .message("Bạn không có quyền xóa ghế của phòng chiếu này")
+                        .build();
+            }
+            
+            // Count seats before deleting
+            long seatCount = seatRepository.countByHallId(hallId);
+            
+            if (seatCount == 0) {
+                return ApiResponse.<String>builder()
+                        .success(false)
+                        .message("Phòng chiếu không có ghế nào để xóa")
+                        .build();
+            }
+            
+            // Delete all seats
+            seatRepository.deleteByHallId(hallId);
+            log.info("Deleted {} seats from hall: {}", seatCount, hall.getHallName());
+            
+            return ApiResponse.<String>builder()
+                    .success(true)
+                    .message("Xóa ghế thành công")
+                    .data("Đã xóa " + seatCount + " ghế khỏi phòng chiếu " + hall.getHallName())
+                    .build();
+                    
+        } catch (Exception e) {
+            log.error("Error deleting seats for hall", e);
+            return ApiResponse.<String>builder()
+                    .success(false)
+                    .message("Lỗi khi xóa ghế: " + e.getMessage())
+                    .build();
+        }
+    }
+    
+    /**
+     * Delete all seats in all halls of a cinema (admin only)
+     */
+    @Transactional
+    public ApiResponse<String> deleteAllSeatsInCinema(Integer cinemaId, Integer userId) {
+        log.info("Deleting all seats for cinema ID: {}, requested by user: {}", cinemaId, userId);
+        
+        try {
+            // Check authorization
+            boolean isAdmin = isSystemAdmin(userId);
+            boolean isManager = isCinemaManager(userId, cinemaId);
+            
+            if (!isAdmin && !isManager) {
+                return ApiResponse.<String>builder()
+                        .success(false)
+                        .message("Bạn không có quyền xóa ghế của rạp này")
+                        .build();
+            }
+            
+            // Verify cinema exists
+            if (!cinemaRepository.existsById(cinemaId)) {
+                return ApiResponse.<String>builder()
+                        .success(false)
+                        .message("Rạp không tồn tại")
+                        .build();
+            }
+            
+            List<CinemaHall> halls = cinemaHallRepository.findByCinemaId(cinemaId);
+            
+            if (halls.isEmpty()) {
+                return ApiResponse.<String>builder()
+                        .success(false)
+                        .message("Rạp không có phòng chiếu nào")
+                        .build();
+            }
+            
+            int totalSeatsDeleted = 0;
+            int hallsProcessed = 0;
+            
+            for (CinemaHall hall : halls) {
+                long seatCount = seatRepository.countByHallId(hall.getId());
+                if (seatCount > 0) {
+                    seatRepository.deleteByHallId(hall.getId());
+                    totalSeatsDeleted += seatCount;
+                    hallsProcessed++;
+                    log.info("Deleted {} seats from hall: {}", seatCount, hall.getHallName());
+                }
+            }
+            
+            if (totalSeatsDeleted == 0) {
+                return ApiResponse.<String>builder()
+                        .success(false)
+                        .message("Không có ghế nào để xóa")
+                        .build();
+            }
+            
+            return ApiResponse.<String>builder()
+                    .success(true)
+                    .message("Xóa ghế thành công")
+                    .data("Đã xóa " + totalSeatsDeleted + " ghế từ " + hallsProcessed + " phòng chiếu")
+                    .build();
+                    
+        } catch (Exception e) {
+            log.error("Error deleting seats for cinema", e);
+            return ApiResponse.<String>builder()
+                    .success(false)
+                    .message("Lỗi khi xóa ghế: " + e.getMessage())
                     .build();
         }
     }

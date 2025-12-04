@@ -1,5 +1,6 @@
 package aws.movie_ticket_sales_web_project.entity;
 
+import aws.movie_ticket_sales_web_project.converter.FormatTypeConverter;
 import aws.movie_ticket_sales_web_project.enums.FormatType;
 import aws.movie_ticket_sales_web_project.enums.ShowtimeStatus;
 import jakarta.persistence.*;
@@ -18,6 +19,7 @@ import java.time.LocalTime;
 @Table(name = "showtimes")
 public class Showtime {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "showtime_id", nullable = false)
     private Integer id;
 
@@ -39,7 +41,7 @@ public class Showtime {
     private LocalTime endTime;
 
     @ColumnDefault("'2D'")
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = FormatTypeConverter.class)
     @Column(name = "format_type")
     private FormatType formatType;
 

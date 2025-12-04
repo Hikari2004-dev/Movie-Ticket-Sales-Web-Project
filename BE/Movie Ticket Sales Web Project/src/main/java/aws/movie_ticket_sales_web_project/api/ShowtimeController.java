@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/showtimes")
 @AllArgsConstructor
@@ -33,40 +35,17 @@ public class ShowtimeController {
     }
 
     /**
-     * Get all showtimes for a cinema
-     * GET /api/showtimes/cinema/{cinemaId}
+     * Get all showtimes with pagination (public)
+     * GET /api/showtimes
      */
-    @GetMapping("/cinema/{cinemaId}")
-    public ResponseEntity<ApiResponse<PagedShowtimeResponse>> getShowtimesByCinema(
-            @PathVariable Integer cinemaId,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(required = false) String search) {
-
-        log.info("Getting showtimes for cinema: {}", cinemaId);
-
-        ApiResponse<PagedShowtimeResponse> response = showtimeService.getShowtimesByCinema(cinemaId, page, size, search);
-
-        if (response.getSuccess()) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
-    }
-
-    /**
-     * Get showtimes for a hall
-     * GET /api/showtimes/hall/{hallId}
-     */
-    @GetMapping("/hall/{hallId}")
-    public ResponseEntity<ApiResponse<PagedShowtimeResponse>> getShowtimesByHall(
-            @PathVariable Integer hallId,
+    @GetMapping
+    public ResponseEntity<ApiResponse<PagedShowtimeResponse>> getAllShowtimes(
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
 
-        log.info("Getting showtimes for hall: {}", hallId);
+        log.info("Getting all showtimes - page: {}, size: {}", page, size);
 
-        ApiResponse<PagedShowtimeResponse> response = showtimeService.getShowtimesByHall(hallId, page, size);
+        ApiResponse<PagedShowtimeResponse> response = showtimeService.getAllShowtimes(page, size);
 
         if (response.getSuccess()) {
             return ResponseEntity.ok(response);
@@ -76,14 +55,33 @@ public class ShowtimeController {
     }
 
     /**
-     * Get showtime by ID
+     * Get showtimes by movie (public)
+     * GET /api/showtimes/movie/{movieId}
+     */
+    @GetMapping("/movie/{movieId}")
+    public ResponseEntity<ApiResponse<List<ShowtimeDto>>> getShowtimesByMovie(
+            @PathVariable Integer movieId) {
+
+        log.info("Getting showtimes for movie: {}", movieId);
+
+        ApiResponse<List<ShowtimeDto>> response = showtimeService.getShowtimesByMovie(movieId);
+
+        if (response.getSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    /**
+     * Get showtime by ID (public)
      * GET /api/showtimes/{showtimeId}
      */
     @GetMapping("/{showtimeId}")
     public ResponseEntity<ApiResponse<ShowtimeDto>> getShowtimeById(
             @PathVariable Integer showtimeId) {
 
-        log.info("Getting showtime: {}", showtimeId);
+        log.info("Getting showtime by ID: {}", showtimeId);
 
         ApiResponse<ShowtimeDto> response = showtimeService.getShowtimeById(showtimeId);
 
@@ -111,7 +109,7 @@ public class ShowtimeController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(ApiResponse.<ShowtimeDto>builder()
                                 .success(false)
-                                .message("Token khong hop le hoac da het han")
+                                .message("Token không hợp lệ hoặc đã hết hạn")
                                 .build());
             }
 
@@ -127,7 +125,7 @@ public class ShowtimeController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.<ShowtimeDto>builder()
                             .success(false)
-                            .message("Token khong hop le hoac da het han")
+                            .message("Token không hợp lệ hoặc đã hết hạn")
                             .build());
         }
     }
@@ -142,7 +140,7 @@ public class ShowtimeController {
             @RequestBody UpdateShowtimeRequest request,
             @RequestHeader("Authorization") String token) {
 
-        log.info("Updating showtime: {}", showtimeId);
+        log.info("Updating showtime ID: {}", showtimeId);
 
         try {
             Integer userId = getUserIdFromToken(token);
@@ -150,11 +148,13 @@ public class ShowtimeController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(ApiResponse.<ShowtimeDto>builder()
                                 .success(false)
-                                .message("Token khong hop le hoac da het han")
+                                .message("Token không hợp lệ hoặc đã hết hạn")
                                 .build());
             }
 
+            // Ensure showtimeId in URL matches request body
             request.setShowtimeId(showtimeId);
+
             ApiResponse<ShowtimeDto> response = showtimeService.updateShowtime(request, userId);
 
             if (response.getSuccess()) {
@@ -167,7 +167,7 @@ public class ShowtimeController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.<ShowtimeDto>builder()
                             .success(false)
-                            .message("Token khong hop le hoac da het han")
+                            .message("Token không hợp lệ hoặc đã hết hạn")
                             .build());
         }
     }
@@ -181,7 +181,7 @@ public class ShowtimeController {
             @PathVariable Integer showtimeId,
             @RequestHeader("Authorization") String token) {
 
-        log.info("Deleting showtime: {}", showtimeId);
+        log.info("Deleting showtime ID: {}", showtimeId);
 
         try {
             Integer userId = getUserIdFromToken(token);
@@ -189,7 +189,7 @@ public class ShowtimeController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(ApiResponse.<Void>builder()
                                 .success(false)
-                                .message("Token khong hop le hoac da het han")
+                                .message("Token không hợp lệ hoặc đã hết hạn")
                                 .build());
             }
 
@@ -205,7 +205,7 @@ public class ShowtimeController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.<Void>builder()
                             .success(false)
-                            .message("Token khong hop le hoac da het han")
+                            .message("Token không hợp lệ hoặc đã hết hạn")
                             .build());
         }
     }

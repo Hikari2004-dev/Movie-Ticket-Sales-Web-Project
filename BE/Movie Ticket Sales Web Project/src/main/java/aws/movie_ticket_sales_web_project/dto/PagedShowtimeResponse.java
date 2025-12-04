@@ -1,5 +1,6 @@
 package aws.movie_ticket_sales_web_project.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,12 +9,28 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class PagedShowtimeResponse {
-    private List<ShowtimeDto> showtimes;
-    private Integer currentPage;
+    @JsonProperty("totalElements")
+    private Long totalElements;
+    
+    @JsonProperty("totalPages")
     private Integer totalPages;
-    private Long totalItems;
+    
+    @JsonProperty("currentPage")
+    private Integer currentPage;
+    
+    @JsonProperty("pageSize")
+    private Integer pageSize;
+    
+    @JsonProperty("hasNext")
+    private Boolean hasNext;
+    
+    @JsonProperty("hasPrevious")
+    private Boolean hasPrevious;
+    
+    @JsonProperty("data")
+    private List<ShowtimeDto> data;
 }
