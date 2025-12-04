@@ -2,6 +2,8 @@ package aws.movie_ticket_sales_web_project.repository;
 
 import aws.movie_ticket_sales_web_project.entity.Showtime;
 import aws.movie_ticket_sales_web_project.enums.FormatType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,4 +19,19 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Integer> {
     
     @Query("SELECT s FROM Showtime s WHERE s.movie.id = :movieId")
     List<Showtime> findByMovieId(@Param("movieId") Integer movieId);
+    
+    @Query("SELECT s FROM Showtime s WHERE s.hall.cinema.id = :cinemaId ORDER BY s.showDate, s.startTime")
+    Page<Showtime> findShowtimesByCinema(@Param("cinemaId") Integer cinemaId, Pageable pageable);
+    
+    @Query("SELECT s FROM Showtime s WHERE s.hall.cinema.id = :cinemaId AND " +
+           "(LOWER(s.movie.title) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(s.hall.hallName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "ORDER BY s.showDate, s.startTime")
+    Page<Showtime> findShowtimesByCinemaWithSearch(
+            @Param("cinemaId") Integer cinemaId,
+            @Param("search") String search,
+            Pageable pageable);
+    
+    @Query("SELECT s FROM Showtime s WHERE s.hall.id = :hallId ORDER BY s.showDate, s.startTime")
+    Page<Showtime> findShowtimesByHall(@Param("hallId") Integer hallId, Pageable pageable);
 }

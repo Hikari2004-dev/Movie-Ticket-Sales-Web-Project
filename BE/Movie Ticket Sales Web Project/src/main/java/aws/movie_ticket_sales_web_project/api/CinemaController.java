@@ -74,7 +74,7 @@ public class CinemaController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(ApiResponse.<PagedCinemaResponse>builder()
                                 .success(false)
-                                .message("Token không hợp lệ hoặc đã hết hạn")
+                                .message("Token khong hop le hoac da het han")
                                 .build());
             }
 
@@ -90,7 +90,7 @@ public class CinemaController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.<PagedCinemaResponse>builder()
                             .success(false)
-                            .message("Token không hợp lệ hoặc đã hết hạn")
+                            .message("Token khong hop le hoac da het han")
                             .build());
         }
     }
@@ -132,7 +132,7 @@ public class CinemaController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(ApiResponse.<CinemaDto>builder()
                                 .success(false)
-                                .message("Token không hợp lệ hoặc đã hết hạn")
+                                .message("Token khong hop le hoac da het han")
                                 .build());
             }
 
@@ -148,7 +148,7 @@ public class CinemaController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.<CinemaDto>builder()
                             .success(false)
-                            .message("Token không hợp lệ hoặc đã hết hạn")
+                            .message("Token khong hop le hoac da het han")
                             .build());
         }
     }
@@ -171,7 +171,7 @@ public class CinemaController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(ApiResponse.<CinemaDto>builder()
                                 .success(false)
-                                .message("Token không hợp lệ hoặc đã hết hạn")
+                                .message("Token khong hop le hoac da het han")
                                 .build());
             }
 
@@ -190,7 +190,7 @@ public class CinemaController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.<CinemaDto>builder()
                             .success(false)
-                            .message("Token không hợp lệ hoặc đã hết hạn")
+                            .message("Token khong hop le hoac da het han")
                             .build());
         }
     }
@@ -213,7 +213,7 @@ public class CinemaController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(ApiResponse.<Void>builder()
                                 .success(false)
-                                .message("Token không hợp lệ hoặc đã hết hạn")
+                                .message("Token khong hop le hoac da het han")
                                 .build());
             }
 
@@ -229,7 +229,88 @@ public class CinemaController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.<Void>builder()
                             .success(false)
-                            .message("Token không hợp lệ hoặc đã hết hạn")
+                            .message("Token khong hop le hoac da het han")
+                            .build());
+        }
+    }
+
+    /**
+     * Get my cinemas (for CINEMA_MANAGER - only cinemas managed by this user)
+     * Or all cinemas for SYSTEM_ADMIN
+     * GET /api/cinemas/my-cinemas
+     */
+    @GetMapping("/my-cinemas")
+    public ResponseEntity<ApiResponse<PagedCinemaResponse>> getMycinemas(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String search,
+            @RequestHeader("Authorization") String token) {
+
+        log.info("Getting my cinemas for manager - page: {}, size: {}, search: {}", page, size, search);
+
+        try {
+            Integer userId = getUserIdFromToken(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.<PagedCinemaResponse>builder()
+                                .success(false)
+                                .message("Token khong hop le hoac da het han")
+                                .build());
+            }
+
+            ApiResponse<PagedCinemaResponse> response = cinemaService.getMycinemas(userId, page, size, search);
+
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+        } catch (Exception e) {
+            log.error("Error getting my cinemas", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.<PagedCinemaResponse>builder()
+                            .success(false)
+                            .message("Error: " + e.getMessage())
+                            .build());
+        }
+    }
+
+    /**
+     * Get all cinemas (for SYSTEM_ADMIN)
+     * GET /api/cinemas/admin/all
+     */
+    @GetMapping("/admin/all")
+    public ResponseEntity<ApiResponse<PagedCinemaResponse>> getAllCinemasForSystemAdmin(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String search,
+            @RequestHeader("Authorization") String token) {
+
+        log.info("Getting all cinemas for SYSTEM_ADMIN - page: {}, size: {}, search: {}", page, size, search);
+
+        try {
+            Integer userId = getUserIdFromToken(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.<PagedCinemaResponse>builder()
+                                .success(false)
+                                .message("Token khong hop le hoac da het han")
+                                .build());
+            }
+
+            ApiResponse<PagedCinemaResponse> response = cinemaService.getAllCinemasForSystemAdmin(userId, page, size, search);
+
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+        } catch (Exception e) {
+            log.error("Error getting all cinemas", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.<PagedCinemaResponse>builder()
+                            .success(false)
+                            .message("Error: " + e.getMessage())
                             .build());
         }
     }

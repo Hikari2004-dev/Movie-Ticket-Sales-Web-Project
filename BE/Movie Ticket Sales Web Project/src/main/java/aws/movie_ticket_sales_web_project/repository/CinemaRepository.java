@@ -62,4 +62,29 @@ public interface CinemaRepository extends JpaRepository<Cinema, Integer> {
      * Find cinema by ID and chain ID (security check)
      */
     Optional<Cinema> findByIdAndChainId(Integer cinemaId, Integer chainId);
+
+    /**
+     * Find cinemas by manager ID
+     */
+    Page<Cinema> findByManagerId(Integer managerId, Pageable pageable);
+
+    List<Cinema> findByManagerId(Integer managerId);
+
+    /**
+     * Find cinemas by manager ID and chain ID
+     */
+    @Query("SELECT c FROM Cinema c WHERE c.manager.id = :managerId AND c.chain.id = :chainId")
+    Page<Cinema> findCinemasByManagerAndChain(@Param("managerId") Integer managerId, @Param("chainId") Integer chainId, Pageable pageable);
+
+    /**
+     * Search cinemas by manager ID and cinema name
+     */
+    @Query("SELECT c FROM Cinema c WHERE c.manager.id = :managerId AND LOWER(c.cinemaName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) ORDER BY c.createdAt DESC")
+    Page<Cinema> findByManagerIdAndCinemaNameContainingIgnoreCase(@Param("managerId") Integer managerId, @Param("searchTerm") String searchTerm, Pageable pageable);
+
+    /**
+     * Search all cinemas by name (for system admin)
+     */
+    @Query("SELECT c FROM Cinema c WHERE LOWER(c.cinemaName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) ORDER BY c.createdAt DESC")
+    Page<Cinema> findByCinemaNameContainingIgnoreCase(@Param("searchTerm") String searchTerm, Pageable pageable);
 }

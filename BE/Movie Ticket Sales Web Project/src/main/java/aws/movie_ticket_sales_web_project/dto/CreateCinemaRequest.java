@@ -13,6 +13,7 @@ import java.util.Map;
 @Builder
 public class CreateCinemaRequest {
     private Integer chainId;
+    private Integer managerId;
     private String cinemaName;
     private String address;
     private String city;

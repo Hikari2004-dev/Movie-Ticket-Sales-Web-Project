@@ -2,10 +2,8 @@ package aws.movie_ticket_sales_web_project.service;
 
 import aws.movie_ticket_sales_web_project.dto.*;
 import aws.movie_ticket_sales_web_project.entity.CinemaChain;
-import aws.movie_ticket_sales_web_project.entity.User;
 import aws.movie_ticket_sales_web_project.entity.UserRole;
 import aws.movie_ticket_sales_web_project.repository.CinemaChainRepository;
-import aws.movie_ticket_sales_web_project.repository.UserRepository;
 import aws.movie_ticket_sales_web_project.repository.UserRoleRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +25,6 @@ import java.util.stream.Collectors;
 public class CinemaChainService {
 
     private final CinemaChainRepository cinemaChainRepository;
-    private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
 
     /**

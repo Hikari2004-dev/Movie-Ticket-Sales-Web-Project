@@ -127,15 +127,36 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/cinemas/admin/**").hasRole("SYSTEM_ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/cinemas/admin/**").hasRole("SYSTEM_ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/cinemas/chain/{chainId}/admin").hasRole("SYSTEM_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/cinemas/admin/all").hasRole("SYSTEM_ADMIN")
+                        
+                        // Authenticated cinema endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/cinemas/my-cinemas").authenticated()
                         
                         // Public cinema endpoints (GET only)
                         .requestMatchers(HttpMethod.GET, "/api/cinemas/**").permitAll()
+                        
+                        // Admin-only cinema hall endpoints
+                        .requestMatchers(HttpMethod.POST, "/api/cinema-halls/admin").hasRole("SYSTEM_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/cinema-halls/admin/**").hasRole("SYSTEM_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/cinema-halls/admin/**").hasRole("SYSTEM_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/cinema-halls/cinema/{cinemaId}/admin").hasRole("SYSTEM_ADMIN")
+                        
+                        // Public cinema hall endpoints (GET only)
+                        .requestMatchers(HttpMethod.GET, "/api/cinema-halls/**").permitAll()
+                        
+                        // Admin-only showtime endpoints
+                        .requestMatchers(HttpMethod.POST, "/api/showtimes/admin").hasRole("SYSTEM_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/showtimes/admin/**").hasRole("SYSTEM_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/showtimes/admin/**").hasRole("SYSTEM_ADMIN")
+                        
+                        // Public showtime endpoints (GET only)
+                        .requestMatchers(HttpMethod.GET, "/api/showtimes/**").permitAll()
                         
                         // Admin-only endpoints
                         .requestMatchers("/api/admin/**").hasRole("SYSTEM_ADMIN")
                         
                         // Static resources
-                        .requestMatchers(HttpMethod.GET, "/", "/favicon.ico", "/**/*.png", "/**/*.gif", "/**/*.svg", "/**/*.jpg", "/**/*.html", "/**/*.css", "/**/*.js").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/", "/favicon.ico", "/static/**", "/images/**", "/css/**", "/js/**").permitAll()
                         
                         // All other requests need authentication
                         .anyRequest().authenticated()

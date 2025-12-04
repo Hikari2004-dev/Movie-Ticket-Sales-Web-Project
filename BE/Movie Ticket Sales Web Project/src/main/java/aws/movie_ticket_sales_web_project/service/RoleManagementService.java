@@ -226,4 +226,65 @@ public class RoleManagementService {
                     .build();
         }
     }
+
+    /**
+     * Get users by role name (Public - for dropdown selections)
+     */
+    public ApiResponse<List<UserInfo>> getUsersByRole(String roleName, Integer requestingUserId) {
+        log.info("Getting users with role: {}, requested by user: {}", roleName, requestingUserId);
+
+        // Allow public access to view users by role (used for manager selection dropdown)
+        // Only specific roles like CINEMA_MANAGER should be queryable for security
+        if (!roleName.equals("CINEMA_MANAGER")) {
+            if (!isUserAdmin(requestingUserId)) {
+                return ApiResponse.<List<UserInfo>>builder()
+                        .success(false)
+                        .message("Access denied. Only administrators can view users by this role.")
+                        .build();
+            }
+        }
+
+        try {
+            // Find role by name
+            var role = roleRepository.findByRoleName(roleName);
+            if (role.isEmpty()) {
+                return ApiResponse.<List<UserInfo>>builder()
+                        .success(false)
+                        .message("Role not found: " + roleName)
+                        .build();
+            }
+
+            // Find all users with this role
+            List<UserRole> userRoles = userRoleRepository.findByRoleId(role.get().getId());
+            
+            List<UserInfo> users = userRoles.stream()
+                    .map(userRole -> {
+                        User user = userRole.getUser();
+                        return UserInfo.builder()
+                                .userId(user.getId())
+                                .email(user.getEmail())
+                                .fullName(user.getFullName())
+                                .phone(user.getPhoneNumber())
+                                .roles(List.of(roleName))
+                                .isActive(user.getIsActive())
+                                .createdAt(user.getCreatedAt())
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+
+            log.info("Found {} users with role {}", users.size(), roleName);
+            return ApiResponse.<List<UserInfo>>builder()
+                    .success(true)
+                    .message("Users found")
+                    .data(users)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Error getting users by role", e);
+            return ApiResponse.<List<UserInfo>>builder()
+                    .success(false)
+                    .message("Failed to get users: " + e.getMessage())
+                    .build();
+        }
+    }
 }

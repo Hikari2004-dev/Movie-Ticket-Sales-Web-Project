@@ -25,6 +25,10 @@ public class Cinema {
     @JoinColumn(name = "chain_id")
     private CinemaChain chain;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "manager_id")
+    private User manager;
+
     @Column(name = "cinema_name", nullable = false)
     private String cinemaName;
 

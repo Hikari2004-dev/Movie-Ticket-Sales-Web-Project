@@ -14,6 +14,10 @@ import MovieManagement from './components/MovieManagement';
 import AccountManagement from './components/AccountManagement';
 import CinemaChainManagement from './components/CinemaChainManagement';
 import CinemaManagement from './components/CinemaManagement';
+import MyCinemaManagement from './components/MyCinemaManagement';
+import UnifiedCinemaManagement from './components/UnifiedCinemaManagement';
+import CinemaManagementHierarchy from './components/CinemaManagementHierarchy';
+import CinemaHallManagement from './components/CinemaHallManagement';
 import AdminLayout from './components/AdminLayout';
 import SystemAdminLayout from './components/SystemAdminLayout';
 import SystemAdminDashboard from './components/SystemAdminDashboard';
@@ -71,8 +75,8 @@ function App() {
             {/* Core Management */}
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="movies" element={<MovieManagement />} />
-            <Route path="cinema-chains" element={<CinemaChainManagement />} />
-            <Route path="cinema-chains/:chainId" element={<CinemaManagement />} />
+            <Route path="cinema-management" element={<CinemaManagementHierarchy />} />
+            <Route path="cinema-halls/:cinemaId" element={<CinemaHallManagement />} />
             <Route path="cinemas" element={<ComingSoon feature="Quản Lý Rạp" />} />
             <Route path="showtimes" element={<ComingSoon feature="Quản Lý Suất Chiếu" />} />
             

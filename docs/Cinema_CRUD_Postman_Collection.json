@@ -1,0 +1,336 @@
+{
+  "info": {
+    "_postman_id": "cinema-crud-collection",
+    "name": "Cinema CRUD API",
+    "description": "Test Cinema Create, Read, Update, Delete operations",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.data && jsonData.data.accessToken) {",
+              "        pm.environment.set(\"token\", jsonData.data.accessToken);",
+              "        console.log(\"Token saved:\", jsonData.data.accessToken.substring(0, 50) + '...');",
+              "        console.log(\"User ID:\", jsonData.data.userInfo.userId);",
+              "        console.log(\"User Roles:\", jsonData.data.userInfo.roles);",
+              "    }",
+              "}",
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.expect(pm.response.code).to.equal(200);",
+              "});",
+              "pm.test(\"Response has accessToken\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.have.property('accessToken');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Admin@123\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
+      }
+    },
+    {
+      "name": "2. Get All Cinema Chains (Public)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/cinema-chains",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "cinema-chains"
+          ]
+        }
+      }
+    },
+    {
+      "name": "3. Get Cinemas by Chain",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/cinemas/chain/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "cinemas",
+            "chain",
+            "1"
+          ]
+        },
+        "description": "Get all cinemas for a specific chain (public endpoint)"
+      }
+    },
+    {
+      "name": "4. Create Cinema (Admin Required)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201 || pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.data && jsonData.data.cinemaId) {",
+              "        pm.environment.set(\"cinemaId\", jsonData.data.cinemaId);",
+              "        console.log(\"Cinema created with ID:\", jsonData.data.cinemaId);",
+              "    }",
+              "}",
+              "pm.test(\"Status code is 201 or 200\", function () {",
+              "    pm.expect([200, 201]).to.include(pm.response.code);",
+              "});",
+              "pm.test(\"Response has success true\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.equal(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"chainId\": 1,\n  \"cinemaName\": \"CGV Tây Hồ\",\n  \"address\": \"54 Tây Hồ\",\n  \"city\": \"Hà Nội\",\n  \"district\": \"Tây Hồ\",\n  \"phoneNumber\": \"0243456789\",\n  \"email\": \"cgv.tayho@cgv.vn\",\n  \"taxCode\": \"0123456789\",\n  \"legalName\": \"CGV Cinema - Tây Hồ\",\n  \"latitude\ 21.0502,\n  \"longitude\": 105.8171,\n  \"openingHours\": \"08:00 - 23:00\",\n  \"facilities\": \"Parking, Restaurant, VIP Seats\",\n  \"isActive\": true\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/cinemas/admin",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "cinemas",
+            "admin"
+          ]
+        }
+      }
+    },
+    {
+      "name": "5. Get Cinema by ID (Public)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/cinemas/{{cinemaId}}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "cinemas",
+            "{{cinemaId}}"
+          ]
+        },
+        "description": "Get cinema details by ID (public endpoint)"
+      }
+    },
+    {
+      "name": "6. Update Cinema (Admin Required)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.expect(pm.response.code).to.equal(200);",
+              "});",
+              "pm.test(\"Response has success true\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.equal(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cinemaId\": \"{{cinemaId}}\",\n  \"chainId\": 1,\n  \"cinemaName\": \"CGV Tây Hồ - Updated\",\n  \"address\": \"54 Tây Hồ\",\n  \"city\": \"Hà Nội\",\n  \"district\": \"Tây Hồ\",\n  \"phoneNumber\": \"0243456790\",\n  \"email\": \"cgv.tayho.updated@cgv.vn\",\n  \"taxCode\": \"0123456789\",\n  \"legalName\": \"CGV Cinema - Tây Hồ Updated\",\n  \"latitude\": 21.0502,\n  \"longitude\": 105.8171,\n  \"openingHours\": \"08:00 - 24:00\",\n  \"facilities\": \"Parking, Restaurant, VIP Seats, IMAX\",\n  \"isActive\": true\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/cinemas/admin/{{cinemaId}}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "cinemas",
+            "admin",
+            "{{cinemaId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "7. Delete Cinema (Admin Required)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 or 204\", function () {",
+              "    pm.expect([200, 204]).to.include(pm.response.code);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/cinemas/admin/{{cinemaId}}?chainId=1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "cinemas",
+            "admin",
+            "{{cinemaId}}"
+          ],
+          "query": [
+            {
+              "key": "chainId",
+              "value": "1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "8. Get All Cinemas by Chain (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/cinemas/chain/1/admin",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "cinemas",
+            "chain",
+            "1",
+            "admin"
+          ]
+        },
+        "description": "Get all cinemas for a chain (admin endpoint - requires token)"
+      }
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cinemaId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

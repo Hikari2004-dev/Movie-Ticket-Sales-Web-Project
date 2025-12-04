@@ -14,6 +14,7 @@ import java.util.Map;
 public class UpdateCinemaRequest {
     private Integer cinemaId;
     private Integer chainId;
+    private Integer managerId;
     private String cinemaName;
     private String address;
     private String city;

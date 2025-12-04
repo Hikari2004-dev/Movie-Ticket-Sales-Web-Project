@@ -19,6 +19,7 @@ import java.util.Map;
 @Table(name = "cinema_halls")
 public class CinemaHall {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "hall_id", nullable = false)
     private Integer id;
 

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 
 @Component
 @Slf4j
@@ -30,32 +31,45 @@ public class JwtTokenProvider {
     }
 
     /**
-     * Generate JWT access token
+     * Generate JWT access token with roles
      */
     public String generateAccessToken(String email, Integer userId) {
-        return generateToken(email, userId, jwtExpirationMs);
+        return generateAccessToken(email, userId, null);
+    }
+
+    /**
+     * Generate JWT access token with roles
+     */
+    public String generateAccessToken(String email, Integer userId, List<String> roles) {
+        return generateToken(email, userId, roles, jwtExpirationMs);
     }
 
     /**
      * Generate JWT refresh token
      */
     public String generateRefreshToken(String email, Integer userId) {
-        return generateToken(email, userId, jwtRefreshExpirationMs);
+        return generateToken(email, userId, null, jwtRefreshExpirationMs);
     }
 
     /**
      * Generate JWT token
      */
-    private String generateToken(String email, Integer userId, long expirationTime) {
+    private String generateToken(String email, Integer userId, List<String> roles, long expirationTime) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationTime);
 
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(email)
                 .claim("userId", userId)
                 .issuedAt(now)
-                .expiration(expiryDate)
-                .signWith(getSigningKey())
+                .expiration(expiryDate);
+        
+        // Add roles/authorities to token if provided
+        if (roles != null && !roles.isEmpty()) {
+            builder.claim("authorities", roles);
+        }
+
+        return builder.signWith(getSigningKey())
                 .compact();
     }
 

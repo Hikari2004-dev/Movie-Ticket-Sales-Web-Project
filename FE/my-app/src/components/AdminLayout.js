@@ -27,6 +27,21 @@ const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
+  const [isSystemAdmin, setIsSystemAdmin] = useState(false);
+
+  // Check if user is SYSTEM_ADMIN
+  React.useEffect(() => {
+    const user = localStorage.getItem('user');
+    if (user) {
+      try {
+        const userData = JSON.parse(user);
+        const hasSystemAdminRole = userData.roles && userData.roles.includes('SYSTEM_ADMIN');
+        setIsSystemAdmin(hasSystemAdminRole);
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+    }
+  }, []);
 
   const isActive = (path) => {
     return location.pathname === path;
@@ -49,18 +64,10 @@ const AdminLayout = () => {
       section: 'core'
     },
     {
-      title: 'Quản lý chuỗi rạp',
-      icon: <FaBuilding />,
-      path: '/admin/cinema-chains',
-      description: 'Quản lý chuỗi rạp chiếu',
-      section: 'core'
-    },
-    {
       title: 'Quản lý rạp',
       icon: <FaTheaterMasks />,
-      path: '/admin/cinemas',
-      description: 'Quản lý rạp chiếu',
-      disabled: true,
+      path: '/admin/cinema-management',
+      description: isSystemAdmin ? 'Quản lý chuỗi rạp & rạp chiếu' : 'Quản lý rạp được gán cho tôi',
       section: 'core'
     },
     {

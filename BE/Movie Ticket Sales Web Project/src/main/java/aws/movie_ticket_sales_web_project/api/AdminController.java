@@ -143,4 +143,34 @@ public class AdminController {
                             .build());
         }
     }
+
+    /**
+     * Get users by role name
+     * GET /api/admin/roles/{roleName}/users
+     */
+    @GetMapping("/roles/{roleName}/users")
+    public ResponseEntity<ApiResponse<List<UserInfo>>> getUsersByRole(
+            @PathVariable String roleName,
+            @RequestHeader("Authorization") String token) {
+        
+        try {
+            Integer userId = getUserIdFromToken(token);
+            log.info("Getting users with role: {}", roleName);
+            
+            ApiResponse<List<UserInfo>> response = roleManagementService.getUsersByRole(roleName, userId);
+
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+        } catch (Exception e) {
+            log.error("Error getting users by role", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.<List<UserInfo>>builder()
+                            .success(false)
+                            .message("Error: " + e.getMessage())
+                            .build());
+        }
+    }
 }

@@ -32,6 +32,8 @@ const CinemaManagement = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState('create');
   const [selectedCinema, setSelectedCinema] = useState(null);
+  const [managers, setManagers] = useState([]);
+  const [loadingManagers, setLoadingManagers] = useState(false);
   const [formData, setFormData] = useState({
     cinemaName: '',
     address: '',
@@ -42,7 +44,8 @@ const CinemaManagement = () => {
     taxCode: '',
     legalName: '',
     latitude: '',
-    longitude: ''
+    longitude: '',
+    managerId: ''
   });
   const [isActive, setIsActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -120,6 +123,43 @@ const CinemaManagement = () => {
     fetchCinemas(0, value);
   };
 
+  // Fetch managers list
+  const fetchManagers = async () => {
+    setLoadingManagers(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/roles/CINEMA_MANAGER/users`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Managers response:', result);
+        if (result.success && result.data) {
+          const managersList = Array.isArray(result.data) ? result.data : result.data.data || [];
+          console.log('Setting managers:', managersList);
+          setManagers(managersList);
+        } else {
+          console.warn('No managers found or error:', result.message);
+          setManagers([]);
+        }
+      } else {
+        console.error('Error response status:', response.status);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        setManagers([]);
+      }
+    } catch (error) {
+      console.error('Error fetching managers:', error);
+      setManagers([]);
+    } finally {
+      setLoadingManagers(false);
+    }
+  };
+
   // Open create modal
   const handleOpenCreateModal = () => {
     setModalMode('create');
@@ -133,10 +173,12 @@ const CinemaManagement = () => {
       taxCode: '',
       legalName: '',
       latitude: '',
-      longitude: ''
+      longitude: '',
+      managerId: ''
     });
     setIsActive(true);
     setSelectedCinema(null);
+    fetchManagers();
     setShowModal(true);
   };
 
@@ -153,10 +195,12 @@ const CinemaManagement = () => {
       taxCode: cinema.taxCode || '',
       legalName: cinema.legalName || '',
       latitude: cinema.latitude || '',
-      longitude: cinema.longitude || ''
+      longitude: cinema.longitude || '',
+      managerId: cinema.managerId || ''
     });
     setIsActive(cinema.isActive);
     setSelectedCinema(cinema);
+    fetchManagers();
     setShowModal(true);
   };
 
@@ -174,7 +218,8 @@ const CinemaManagement = () => {
       taxCode: '',
       legalName: '',
       latitude: '',
-      longitude: ''
+      longitude: '',
+      managerId: ''
     });
     setIsActive(true);
   };
@@ -418,6 +463,16 @@ const CinemaManagement = () => {
                     </div>
                   )}
 
+                  {cinema.managerName && (
+                    <div className="info-item">
+                      <p className="label">Người Quản Lý</p>
+                      <p className="value manager-info">
+                        {cinema.managerName} <br />
+                        <small className="text-muted">{cinema.managerEmail}</small>
+                      </p>
+                    </div>
+                  )}
+
                   <div className="cinema-footer">
                     <small className="text-muted">
                       Tạo: {new Date(cinema.createdAt).toLocaleDateString('vi-VN')}
@@ -500,6 +555,26 @@ const CinemaManagement = () => {
                     placeholder="Nhập tên rạp"
                     required
                   />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="managerId">Người Quản Lý (Manager)</label>
+                  <select
+                    id="managerId"
+                    name="managerId"
+                    value={formData.managerId}
+                    onChange={handleFormChange}
+                    disabled={loadingManagers}
+                  >
+                    <option value="">-- Chọn Người Quản Lý --</option>
+                    {managers.map((manager) => (
+                      <option key={manager.userId} value={manager.userId}>
+                        {manager.fullName} ({manager.email})
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

@@ -16,6 +16,9 @@ public class CinemaDto {
     private Integer cinemaId;
     private Integer chainId;
     private String chainName;
+    private Integer managerId;
+    private String managerName;
+    private String managerEmail;
     private String cinemaName;
     private String address;
     private String city;
