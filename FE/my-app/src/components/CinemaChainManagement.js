@@ -54,6 +54,8 @@ const CinemaChainManagement = () => {
     setLoading(true);
     try {
       if (!token) {
+        console.error('Token không tồn tại');
+        toast.error('Vui lòng đăng nhập lại');
         throw new Error('Token không tồn tại');
       }
 
@@ -65,6 +67,7 @@ const CinemaChainManagement = () => {
 
       const url = `${API_BASE_URL}/cinema-chains/admin/all?${params}`;
       console.log('Fetching from:', url);
+      console.log('Token:', token ? 'Có token' : 'Không có token');
 
       const response = await fetch(url, {
         method: 'GET',
@@ -74,26 +77,32 @@ const CinemaChainManagement = () => {
         }
       });
 
+      console.log('Response status:', response.status);
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Response status:', response.status);
         console.error('Error response:', errorText);
+        toast.error(`Lỗi ${response.status}: Không thể tải danh sách chuỗi rạp`);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const result = await response.json();
+      console.log('API Response:', result);
 
       if (result.success && result.data) {
-        setCinemaChains(result.data.data || []);
+        const chains = result.data.data || [];
+        console.log('Số chuỗi rạp:', chains.length);
+        setCinemaChains(chains);
         setTotalPages(result.data.totalPages);
         setTotalElements(result.data.totalElements);
         setPage(pageNum);
       } else {
+        console.warn('API không trả về dữ liệu hợp lệ:', result);
         toast.error(result.message || 'Lỗi khi tải danh sách rạp');
       }
     } catch (error) {
       console.error('Error fetching cinema chains:', error);
-      toast.error('Không thể tải danh sách rạp. Vui lòng thử lại.');
+      toast.error('Không thể kết nối đến server. Vui lòng kiểm tra lại.');
     } finally {
       setLoading(false);
     }

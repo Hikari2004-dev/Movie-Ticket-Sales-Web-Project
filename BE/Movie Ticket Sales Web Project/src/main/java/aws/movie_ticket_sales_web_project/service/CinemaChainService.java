@@ -28,12 +28,15 @@ public class CinemaChainService {
     private final UserRoleRepository userRoleRepository;
 
     /**
-     * Check if user has SYSTEM_ADMIN role
+     * Check if user has SYSTEM_ADMIN or ADMIN role
      */
     private boolean isSystemAdmin(Integer userId) {
         List<UserRole> userRoles = userRoleRepository.findByUserId(userId);
         return userRoles.stream()
-                .anyMatch(userRole -> "SYSTEM_ADMIN".equals(userRole.getRole().getRoleName()));
+                .anyMatch(userRole -> {
+                    String roleName = userRole.getRole().getRoleName();
+                    return "SYSTEM_ADMIN".equals(roleName) || "ADMIN".equals(roleName);
+                });
     }
 
     /**
