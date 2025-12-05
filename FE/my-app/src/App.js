@@ -81,6 +81,7 @@ function App() {
             <Route path="cinema-chains" element={<CinemaChainManagement />} />
             <Route path="cinema-management" element={<CinemaChainManagement />} />
             <Route path="cinemas" element={<CinemaManagement />} />
+            <Route path="cinemas/:cinemaId" element={<CinemaHallManagement />} />
             <Route path="showtimes" element={<ShowtimeManagement />} />
             
             {/* Sales */}

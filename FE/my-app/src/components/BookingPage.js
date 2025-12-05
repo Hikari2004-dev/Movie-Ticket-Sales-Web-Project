@@ -125,10 +125,13 @@ const BookingPage = () => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   };
 
-  // Generate seat map (10 rows x 12 seats)
+  // Generate seat map (10 rows x 12 seats) with aisles support
   const generateSeats = () => {
     const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
     const seatsPerRow = 12;
+    // Demo aisles configuration - should come from API's seatLayout
+    // Example: ["C-D", "F-G"] means aisles after row C and after row F
+    const aisles = ["C-D", "F-G"];
     const seats = [];
     
     rows.forEach(row => {
@@ -139,7 +142,14 @@ const BookingPage = () => {
         const isSold = Math.random() < 0.3;
         rowSeats.push({ id: seatId, row, number: i, isSold });
       }
-      seats.push({ row, seats: rowSeats });
+      
+      // Check if this row has an aisle after it
+      const hasAisleAfter = aisles.some(aisle => {
+        const [firstRow] = aisle.split('-');
+        return row === firstRow;
+      });
+      
+      seats.push({ row, seats: rowSeats, hasAisleAfter });
     });
     
     return seats;
@@ -366,8 +376,8 @@ const BookingPage = () => {
             </div>
             
             <div className="seat-map">
-              {seatMap.map(({ row, seats }) => (
-                <div key={row} className="seat-row">
+              {seatMap.map(({ row, seats, hasAisleAfter }) => (
+                <div key={row} className={`seat-row ${hasAisleAfter ? 'with-aisle-after' : ''}`}>
                   <span className="row-label">{row}</span>
                   <div className="seats-container">
                     {seats.map(seat => (

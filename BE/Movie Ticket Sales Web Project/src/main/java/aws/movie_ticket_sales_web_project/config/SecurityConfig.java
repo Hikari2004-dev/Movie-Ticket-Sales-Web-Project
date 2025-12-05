@@ -150,8 +150,7 @@ public class SecurityConfig {
                         // Booking endpoints (order matters - specific before general!)
                         .requestMatchers(HttpMethod.POST, "/api/bookings").permitAll() // Allow guest bookings
                         .requestMatchers(HttpMethod.GET, "/api/bookings/code/**").permitAll() // Check booking by code
-                                                                                              // (MUST be before
-                                                                                              // /api/bookings/**)
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/[0-9]+").permitAll() // Get booking by ID (public for guests)
                         .requestMatchers(HttpMethod.GET, "/api/bookings/user/**").authenticated() // User's bookings
                         .requestMatchers(HttpMethod.GET, "/api/bookings/status/**").authenticated() // Filter by status
                         .requestMatchers(HttpMethod.GET, "/api/bookings/showtime/**").authenticated() // Filter by

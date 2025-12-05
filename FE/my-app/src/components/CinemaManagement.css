@@ -263,6 +263,16 @@
   flex: 1;
 }
 
+.cinema-management .cinema-card-title.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cinema-management .cinema-card-title.clickable:hover {
+  transform: translateX(4px);
+  opacity: 0.9;
+}
+
 .cinema-management .cinema-card-icon {
   font-size: 28px;
   color: white;

@@ -67,15 +67,11 @@ const ShowtimeManagement = () => {
   const fetchShowtimes = async (pageNum = page, search = searchTerm) => {
     setLoading(true);
     try {
-      let url = `${API_BASE_URL}/showtimes/admin/all?page=${pageNum}&size=10`;
-      if (search) {
-        url += `&search=${search}`;
-      }
+      let url = `${API_BASE_URL}/showtimes?page=${pageNum}&size=10`;
 
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -100,20 +96,19 @@ const ShowtimeManagement = () => {
     }
   };
 
-  // Fetch movies for dropdown
+  // Fetch movies for dropdown (only NOW_SHOWING movies)
   const fetchMovies = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/movies/admin/all?page=0&size=100`, {
+      const response = await fetch(`${API_BASE_URL}/movies?status=NOW_SHOWING&page=0&size=100`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
       const result = await response.json();
       if (result.success && result.data) {
-        setMovies(result.data.data || []);
+        setMovies(result.data.content || []);
       }
     } catch (error) {
       console.error('Error fetching movies:', error);
