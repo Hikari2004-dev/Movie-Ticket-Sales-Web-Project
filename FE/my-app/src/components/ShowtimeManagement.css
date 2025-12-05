@@ -492,89 +492,126 @@
 
 /* Detail Modal */
 .showtime-management .modal-detail {
-  max-width: 900px;
+  max-width: 950px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .showtime-management .detail-content {
-  padding: 32px;
+  padding: 0;
+  background: #f8fafc;
 }
 
 .showtime-management .detail-section {
-  margin-bottom: 32px;
-  padding-bottom: 24px;
+  margin: 0;
+  padding: 28px 32px;
+  background: white;
   border-bottom: 1px solid #e2e8f0;
 }
 
 .showtime-management .detail-section:last-child {
   border-bottom: none;
-  margin-bottom: 0;
 }
 
 .showtime-management .detail-section h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #2d3748;
-  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.showtime-management .detail-section h3 svg {
+  color: #667eea;
+  font-size: 18px;
 }
 
 .showtime-management .movie-detail-row {
   display: flex;
-  gap: 24px;
+  gap: 28px;
   align-items: flex-start;
 }
 
 .showtime-management .detail-poster {
-  width: 200px;
-  height: 280px;
+  width: 180px;
+  height: 260px;
   object-fit: cover;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  flex-shrink: 0;
 }
 
 .showtime-management .movie-detail-info {
   flex: 1;
+  min-width: 0;
 }
 
 .showtime-management .movie-detail-info h4 {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
   color: #1a202c;
-  margin: 0 0 16px 0;
+  margin: 0 0 20px 0;
+  line-height: 1.3;
 }
 
 .showtime-management .detail-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+  row-gap: 20px;
 }
 
 .showtime-management .detail-item {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .showtime-management .detail-item label {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
   color: #718096;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
 .showtime-management .detail-item span {
-  font-size: 15px;
-  color: #2d3748;
-  font-weight: 500;
+  font-size: 16px;
+  color: #1a202c;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.showtime-management .format-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white !important;
+  border-radius: 8px;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px;
 }
 
 .showtime-management .price-large {
-  font-size: 28px !important;
-  color: #667eea !important;
-  font-weight: 700 !important;
+  font-size: 32px !important;
+  color: #10b981 !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.5px;
+}
+
+/* Status badges in detail modal */
+.showtime-management .detail-item .badge {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 /* Animations */

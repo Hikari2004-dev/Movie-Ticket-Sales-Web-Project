@@ -179,6 +179,9 @@ public class SecurityConfig {
                         // TODO: Enable authentication in production - change .permitAll() to .authenticated()
                         .requestMatchers("/api/payments/**").permitAll()
 
+                        // Staff ticket endpoints (staff, manager, admin)
+                        .requestMatchers("/api/tickets/staff/**").hasAnyRole("CINEMA_STAFF", "CINEMA_MANAGER", "SYSTEM_ADMIN")
+                        
                         // Check-in endpoints (staff only)
                         .requestMatchers("/api/tickets/check-in").hasAnyRole("CINEMA_STAFF", "CINEMA_MANAGER", "SYSTEM_ADMIN")
 

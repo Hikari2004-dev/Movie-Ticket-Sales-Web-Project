@@ -58,6 +58,26 @@ public class ShowtimeService {
     }
 
     /**
+     * Normalize formatType string to match enum values
+     * Converts "2D" -> "_2D", "3D" -> "_3D", "4DX" -> "_4DX"
+     */
+    private String normalizeFormatType(String formatType) {
+        if (formatType == null) {
+            return null;
+        }
+        // Add underscore prefix for numeric formats
+        if (formatType.equals("2D")) {
+            return "_2D";
+        } else if (formatType.equals("3D")) {
+            return "_3D";
+        } else if (formatType.equals("4DX")) {
+            return "_4DX";
+        }
+        // Already has underscore or is IMAX/SCREENX
+        return formatType;
+    }
+
+    /**
      * Get all showtimes with pagination (public)
      */
     public ApiResponse<PagedShowtimeResponse> getAllShowtimes(Integer page, Integer size) {
@@ -222,7 +242,8 @@ public class ShowtimeService {
             // Set format type
             if (request.getFormatType() != null) {
                 try {
-                    showtime.setFormatType(FormatType.valueOf(request.getFormatType()));
+                    String normalizedFormat = normalizeFormatType(request.getFormatType());
+                    showtime.setFormatType(FormatType.valueOf(normalizedFormat));
                 } catch (IllegalArgumentException e) {
                     log.warn("Invalid format type: {}, using default", request.getFormatType());
                     showtime.setFormatType(FormatType._2D);
@@ -322,7 +343,8 @@ public class ShowtimeService {
 
             if (request.getFormatType() != null) {
                 try {
-                    showtime.setFormatType(FormatType.valueOf(request.getFormatType()));
+                    String normalizedFormat = normalizeFormatType(request.getFormatType());
+                    showtime.setFormatType(FormatType.valueOf(normalizedFormat));
                 } catch (IllegalArgumentException e) {
                     log.warn("Invalid format type: {}, skipping", request.getFormatType());
                 }

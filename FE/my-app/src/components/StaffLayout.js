@@ -43,11 +43,7 @@ const StaffLayout = () => {
 
   const menuItems = [
     { path: '/staff/dashboard', icon: FaClock, label: 'Ca Làm Việc', active: true },
-    { path: '/staff/pos', icon: FaTicketAlt, label: 'Bán Vé', active: false },
-    { path: '/staff/check-in', icon: FaCheckCircle, label: 'Xác Nhận Vé', active: false },
-    { path: '/staff/concessions', icon: FaHamburger, label: 'Bán Đồ Ăn', active: false },
-    { path: '/staff/schedule', icon: FaCalendarAlt, label: 'Lịch Chiếu', active: false },
-    { path: '/staff/refunds', icon: FaUndo, label: 'Hoàn Vé', active: false },
+    { path: '/staff/check-in', icon: FaCheckCircle, label: 'Xác Nhận Vé', active: true },
   ];
 
   return (
