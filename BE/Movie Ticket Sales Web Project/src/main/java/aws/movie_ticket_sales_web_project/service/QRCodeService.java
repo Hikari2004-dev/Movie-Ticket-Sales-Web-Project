@@ -11,46 +11,54 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class QRCodeService {
     
-    @Value("${qr.code.directory:uploads/qr-codes}")
-    private String qrCodeDirectory;
+    private final S3Client s3Client;
     
-    @Value("${qr.code.base-url:http://localhost:8080/uploads/qr-codes}")
-    private String qrCodeBaseUrl;
+    @Value("${aws.s3.bucket-name}")
+    private String bucketName;
+    
+    @Value("${aws.s3.region}")
+    private String region;
     
     /**
-     * Generate QR Code for booking
+     * Generate QR Code for booking and upload to S3
      */
     public String generateQRCode(String bookingCode) {
         try {
-            // Create directory if not exists
-            Path directory = FileSystems.getDefault().getPath(qrCodeDirectory);
-            if (!directory.toFile().exists()) {
-                directory.toFile().mkdirs();
-                log.info("Created QR code directory: {}", qrCodeDirectory);
-            }
+            // Generate QR code as byte array
+            byte[] qrCodeBytes = generateQRCodeBytes(bookingCode);
             
-            String fileName = "QR_" + bookingCode + ".png";
-            String filePath = qrCodeDirectory + "/" + fileName;
+            // Generate unique file name
+            String fileName = "qr-codes/QR_" + bookingCode + "_" + UUID.randomUUID() + ".png";
             
-            // Create QR code
-            generateQRCodeImage(bookingCode, 300, 300, filePath);
+            // Upload to S3
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(fileName)
+                    .contentType("image/png")
+                    .build();
+
+            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(qrCodeBytes));
+
+            // Return public URL
+            String qrCodeUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", 
+                bucketName, region, fileName);
             
-            String qrCodeUrl = qrCodeBaseUrl + "/" + fileName;
-            log.info("QR Code generated successfully: {}", qrCodeUrl);
-            
+            log.info("QR Code uploaded to S3 successfully: {}", qrCodeUrl);
             return qrCodeUrl;
             
         } catch (Exception e) {
@@ -59,24 +67,7 @@ public class QRCodeService {
         }
     }
     
-    /**
-     * Generate QR Code image file
-     */
-    private void generateQRCodeImage(String text, int width, int height, String filePath)
-            throws WriterException, IOException {
-        
-        QRCodeWriter qrCodeWriter = new QRCodeWriter();
-        
-        Map<EncodeHintType, Object> hints = new HashMap<>();
-        hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);
-        hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
-        hints.put(EncodeHintType.MARGIN, 1);
-        
-        BitMatrix bitMatrix = qrCodeWriter.encode(text, BarcodeFormat.QR_CODE, width, height, hints);
-        
-        Path path = FileSystems.getDefault().getPath(filePath);
-        MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path);
-    }
+
     
     /**
      * Generate QR Code as byte array (for email attachment)

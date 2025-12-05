@@ -10,7 +10,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import jakarta.mail.internet.MimeMessage;
-import jakarta.mail.util.ByteArrayDataSource;
 
 @Service
 @RequiredArgsConstructor
@@ -18,41 +17,30 @@ import jakarta.mail.util.ByteArrayDataSource;
 public class EmailService {
     
     private final JavaMailSender mailSender;
-    private final QRCodeService qrCodeService;
-    private final InvoiceService invoiceService;
     
     @Value("${spring.mail.username:noreply@movieticket.com}")
     private String fromEmail;
     
     /**
      * Send booking confirmation email (async)
+     * QR Code is displayed directly in HTML from S3 URL (no attachment needed)
      */
     @Async
     public void sendBookingConfirmation(Booking booking) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8"); // false = no attachments
             
             helper.setFrom(fromEmail);
             helper.setTo(booking.getCustomerEmail());
-            helper.setSubject("Xác nhận đặt vé - " + booking.getBookingCode());
+            helper.setSubject("🎬 Xác nhận đặt vé - " + booking.getBookingCode());
             
-            // Generate email content
+            // Generate email content with QR code embedded from S3 URL
             String emailContent = buildConfirmationEmailHtml(booking);
             helper.setText(emailContent, true);
             
-            // Attach QR Code
-            byte[] qrCodeBytes = qrCodeService.generateQRCodeBytes(booking.getBookingCode());
-            helper.addAttachment("QRCode.png", new ByteArrayDataSource(qrCodeBytes, "image/png"));
-            
-            // Attach Invoice (if available)
-            byte[] invoicePdf = invoiceService.generateInvoicePdf(booking);
-            if (invoicePdf.length > 0) {
-                helper.addAttachment("Invoice.pdf", new ByteArrayDataSource(invoicePdf, "application/pdf"));
-            }
-            
             mailSender.send(message);
-            log.info("Confirmation email sent to: {}", booking.getCustomerEmail());
+            log.info("Confirmation email sent successfully to: {}", booking.getCustomerEmail());
             
         } catch (Exception e) {
             log.error("Error sending confirmation email for booking: {}", booking.getBookingCode(), e);
@@ -60,70 +48,256 @@ public class EmailService {
     }
     
     /**
-     * Build HTML email content
+     * Build HTML email content with modern design
      */
     private String buildConfirmationEmailHtml(Booking booking) {
+        String qrCodeUrl = booking.getQrCode();
+        
         return String.format("""
             <!DOCTYPE html>
             <html>
             <head>
                 <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <style>
-                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                    .header { background: #d32f2f; color: white; padding: 20px; text-align: center; }
-                    .content { padding: 20px; background: #f9f9f9; }
-                    .booking-info { background: white; padding: 15px; margin: 10px 0; border-left: 4px solid #d32f2f; }
-                    .total { font-size: 24px; color: #d32f2f; font-weight: bold; }
-                    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-                    .qr-section { text-align: center; padding: 20px; background: white; margin: 20px 0; }
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { 
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                        line-height: 1.6; 
+                        color: #333; 
+                        background: #f4f4f4;
+                    }
+                    .email-container { 
+                        max-width: 600px; 
+                        margin: 20px auto; 
+                        background: white;
+                        border-radius: 12px;
+                        overflow: hidden;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                    }
+                    .header { 
+                        background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
+                        color: white; 
+                        padding: 30px 20px; 
+                        text-align: center; 
+                    }
+                    .header h1 { 
+                        font-size: 28px; 
+                        margin-bottom: 10px;
+                        font-weight: 600;
+                    }
+                    .header p { 
+                        font-size: 14px; 
+                        opacity: 0.9;
+                    }
+                    .content { 
+                        padding: 30px 20px; 
+                    }
+                    .greeting { 
+                        font-size: 18px; 
+                        margin-bottom: 20px;
+                        color: #2c3e50;
+                    }
+                    .movie-section {
+                        background: linear-gradient(to right, #f8f9fa, #ffffff);
+                        border-radius: 8px;
+                        padding: 20px;
+                        margin: 20px 0;
+                        border-left: 4px solid #667eea;
+                    }
+                    .movie-section h2 {
+                        color: #667eea;
+                        font-size: 24px;
+                        margin-bottom: 15px;
+                    }
+                    .info-row {
+                        display: table;
+                        width: 100%%;
+                        padding: 8px 0;
+                        border-bottom: 1px solid #eee;
+                    }
+                    .info-row:last-child {
+                        border-bottom: none;
+                    }
+                    .info-label {
+                        display: table-cell;
+                        font-weight: 600;
+                        color: #555;
+                        width: 40%%;
+                    }
+                    .info-value {
+                        display: table-cell;
+                        color: #2c3e50;
+                    }
+                    .total-section {
+                        background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
+                        color: white;
+                        padding: 20px;
+                        border-radius: 8px;
+                        text-align: center;
+                        margin: 20px 0;
+                    }
+                    .total-section .amount {
+                        font-size: 36px;
+                        font-weight: bold;
+                        margin: 10px 0;
+                    }
+                    .qr-section {
+                        text-align: center;
+                        padding: 30px 20px;
+                        background: #f8f9fa;
+                        border-radius: 8px;
+                        margin: 20px 0;
+                    }
+                    .qr-section h3 {
+                        color: #667eea;
+                        margin-bottom: 15px;
+                        font-size: 20px;
+                    }
+                    .qr-section img {
+                        max-width: 250px;
+                        height: auto;
+                        border: 4px solid white;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                        border-radius: 8px;
+                    }
+                    .qr-code-text {
+                        font-size: 24px;
+                        font-weight: bold;
+                        color: #667eea;
+                        margin: 15px 0;
+                        letter-spacing: 2px;
+                    }
+                    .important-notes {
+                        background: #fff3cd;
+                        border-left: 4px solid #ffc107;
+                        padding: 20px;
+                        border-radius: 8px;
+                        margin: 20px 0;
+                    }
+                    .important-notes h3 {
+                        color: #856404;
+                        margin-bottom: 15px;
+                    }
+                    .important-notes ul {
+                        list-style-position: inside;
+                        color: #856404;
+                    }
+                    .important-notes li {
+                        padding: 5px 0;
+                    }
+                    .cta-button {
+                        display: inline-block;
+                        background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
+                        color: white;
+                        padding: 15px 40px;
+                        text-decoration: none;
+                        border-radius: 25px;
+                        font-weight: 600;
+                        margin: 20px 0;
+                        box-shadow: 0 4px 6px rgba(102, 126, 234, 0.4);
+                    }
+                    .footer {
+                        background: #2c3e50;
+                        color: white;
+                        text-align: center;
+                        padding: 30px 20px;
+                    }
+                    .footer p {
+                        margin: 5px 0;
+                        font-size: 14px;
+                    }
+                    .social-links {
+                        margin: 15px 0;
+                    }
+                    .social-links a {
+                        color: white;
+                        text-decoration: none;
+                        margin: 0 10px;
+                    }
                 </style>
             </head>
             <body>
-                <div class="container">
+                <div class="email-container">
                     <div class="header">
-                        <h1>🎬 XÁC NHẬN ĐẶT VÉ THÀNH CÔNG</h1>
+                        <h1>🎬 VÉ ĐIỆN TỬ</h1>
+                        <p>Đặt vé thành công - Chúc bạn có trải nghiệm tuyệt vời!</p>
                     </div>
+                    
                     <div class="content">
-                        <h2>Xin chào %s,</h2>
-                        <p>Cảm ơn bạn đã đặt vé xem phim. Đặt vé của bạn đã được xác nhận!</p>
+                        <p class="greeting">Xin chào <strong>%s</strong>,</p>
+                        <p>Cảm ơn bạn đã tin tưởng và sử dụng dịch vụ của chúng tôi. Vé xem phim của bạn đã được xác nhận thành công!</p>
                         
-                        <div class="booking-info">
-                            <h3>Thông tin đặt vé</h3>
-                            <p><strong>Mã đặt vé:</strong> %s</p>
-                            <p><strong>Phim:</strong> %s</p>
-                            <p><strong>Rạp:</strong> %s - %s</p>
-                            <p><strong>Ngày chiếu:</strong> %s</p>
-                            <p><strong>Giờ chiếu:</strong> %s</p>
-                            <p><strong>Số ghế:</strong> %d</p>
-                            <p class="total">Tổng tiền: %,d VNĐ</p>
+                        <div class="movie-section">
+                            <h2>🎥 %s</h2>
+                            <div class="info-row">
+                                <span class="info-label">📍 Rạp chiếu:</span>
+                                <span class="info-value">%s</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">🏛️ Phòng:</span>
+                                <span class="info-value">%s</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">📅 Ngày chiếu:</span>
+                                <span class="info-value">%s</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">🕐 Giờ chiếu:</span>
+                                <span class="info-value">%s</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">🎫 Số vé:</span>
+                                <span class="info-value">%d vé</span>
+                            </div>
+                        </div>
+                        
+                        <div class="total-section">
+                            <p>Tổng thanh toán</p>
+                            <div class="amount">%,d ₫</div>
+                            <p>Đã thanh toán thành công</p>
                         </div>
                         
                         <div class="qr-section">
-                            <h3>📱 QR Code Check-in</h3>
-                            <p>Vui lòng xuất trình mã QR này tại quầy để nhận vé:</p>
-                            <p><em>(QR Code đính kèm trong email)</em></p>
+                            <h3>📱 MÃ QR CHECK-IN</h3>
+                            <p>Xuất trình mã QR này tại quầy để nhận vé</p>
+                            %s
+                            <div class="qr-code-text">%s</div>
+                            <p style="color: #666; font-size: 14px;">Mã đặt vé của bạn</p>
                         </div>
                         
-                        <div class="booking-info">
-                            <h3>⚠️ Lưu ý quan trọng</h3>
+                        <div class="important-notes">
+                            <h3>⚠️ LƯU Ý QUAN TRỌNG</h3>
                             <ul>
-                                <li>Vui lòng đến trước giờ chiếu 15 phút để check-in</li>
-                                <li>Mang theo mã QR Code hoặc mã đặt vé: <strong>%s</strong></li>
-                                <li>Không được hoàn tiền sau khi đã check-in</li>
+                                <li>Vui lòng có mặt tại rạp <strong>trước 15 phút</strong> so với giờ chiếu</li>
+                                <li>Mang theo <strong>mã QR</strong> hoặc <strong>mã đặt vé</strong> để check-in</li>
+                                <li>Vé không được hoàn tiền sau khi đã check-in</li>
+                                <li>Vui lòng giữ gìn vé và không chia sẻ mã QR với người khác</li>
                             </ul>
                         </div>
+                        
+                        <div style="text-align: center;">
+                            <p>Cần hỗ trợ?</p>
+                            <a href="mailto:support@movieticket.com" class="cta-button">Liên hệ hỗ trợ</a>
+                        </div>
                     </div>
+                    
                     <div class="footer">
-                        <p>Nếu có thắc mắc, vui lòng liên hệ: support@movieticket.com</p>
-                        <p>&copy; 2024 Movie Ticket System. All rights reserved.</p>
+                        <p><strong>MOVIE TICKET SYSTEM</strong></p>
+                        <div class="social-links">
+                            <a href="#">Facebook</a> | 
+                            <a href="#">Instagram</a> | 
+                            <a href="#">Twitter</a>
+                        </div>
+                        <p>Hotline: 1900-xxxx</p>
+                        <p>Email: support@movieticket.com</p>
+                        <p style="margin-top: 15px; opacity: 0.7;">© 2025 Movie Ticket System. All rights reserved.</p>
                     </div>
                 </div>
             </body>
             </html>
             """,
             booking.getCustomerName(),
-            booking.getBookingCode(),
             booking.getShowtime().getMovie().getTitle(),
             booking.getShowtime().getHall().getCinema().getCinemaName(),
             booking.getShowtime().getHall().getHallName(),
@@ -131,6 +305,7 @@ public class EmailService {
             booking.getShowtime().getStartTime().toString(),
             booking.getTotalSeats(),
             booking.getTotalAmount().longValue(),
+            qrCodeUrl != null ? String.format("<img src='%s' alt='QR Code' />", qrCodeUrl) : "<p>QR Code sẽ được tạo sau</p>",
             booking.getBookingCode()
         );
     }
