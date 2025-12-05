@@ -24,6 +24,8 @@ import SystemAdminLayout from './components/SystemAdminLayout';
 import SystemAdminDashboard from './components/SystemAdminDashboard';
 import StaffLayout from './components/StaffLayout';
 import StaffDashboard from './components/StaffDashboard';
+import TicketCheckIn from './components/TicketCheckIn';
+import StaffPayment from './components/StaffPayment';
 import ComingSoon from './components/ComingSoon';
 import NowShowingPage from './components/NowShowingPage';
 import ComingSoonPage from './components/ComingSoonPage';
@@ -113,11 +115,8 @@ function App() {
             </ProtectedRoute>
           }>
             <Route path="dashboard" element={<StaffDashboard />} />
-            <Route path="pos" element={<ComingSoon feature="Bán Vé Tại Quầy" />} />
-            <Route path="check-in" element={<ComingSoon feature="Xác Nhận Vé" />} />
-            <Route path="concessions" element={<ComingSoon feature="Bán Đồ Ăn" />} />
-            <Route path="schedule" element={<ComingSoon feature="Lịch Chiếu Hôm Nay" />} />
-            <Route path="refunds" element={<ComingSoon feature="Xử Lý Hoàn Vé" />} />
+            <Route path="check-in" element={<TicketCheckIn />} />
+            <Route path="payment" element={<StaffPayment />} />
           </Route>
         </Routes>
         <ToastContainer

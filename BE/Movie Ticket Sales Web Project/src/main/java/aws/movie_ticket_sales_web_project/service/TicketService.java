@@ -1,0 +1,169 @@
+package aws.movie_ticket_sales_web_project.service;
+
+import aws.movie_ticket_sales_web_project.entity.Booking;
+import aws.movie_ticket_sales_web_project.entity.Ticket;
+import aws.movie_ticket_sales_web_project.entity.User;
+import aws.movie_ticket_sales_web_project.enums.TicketStatus;
+import aws.movie_ticket_sales_web_project.repository.BookingRepository;
+import aws.movie_ticket_sales_web_project.repository.TicketRepository;
+import aws.movie_ticket_sales_web_project.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class TicketService {
+
+    private final BookingRepository bookingRepository;
+    private final TicketRepository ticketRepository;
+    private final UserRepository userRepository;
+
+    /**
+     * Get booking details for check-in (staff use)
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getBookingDetailsForCheckIn(String bookingCode) {
+        log.info("Fetching booking details for code: {}", bookingCode);
+        
+        Booking booking = bookingRepository.findByBookingCode(bookingCode)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy booking với mã: " + bookingCode));
+
+        // Get all tickets for this booking
+        List<Ticket> tickets = ticketRepository.findByBookingId(booking.getId());
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("bookingId", booking.getId());
+        result.put("bookingCode", booking.getBookingCode());
+        result.put("customerName", booking.getCustomerName());
+        result.put("customerEmail", booking.getCustomerEmail());
+        result.put("customerPhone", booking.getCustomerPhone());
+        result.put("totalAmount", booking.getTotalAmount());
+        result.put("status", booking.getStatus().name());
+        result.put("paymentStatus", booking.getPaymentStatus().name());
+        result.put("paymentMethod", booking.getPaymentMethod());
+        result.put("totalSeats", booking.getTotalSeats());
+        result.put("bookingDate", booking.getBookingDate());
+        
+        // Movie and showtime info
+        if (booking.getShowtime() != null) {
+            Map<String, Object> showtimeInfo = new HashMap<>();
+            showtimeInfo.put("showtimeId", booking.getShowtime().getId());
+            showtimeInfo.put("showDate", booking.getShowtime().getShowDate());
+            showtimeInfo.put("startTime", booking.getShowtime().getStartTime());
+            showtimeInfo.put("endTime", booking.getShowtime().getEndTime());
+            
+            if (booking.getShowtime().getMovie() != null) {
+                Map<String, Object> movieInfo = new HashMap<>();
+                movieInfo.put("movieId", booking.getShowtime().getMovie().getId());
+                movieInfo.put("title", booking.getShowtime().getMovie().getTitle());
+                movieInfo.put("durationMinutes", booking.getShowtime().getMovie().getDurationMinutes());
+                movieInfo.put("posterUrl", booking.getShowtime().getMovie().getPosterUrl());
+                showtimeInfo.put("movie", movieInfo);
+            }
+            
+            if (booking.getShowtime().getHall() != null) {
+                Map<String, Object> hallInfo = new HashMap<>();
+                hallInfo.put("hallId", booking.getShowtime().getHall().getId());
+                hallInfo.put("hallName", booking.getShowtime().getHall().getHallName());
+                
+                if (booking.getShowtime().getHall().getCinema() != null) {
+                    Map<String, Object> cinemaInfo = new HashMap<>();
+                    cinemaInfo.put("cinemaId", booking.getShowtime().getHall().getCinema().getId());
+                    cinemaInfo.put("cinemaName", booking.getShowtime().getHall().getCinema().getCinemaName());
+                    cinemaInfo.put("address", booking.getShowtime().getHall().getCinema().getAddress());
+                    hallInfo.put("cinema", cinemaInfo);
+                }
+                
+                showtimeInfo.put("hall", hallInfo);
+            }
+            
+            result.put("showtime", showtimeInfo);
+        }
+        
+        // Tickets info
+        List<Map<String, Object>> ticketsList = tickets.stream().map(ticket -> {
+            Map<String, Object> ticketInfo = new HashMap<>();
+            ticketInfo.put("ticketId", ticket.getId());
+            ticketInfo.put("ticketCode", ticket.getTicketCode());
+            ticketInfo.put("status", ticket.getStatus().name());
+            ticketInfo.put("finalPrice", ticket.getFinalPrice());
+            ticketInfo.put("checkedInAt", ticket.getCheckedInAt());
+            
+            if (ticket.getSeat() != null) {
+                Map<String, Object> seatInfo = new HashMap<>();
+                seatInfo.put("seatId", ticket.getSeat().getId());
+                seatInfo.put("seatRow", ticket.getSeat().getSeatRow());
+                seatInfo.put("seatNumber", ticket.getSeat().getSeatNumber());
+                seatInfo.put("seatType", ticket.getSeat().getSeatType().name());
+                ticketInfo.put("seat", seatInfo);
+            }
+            
+            return ticketInfo;
+        }).collect(Collectors.toList());
+        
+        result.put("tickets", ticketsList);
+        
+        log.info("Successfully fetched booking details for: {}", bookingCode);
+        return result;
+    }
+
+    /**
+     * Check-in by booking code (staff use)
+     */
+    @Transactional
+    public Map<String, Object> checkInByBookingCode(String bookingCode, Integer staffId) {
+        log.info("Processing check-in for booking: {} by staff: {}", bookingCode, staffId);
+        
+        Booking booking = bookingRepository.findByBookingCode(bookingCode)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy booking với mã: " + bookingCode));
+
+        // Verify booking is paid
+        if (!"COMPLETED".equals(booking.getPaymentStatus().name())) {
+            throw new RuntimeException("Booking chưa được thanh toán. Vui lòng thanh toán trước khi check-in.");
+        }
+
+        // Get staff user
+        User staff = userRepository.findById(staffId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên với ID: " + staffId));
+
+        // Get all tickets
+        List<Ticket> tickets = ticketRepository.findByBookingId(booking.getId());
+        
+        if (tickets.isEmpty()) {
+            throw new RuntimeException("Không tìm thấy vé nào cho booking này");
+        }
+
+        // Check-in all tickets
+        int checkedInCount = 0;
+        for (Ticket ticket : tickets) {
+            if (ticket.getStatus() == TicketStatus.PAID) {
+                ticket.setStatus(TicketStatus.USED);
+                ticket.setCheckedInAt(Instant.now());
+                ticket.setCheckedInBy(staff);
+                ticketRepository.save(ticket);
+                checkedInCount++;
+            }
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("message", "Check-in thành công " + checkedInCount + " vé");
+        result.put("bookingCode", bookingCode);
+        result.put("checkedInCount", checkedInCount);
+        result.put("totalTickets", tickets.size());
+        result.put("staffName", staff.getFullName());
+        result.put("checkedInAt", Instant.now());
+        
+        log.info("Check-in successful for booking: {}, checked in {} tickets", bookingCode, checkedInCount);
+        return result;
+    }
+}

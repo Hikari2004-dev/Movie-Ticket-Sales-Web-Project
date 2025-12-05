@@ -2,102 +2,121 @@ import React, { useState, useEffect } from 'react';
 import './StaffDashboard.css';
 import { 
   FaClock,
-  FaTicketAlt,
-  FaHamburger,
   FaCheckCircle,
-  FaArrowUp,
-  FaCalendarAlt,
-  FaChartLine
+  FaCalendarDay,
+  FaUserClock
 } from 'react-icons/fa';
 
 const StaffDashboard = () => {
-  const [shiftInfo, setShiftInfo] = useState({
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [activities, setActivities] = useState([]);
+  
+  const shiftInfo = {
     startTime: '08:00',
     endTime: '16:00',
-    ticketsSold: 0,
-    concessionsSold: 0,
-    checkIns: 0,
-    totalRevenue: 0,
-  });
-
-  useEffect(() => {
-    // Mock data
-    setTimeout(() => {
-      setShiftInfo({
-        startTime: '08:00',
-        endTime: '16:00',
-        ticketsSold: 45,
-        concessionsSold: 28,
-        checkIns: 38,
-        totalRevenue: 12500000,
-      });
-    }, 500);
-  }, []);
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(amount);
   };
 
-  const statsCards = [
-    { title: 'Vé Đã Bán', value: shiftInfo.ticketsSold, icon: FaTicketAlt, color: '#22c55e' },
-    { title: 'Đồ Ăn Đã Bán', value: shiftInfo.concessionsSold, icon: FaHamburger, color: '#fb923c' },
-    { title: 'Vé Đã Xác Nhận', value: shiftInfo.checkIns, icon: FaCheckCircle, color: '#00d4ff' },
-    { title: 'Doanh Thu Ca', value: formatCurrency(shiftInfo.totalRevenue), icon: FaArrowUp, color: '#ffd700' },
-  ];
+  useEffect(() => {
+    // Update current time every second
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    // TODO: Fetch actual activities from API
+    // For now, showing empty state or you can load from localStorage
+    const savedActivities = JSON.parse(localStorage.getItem('staffActivities') || '[]');
+    setActivities(savedActivities);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (date) => {
+    return date.toLocaleTimeString('vi-VN', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
+  const formatDate = (date) => {
+    return date.toLocaleDateString('vi-VN', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const getActivityIcon = (type) => {
+    switch(type) {
+      case 'check-in':
+        return <FaCheckCircle className="activity-icon check-in" />;
+      default:
+        return <FaCheckCircle className="activity-icon" />;
+    }
+  };
 
   return (
     <div className="staff-dashboard">
       <div className="dashboard-header">
-        <h1>CA LÀM VIỆC</h1>
-        <div className="shift-time">
-          <FaClock /> {shiftInfo.startTime} - {shiftInfo.endTime}
-        </div>
-      </div>
-
-      <div className="stats-grid">
-        {statsCards.map((stat, index) => (
-          <div key={index} className="stat-card" style={{ '--card-color': stat.color }}>
-            <div className="stat-icon">
-              <stat.icon />
+        <div className="header-content">
+          <h1>🎬 CA LÀM VIỆC</h1>
+          <div className="current-datetime">
+            <div className="current-date">
+              <FaCalendarDay /> {formatDate(currentTime)}
             </div>
-            <div className="stat-content">
-              <div className="stat-title">{stat.title}</div>
-              <div className="stat-value">{stat.value}</div>
+            <div className="current-time">
+              <FaClock /> {formatTime(currentTime)}
             </div>
           </div>
-        ))}
-      </div>
-
-      <div className="quick-actions">
-        <h2>Thao Tác Nhanh</h2>
-        <div className="action-buttons">
-          <button className="action-btn pos">
-            <FaTicketAlt />
-            <span>Bán Vé</span>
-          </button>
-          <button className="action-btn check-in">
-            <FaCheckCircle />
-            <span>Xác Nhận Vé</span>
-          </button>
-          <button className="action-btn concession">
-            <FaHamburger />
-            <span>Bán Đồ Ăn</span>
-          </button>
-          <button className="action-btn schedule">
-            <FaCalendarAlt />
-            <span>Xem Lịch Chiếu</span>
-          </button>
+        </div>
+        <div className="shift-info-card">
+          <FaUserClock className="shift-icon" />
+          <div className="shift-details">
+            <span className="shift-label">Giờ làm việc</span>
+            <span className="shift-time">{shiftInfo.startTime} - {shiftInfo.endTime}</span>
+          </div>
         </div>
       </div>
 
       <div className="activity-section">
-        <h2>Hoạt Động Hôm Nay</h2>
-        <div className="activity-placeholder">
-          <FaChartLine className="placeholder-icon" />
-          <p>Biểu đồ hoạt động ca làm việc</p>
+        <h2>📋 Hoạt Động Hôm Nay</h2>
+        
+        {activities.length > 0 ? (
+          <div className="activity-list">
+            {activities.map((activity, index) => (
+              <div key={index} className="activity-item">
+                {getActivityIcon(activity.type)}
+                <div className="activity-content">
+                  <div className="activity-title">{activity.title}</div>
+                  <div className="activity-details">{activity.details}</div>
+                </div>
+                <div className="activity-time">{activity.time}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="activity-empty">
+            <div className="empty-icon">📝</div>
+            <h3>Chưa có hoạt động nào</h3>
+            <p>Các hoạt động check-in vé của bạn sẽ được hiển thị ở đây</p>
+          </div>
+        )}
+      </div>
+
+      <div className="stats-section">
+        <h2>📊 Thống Kê Ca Làm Việc</h2>
+        <div className="stats-grid">
+          <div className="stat-box">
+            <div className="stat-number">{activities.length}</div>
+            <div className="stat-label">Tổng hoạt động</div>
+          </div>
+          <div className="stat-box">
+            <div className="stat-number">
+              {activities.filter(a => a.type === 'check-in').length}
+            </div>
+            <div className="stat-label">Vé đã check-in</div>
+          </div>
         </div>
       </div>
     </div>
