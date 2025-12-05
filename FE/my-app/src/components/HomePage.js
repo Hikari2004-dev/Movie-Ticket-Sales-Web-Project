@@ -4,6 +4,7 @@ import { FaChevronLeft, FaChevronRight, FaChevronDown } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import movieService from '../services/movieService';
 import bookingService from '../services/bookingService';
+import QuickBooking from './QuickBooking';
 import './HomePage.css';
 
 const HomePage = () => {
@@ -408,7 +409,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="booking-section">
+      <section className="booking-section-old" style={{ display: 'none' }}>
         <div className="container">
           <div className="booking-header">ĐẶT VÉ NHANH</div>
           <div className="booking-tabs">

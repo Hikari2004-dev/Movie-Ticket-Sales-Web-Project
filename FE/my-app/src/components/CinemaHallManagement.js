@@ -553,7 +553,7 @@ const CinemaHallManagement = () => {
       <div className="hall-management-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button 
-            onClick={() => navigate(`/admin/my-cinemas`)}
+            onClick={() => navigate('/admin/cinemas')}
             style={{
               background: 'none',
               border: 'none',
@@ -561,7 +561,7 @@ const CinemaHallManagement = () => {
               cursor: 'pointer',
               color: '#059669'
             }}
-            title="Quay lại Quản Lý Rạp"
+            title="Quay lại Quản Lý Rạp Chiếu"
           >
             <FaArrowLeft />
           </button>

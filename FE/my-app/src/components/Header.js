@@ -4,6 +4,7 @@ import { FaSearch, FaUser, FaSignOutAlt, FaTachometerAlt } from 'react-icons/fa'
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { getDashboardPath, getRoleDisplayName, getHighestRole, isStaffMember } from '../utils/roleUtils';
+import QuickBooking from './QuickBooking';
 import './Header.css';
 
 const Header = () => {
@@ -105,6 +106,11 @@ const Header = () => {
         <Link to="/" className="logo">
           <img src="/cinema-logo.png" alt="Q Cinema" className="logo-image" />
         </Link>
+
+        {/* Quick Booking - Chỉ hiển thị ở trang chủ */}
+        {isHomePage && !isAdminPage && (
+          <QuickBooking />
+        )}
 
         {/* Search Bar */}
         <div className="search-bar">
