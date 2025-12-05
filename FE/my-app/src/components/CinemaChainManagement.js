@@ -8,8 +8,6 @@ import {
   FaTimes,
   FaSave,
   FaSpinner,
-  FaEye,
-  FaEyeSlash,
   FaCheck,
   FaBuilding
 } from 'react-icons/fa';
@@ -20,7 +18,6 @@ import './CinemaChainManagement.css';
 const CinemaChainManagement = () => {
   const navigate = useNavigate();
   const [cinemaChains, setCinemaChains] = useState([]);
-  const [filteredChains, setFilteredChains] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
@@ -89,20 +86,26 @@ const CinemaChainManagement = () => {
       const result = await response.json();
       console.log('API Response:', result);
 
-      if (result.success && result.data) {
-        const chains = result.data.data || [];
+      if (result.success && result.data && result.data.data) {
+        const chains = result.data.data;
         console.log('Số chuỗi rạp:', chains.length);
         setCinemaChains(chains);
-        setTotalPages(result.data.totalPages);
-        setTotalElements(result.data.totalElements);
-        setPage(pageNum);
+        setTotalPages(result.data.totalPages || 1);
+        setTotalElements(result.data.totalElements || chains.length);
+        setPage(result.data.currentPage || pageNum);
+        
+        if (chains.length === 0 && search) {
+          toast.info('Không tìm thấy chuỗi rạp nào phù hợp');
+        }
       } else {
         console.warn('API không trả về dữ liệu hợp lệ:', result);
         toast.error(result.message || 'Lỗi khi tải danh sách rạp');
+        setCinemaChains([]);
       }
     } catch (error) {
       console.error('Error fetching cinema chains:', error);
       toast.error('Không thể kết nối đến server. Vui lòng kiểm tra lại.');
+      setCinemaChains([]);
     } finally {
       setLoading(false);
     }
@@ -339,7 +342,7 @@ const CinemaChainManagement = () => {
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Tên Rạp</th>
+                  <th>Tên Chuỗi Rạp</th>
                   <th>Website</th>
                   <th>Mô Tả</th>
                   <th>Trạng Thái</th>
@@ -352,29 +355,48 @@ const CinemaChainManagement = () => {
                   <tr key={chain.chainId} className={!chain.isActive ? 'inactive' : ''}>
                     <td className="id-cell">{chain.chainId}</td>
                     <td className="name-cell">
-                      {chain.logoUrl ? (
-                        <img src={chain.logoUrl} alt={chain.chainName} className="chain-logo" />
-                      ) : null}
-                      <span>{chain.chainName}</span>
+                      <div 
+                        className="name-cell-content clickable" 
+                        onClick={() => navigate('/admin/cinemas', { state: { chainId: chain.chainId, chainName: chain.chainName } })}
+                        title="Xem danh sách rạp"
+                      >
+                        {chain.logoUrl && chain.logoUrl.trim() !== '' ? (
+                          <img 
+                            src={chain.logoUrl} 
+                            alt={chain.chainName} 
+                            className="chain-logo"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div className="logo-placeholder" style={{display: chain.logoUrl && chain.logoUrl.trim() !== '' ? 'none' : 'flex'}}>
+                          <FaBuilding />
+                        </div>
+                        <span className="chain-name">{chain.chainName}</span>
+                      </div>
                     </td>
                     <td className="website-cell">
-                      {chain.website ? (
-                        <a href={chain.website} target="_blank" rel="noopener noreferrer">
-                          {chain.website}
+                      {chain.website && chain.website.trim() !== '' ? (
+                        <a href={chain.website.startsWith('http') ? chain.website : `https://${chain.website}`} target="_blank" rel="noopener noreferrer">
+                          {chain.website.length > 30 
+                            ? chain.website.substring(0, 30) + '...' 
+                            : chain.website}
                         </a>
                       ) : (
-                        <span className="text-muted">-</span>
+                        <span className="text-muted">Chưa có</span>
                       )}
                     </td>
                     <td className="description-cell">
-                      {chain.description ? (
+                      {chain.description && chain.description.trim() !== '' ? (
                         <span title={chain.description}>
                           {chain.description.length > 50
                             ? chain.description.substring(0, 50) + '...'
                             : chain.description}
                         </span>
                       ) : (
-                        <span className="text-muted">-</span>
+                        <span className="text-muted">Chưa có</span>
                       )}
                     </td>
                     <td className="status-cell">
@@ -384,22 +406,26 @@ const CinemaChainManagement = () => {
                         </span>
                       ) : (
                         <span className="badge badge-danger">
-                          <FaTimes /> Vô hiệu
+                          <FaTimes /> Không hoạt động
                         </span>
                       )}
                     </td>
                     <td className="date-cell">
-                      {new Date(chain.createdAt).toLocaleDateString('vi-VN')}
+                      {new Date(chain.createdAt).toLocaleDateString('vi-VN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
+                      })}
                     </td>
                     <td className="actions-cell">
-                      <button
-                        className="btn btn-sm btn-success"
-                        onClick={() => navigate(`/admin/cinema-chains/${chain.chainId}`)}
-                        title="Quản lý rạp của chuỗi này"
-                      >
-                        <FaBuilding /> Quản Lý Rạp
-                      </button>
-                      <div className="action-buttons-group">
+                      <div className="action-buttons-wrapper">
+                        <button
+                          className="btn btn-sm btn-success"
+                          onClick={() => navigate(`/admin/cinema-chains/${chain.chainId}`)}
+                          title="Quản lý rạp của chuỗi này"
+                        >
+                          <FaBuilding />
+                        </button>
                         <button
                           className="btn btn-sm btn-info"
                           onClick={() => handleOpenEditModal(chain)}
@@ -423,38 +449,40 @@ const CinemaChainManagement = () => {
           </div>
 
           {/* Pagination */}
-          <div className="pagination-section">
-            <div className="pagination-info">
-              Hiển thị {cinemaChains.length > 0 ? page * 10 + 1 : 0} đến{' '}
-              {Math.min((page + 1) * 10, totalElements)} trong {totalElements} kết quả
+          {totalPages > 0 && (
+            <div className="pagination-section">
+              <div className="pagination-info">
+                Hiển thị {cinemaChains.length > 0 ? page * 10 + 1 : 0} đến{' '}
+                {Math.min((page + 1) * 10, totalElements)} của {totalElements} chuỗi rạp
+              </div>
+              <div className="pagination-controls">
+                <button
+                  className="btn btn-sm btn-secondary"
+                  onClick={() => fetchCinemaChains(page - 1, searchTerm)}
+                  disabled={page === 0 || loading}
+                >
+                  ← Trước
+                </button>
+                <span className="page-indicator">
+                  Trang {page + 1} / {totalPages || 1}
+                </span>
+                <button
+                  className="btn btn-sm btn-secondary"
+                  onClick={() => fetchCinemaChains(page + 1, searchTerm)}
+                  disabled={page >= totalPages - 1 || loading}
+                >
+                  Tiếp →
+                </button>
+              </div>
             </div>
-            <div className="pagination-controls">
-              <button
-                className="btn btn-sm"
-                onClick={() => fetchCinemaChains(page - 1, searchTerm)}
-                disabled={page === 0}
-              >
-                Trang Trước
-              </button>
-              <span className="page-indicator">
-                Trang {page + 1} / {totalPages}
-              </span>
-              <button
-                className="btn btn-sm"
-                onClick={() => fetchCinemaChains(page + 1, searchTerm)}
-                disabled={page >= totalPages - 1}
-              >
-                Trang Sau
-              </button>
-            </div>
-          </div>
+          )}
         </>
       )}
 
       {/* Modal */}
       {showModal && (
-        <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay">
+          <div className="modal-content">
             <div className="modal-header">
               <h2>{modalMode === 'create' ? 'Tạo Chuỗi Rạp Mới' : 'Chỉnh Sửa Chuỗi Rạp'}</h2>
               <button className="btn-close" onClick={handleCloseModal}>

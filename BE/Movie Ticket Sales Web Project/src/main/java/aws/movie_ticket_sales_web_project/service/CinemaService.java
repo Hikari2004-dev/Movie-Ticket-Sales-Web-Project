@@ -577,8 +577,8 @@ public class CinemaService {
     /**
      * Get all cinemas for SYSTEM_ADMIN
      */
-    public ApiResponse<PagedCinemaResponse> getAllCinemasForSystemAdmin(Integer userId, Integer page, Integer size, String search) {
-        log.info("Getting all cinemas for SYSTEM_ADMIN: {}, page: {}, size: {}, search: {}", userId, page, size, search);
+    public ApiResponse<PagedCinemaResponse> getAllCinemasForSystemAdmin(Integer userId, Integer page, Integer size, String search, Integer chainId) {
+        log.info("Getting all cinemas for SYSTEM_ADMIN: {}, page: {}, size: {}, search: {}, chainId: {}", userId, page, size, search, chainId);
 
         // Set defaults
         page = (page != null) ? page : 0;
@@ -596,7 +596,15 @@ public class CinemaService {
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
             Page<Cinema> cinemaPage;
 
-            if (search != null && !search.isEmpty()) {
+            // Filter by chainId if provided
+            if (chainId != null) {
+                log.debug("System admin {} filtering cinemas by chainId: {}", userId, chainId);
+                if (search != null && !search.isEmpty()) {
+                    cinemaPage = cinemaRepository.searchByChainIdAndName(chainId, search, pageable);
+                } else {
+                    cinemaPage = cinemaRepository.findByChainId(chainId, pageable);
+                }
+            } else if (search != null && !search.isEmpty()) {
                 log.debug("System admin {} searching cinemas with term: {}", userId, search);
                 cinemaPage = cinemaRepository.findByCinemaNameContainingIgnoreCase(search, pageable);
             } else {

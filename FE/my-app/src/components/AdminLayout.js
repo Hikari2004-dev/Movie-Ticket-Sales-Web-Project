@@ -64,10 +64,10 @@ const AdminLayout = () => {
       section: 'core'
     },
     {
-      title: 'Quản lý rạp',
-      icon: <FaTheaterMasks />,
+      title: 'Quản lý chuỗi rạp',
+      icon: <FaBuilding />,
       path: '/admin/cinema-management',
-      description: isSystemAdmin ? 'Quản lý chuỗi rạp & rạp chiếu' : 'Quản lý rạp được gán cho tôi',
+      description: 'Quản lý chuỗi rạp chiếu phim',
       section: 'core'
     },
     {
@@ -75,7 +75,6 @@ const AdminLayout = () => {
       icon: <FaClock />,
       path: '/admin/showtimes',
       description: 'Lịch chiếu phim',
-      disabled: true,
       section: 'core'
     },
     
@@ -85,7 +84,6 @@ const AdminLayout = () => {
       icon: <FaTicketAlt />,
       path: '/admin/bookings',
       description: 'Đặt vé & hóa đơn',
-      disabled: true,
       section: 'sales'
     },
     {

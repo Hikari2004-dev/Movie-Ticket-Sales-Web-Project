@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   FaPlus, 
   FaEdit, 
@@ -7,23 +8,25 @@ import {
   FaTimes,
   FaSave,
   FaSpinner,
+  FaCheck,
+  FaBuilding,
   FaMapMarkerAlt,
   FaPhone,
   FaEnvelope,
-  FaCheck,
-  FaArrowLeft
+  FaUser
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
-import { useParams, useNavigate } from 'react-router-dom';
 import './CinemaManagement.css';
 
 const CinemaManagement = () => {
-  const { chainId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const selectedChainId = location.state?.chainId || null;
+  const selectedChainName = location.state?.chainName || 'Tất Cả Chuỗi Rạp';
   
   const [cinemas, setCinemas] = useState([]);
-  const [chainName, setChainName] = useState('');
+  const [cinemaChains, setCinemaChains] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
@@ -32,9 +35,9 @@ const CinemaManagement = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState('create');
   const [selectedCinema, setSelectedCinema] = useState(null);
-  const [managers, setManagers] = useState([]);
-  const [loadingManagers, setLoadingManagers] = useState(false);
   const [formData, setFormData] = useState({
+    chainId: '',
+    managerId: '',
     cinemaName: '',
     address: '',
     city: '',
@@ -45,31 +48,67 @@ const CinemaManagement = () => {
     legalName: '',
     latitude: '',
     longitude: '',
-    managerId: ''
+    openingHours: {
+      "Mon-Fri": "",
+      "Sat-Sun": ""
+    },
+    facilities: {
+      parking: false,
+      wheelchairAccess: false,
+      "3D_support": false
+    }
   });
   const [isActive, setIsActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [detailCinema, setDetailCinema] = useState(null);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
   const token = Cookies.get('accessToken');
 
-  // Fetch cinemas for the chain
-  const fetchCinemas = async (pageNum = 0, search = '') => {
-    setLoading(true);
-    try {
-      if (!token) {
-        throw new Error('Token không tồn tại');
-      }
+  useEffect(() => {
+    if (!token) {
+      toast.error('Token không tồn tại. Vui lòng đăng nhập lại.');
+      return;
+    }
+    fetchCinemas();
+    fetchCinemaChains();
+  }, [token, page]);
 
-      const params = new URLSearchParams({
-        page: pageNum,
-        size: 10,
-        ...(search && { search })
+  // Fetch cinema chains for dropdown
+  const fetchCinemaChains = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/cinema-chains/admin/all?page=0&size=100`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
-      const url = `${API_BASE_URL}/cinemas/chain/${chainId}/admin?${params}`;
-      console.log('Fetching from:', url);
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          setCinemaChains(result.data.data || []);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching cinema chains:', error);
+    }
+  };
 
+  // Fetch cinemas
+  const fetchCinemas = async (pageNum = page, search = searchTerm) => {
+    try {
+      setLoading(true);
+      let url = `${API_BASE_URL}/cinemas/admin/all?page=${pageNum}&size=10`;
+      if (search) {
+        url += `&search=${search}`;
+      }
+      if (selectedChainId) {
+        url += `&chainId=${selectedChainId}`;
+      }
+      
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -79,41 +118,24 @@ const CinemaManagement = () => {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Response status:', response.status);
-        console.error('Error response:', errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error('Không thể tải danh sách rạp');
       }
 
       const result = await response.json();
-
+      
       if (result.success && result.data) {
         setCinemas(result.data.data || []);
-        setTotalPages(result.data.totalPages);
-        setTotalElements(result.data.totalElements);
-        setPage(pageNum);
-        
-        // Set chain name from first cinema
-        if (result.data.data && result.data.data.length > 0) {
-          setChainName(result.data.data[0].chainName);
-        }
-      } else {
-        toast.error(result.message || 'Lỗi khi tải danh sách rạp');
+        setTotalElements(result.data.totalElements || 0);
+        setTotalPages(result.data.totalPages || 0);
+        setPage(result.data.currentPage || 0);
       }
     } catch (error) {
       console.error('Error fetching cinemas:', error);
-      toast.error('Không thể tải danh sách rạp. Vui lòng thử lại.');
+      toast.error('Không thể tải danh sách rạp: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
-
-  // Initial load
-  useEffect(() => {
-    if (chainId && token) {
-      fetchCinemas();
-    }
-  }, [chainId, token]);
 
   // Handle search
   const handleSearch = (e) => {
@@ -123,47 +145,12 @@ const CinemaManagement = () => {
     fetchCinemas(0, value);
   };
 
-  // Fetch managers list
-  const fetchManagers = async () => {
-    setLoadingManagers(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/admin/roles/CINEMA_MANAGER/users`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Managers response:', result);
-        if (result.success && result.data) {
-          const managersList = Array.isArray(result.data) ? result.data : result.data.data || [];
-          console.log('Setting managers:', managersList);
-          setManagers(managersList);
-        } else {
-          console.warn('No managers found or error:', result.message);
-          setManagers([]);
-        }
-      } else {
-        console.error('Error response status:', response.status);
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
-        setManagers([]);
-      }
-    } catch (error) {
-      console.error('Error fetching managers:', error);
-      setManagers([]);
-    } finally {
-      setLoadingManagers(false);
-    }
-  };
-
-  // Open create modal
+  // Handle open create modal
   const handleOpenCreateModal = () => {
     setModalMode('create');
     setFormData({
+      chainId: selectedChainId || '',
+      managerId: '',
       cinemaName: '',
       address: '',
       city: '',
@@ -174,19 +161,31 @@ const CinemaManagement = () => {
       legalName: '',
       latitude: '',
       longitude: '',
-      managerId: ''
+      openingHours: {
+        "Mon-Fri": "09:00 - 23:00",
+        "Sat-Sun": "08:00 - 00:00"
+      },
+      facilities: {
+        parking: false,
+        wheelchairAccess: false,
+        "3D_support": false,
+        "4DX_support": false,
+        "IMAX_support": false,
+        "VIP_lounge": false
+      }
     });
     setIsActive(true);
-    setSelectedCinema(null);
-    fetchManagers();
     setShowModal(true);
   };
 
-  // Open edit modal
+  // Handle open edit modal
   const handleOpenEditModal = (cinema) => {
     setModalMode('edit');
+    setSelectedCinema(cinema);
     setFormData({
-      cinemaName: cinema.cinemaName,
+      chainId: cinema.chainId || '',
+      managerId: cinema.managerId || '',
+      cinemaName: cinema.cinemaName || '',
       address: cinema.address || '',
       city: cinema.city || '',
       district: cinema.district || '',
@@ -196,19 +195,20 @@ const CinemaManagement = () => {
       legalName: cinema.legalName || '',
       latitude: cinema.latitude || '',
       longitude: cinema.longitude || '',
-      managerId: cinema.managerId || ''
+      openingHours: cinema.openingHours || {},
+      facilities: cinema.facilities || {}
     });
     setIsActive(cinema.isActive);
-    setSelectedCinema(cinema);
-    fetchManagers();
     setShowModal(true);
   };
 
-  // Close modal
+  // Handle close modal
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedCinema(null);
     setFormData({
+      chainId: '',
+      managerId: '',
       cinemaName: '',
       address: '',
       city: '',
@@ -219,150 +219,215 @@ const CinemaManagement = () => {
       legalName: '',
       latitude: '',
       longitude: '',
-      managerId: ''
+      openingHours: {},
+      facilities: {}
     });
-    setIsActive(true);
   };
 
-  // Handle form input change
+  // Handle form change
   const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    const { name, value, type, checked } = e.target;
+    
+    if (name.startsWith('openingHours.')) {
+      const key = name.split('.')[1];
+      setFormData(prev => ({
+        ...prev,
+        openingHours: {
+          ...prev.openingHours,
+          [key]: value
+        }
+      }));
+    } else if (name.startsWith('facilities.')) {
+      const key = name.split('.')[1];
+      setFormData(prev => ({
+        ...prev,
+        facilities: {
+          ...prev.facilities,
+          [key]: type === 'checkbox' ? checked : value
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      }));
+    }
   };
 
-  // Create cinema
+  // Handle create cinema
   const handleCreateCinema = async () => {
-    if (!formData.cinemaName.trim()) {
-      toast.error('Tên rạp không được để trống');
-      return;
-    }
-    if (!formData.address.trim()) {
-      toast.error('Địa chỉ không được để trống');
-      return;
-    }
-    if (!formData.city.trim()) {
-      toast.error('Thành phố không được để trống');
-      return;
-    }
-
-    setSubmitting(true);
     try {
-      const payload = {
-        chainId: parseInt(chainId),
-        ...formData,
+      setSubmitting(true);
+      
+      // Validate required fields
+      if (!formData.cinemaName || !formData.cinemaName.trim()) {
+        toast.error('Tên rạp không được để trống');
+        setSubmitting(false);
+        return;
+      }
+
+      if (!formData.chainId) {
+        toast.error('Vui lòng chọn chuỗi rạp');
+        setSubmitting(false);
+        return;
+      }
+      
+      // Prepare data with proper types
+      const requestData = {
+        chainId: parseInt(formData.chainId),
+        cinemaName: formData.cinemaName,
+        address: formData.address || null,
+        city: formData.city || null,
+        district: formData.district || null,
+        phoneNumber: formData.phoneNumber || null,
+        email: formData.email || null,
+        taxCode: formData.taxCode || null,
+        legalName: formData.legalName || null,
         latitude: formData.latitude ? parseFloat(formData.latitude) : null,
-        longitude: formData.longitude ? parseFloat(formData.longitude) : null
+        longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+        openingHours: formData.openingHours,
+        facilities: formData.facilities
       };
 
+      // Only add managerId if it's a valid number
+      if (formData.managerId && !isNaN(parseInt(formData.managerId))) {
+        requestData.managerId = parseInt(formData.managerId);
+      }
+      
+      console.log('📤 Sending data to create cinema:', requestData);
+      
       const response = await fetch(`${API_BASE_URL}/cinemas/admin`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(requestData)
+      });
+
+      const result = await response.json();
+      console.log('📥 Response from server:', result);
+
+      if (response.ok && result.success) {
+        toast.success(result.message || 'Tạo rạp thành công!');
+        handleCloseModal();
+        fetchCinemas();
+      } else {
+        console.error('❌ Error details:', result);
+        toast.error(result.message || 'Tạo rạp thất bại!');
+      }
+    } catch (error) {
+      console.error('Error creating cinema:', error);
+      toast.error('Có lỗi xảy ra khi tạo rạp');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Handle update cinema
+  const handleUpdateCinema = async () => {
+    try {
+      setSubmitting(true);
+      
+      // Prepare data with proper types
+      const updateData = {
+        cinemaId: selectedCinema.cinemaId,
+        chainId: parseInt(formData.chainId),
+        cinemaName: formData.cinemaName,
+        address: formData.address || null,
+        city: formData.city || null,
+        district: formData.district || null,
+        phoneNumber: formData.phoneNumber || null,
+        email: formData.email || null,
+        taxCode: formData.taxCode || null,
+        legalName: formData.legalName || null,
+        latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+        longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+        openingHours: formData.openingHours,
+        facilities: formData.facilities,
+        isActive
+      };
+
+      // Only add managerId if it's a valid number
+      if (formData.managerId && !isNaN(parseInt(formData.managerId))) {
+        updateData.managerId = parseInt(formData.managerId);
+      }
+
+      console.log('📤 Sending update data:', updateData);
+
+      const response = await fetch(`${API_BASE_URL}/cinemas/admin/${selectedCinema.cinemaId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updateData)
+      });
+
+      const result = await response.json();
+      console.log('📥 Update response:', result);
+
+      if (response.ok && result.success) {
+        toast.success(result.message || 'Cập nhật rạp thành công!');
+        handleCloseModal();
+        
+        // Show detail modal with updated data
+        if (result.data) {
+          setDetailCinema(result.data);
+          setShowDetailModal(true);
+        }
+        
+        fetchCinemas();
+      } else {
+        console.error('❌ Update error:', result);
+        toast.error(result.message || 'Cập nhật rạp thất bại!');
+      }
+    } catch (error) {
+      console.error('Error updating cinema:', error);
+      toast.error('Có lỗi xảy ra khi cập nhật rạp');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Handle delete cinema
+  const handleDeleteCinema = async (cinemaId) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa rạp này?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/cinemas/admin/${cinemaId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       const result = await response.json();
 
-      if (result.success) {
-        toast.success('Tạo rạp thành công!');
-        handleCloseModal();
-        fetchCinemas(0, searchTerm);
+      if (response.ok && result.success) {
+        toast.success(result.message || 'Xóa rạp thành công!');
+        fetchCinemas();
       } else {
-        toast.error(result.message || 'Lỗi khi tạo rạp');
+        toast.error(result.message || 'Xóa rạp thất bại!');
       }
     } catch (error) {
-      console.error('Error creating cinema:', error);
-      toast.error('Không thể tạo rạp. Vui lòng thử lại.');
-    } finally {
-      setSubmitting(false);
+      console.error('Error deleting cinema:', error);
+      toast.error('Có lỗi xảy ra khi xóa rạp');
     }
   };
 
-  // Update cinema
-  const handleUpdateCinema = async () => {
+  // Handle submit form
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
     if (!formData.cinemaName.trim()) {
-      toast.error('Tên rạp không được để trống');
+      toast.error('Vui lòng nhập tên rạp!');
       return;
     }
 
-    setSubmitting(true);
-    try {
-      const payload = {
-        cinemaId: selectedCinema.cinemaId,
-        chainId: parseInt(chainId),
-        ...formData,
-        latitude: formData.latitude ? parseFloat(formData.latitude) : null,
-        longitude: formData.longitude ? parseFloat(formData.longitude) : null,
-        isActive
-      };
-
-      const response = await fetch(
-        `${API_BASE_URL}/cinemas/admin/${selectedCinema.cinemaId}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        }
-      );
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast.success('Cập nhật rạp thành công!');
-        handleCloseModal();
-        fetchCinemas(page, searchTerm);
-      } else {
-        toast.error(result.message || 'Lỗi khi cập nhật rạp');
-      }
-    } catch (error) {
-      console.error('Error updating cinema:', error);
-      toast.error('Không thể cập nhật rạp. Vui lòng thử lại.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // Delete cinema
-  const handleDeleteCinema = async (cinemaId) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa rạp này?')) {
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/cinemas/admin/${cinemaId}?chainId=${chainId}`,
-          {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-
-        const result = await response.json();
-
-        if (result.success) {
-          toast.success('Xóa rạp thành công!');
-          fetchCinemas(page, searchTerm);
-        } else {
-          toast.error(result.message || 'Lỗi khi xóa rạp');
-        }
-      } catch (error) {
-        console.error('Error deleting cinema:', error);
-        toast.error('Không thể xóa rạp. Vui lòng thử lại.');
-      }
-    }
-  };
-
-  // Handle form submission
-  const handleSubmit = (e) => {
-    e.preventDefault();
     if (modalMode === 'create') {
       handleCreateCinema();
     } else {
@@ -372,31 +437,35 @@ const CinemaManagement = () => {
 
   return (
     <div className="cinema-management">
+      {/* Header */}
       <div className="page-header">
         <div className="page-title-section">
           <button className="btn-back" onClick={() => navigate('/admin/cinema-chains')}>
-            <FaArrowLeft /> Quay lại
+            ← Quay lại
           </button>
+          <FaBuilding className="page-icon" />
           <div className="title-content">
-            <h1>Quản Lý Rạp</h1>
-            <p className="chain-subtitle">{chainName}</p>
+            <h1>Quản Lý Rạp Chiếu Phim</h1>
+            {selectedChainId && (
+              <p className="chain-subtitle">Chuỗi rạp: {selectedChainName}</p>
+            )}
           </div>
         </div>
         <button className="btn btn-primary" onClick={handleOpenCreateModal}>
-          <FaPlus /> Thêm Rạp
+          <FaPlus /> Thêm Rạp Mới
         </button>
       </div>
 
-      {/* Search Bar */}
+      {/* Search */}
       <div className="search-section">
         <div className="search-container">
           <FaSearch className="search-icon" />
           <input
             type="text"
-            placeholder="Tìm kiếm theo tên rạp..."
+            className="search-input"
+            placeholder="Tìm kiếm theo tên rạp, địa chỉ, thành phố..."
             value={searchTerm}
             onChange={handleSearch}
-            className="search-input"
           />
         </div>
       </div>
@@ -405,95 +474,107 @@ const CinemaManagement = () => {
       {loading ? (
         <div className="loading-container">
           <FaSpinner className="spinner" />
-          <p>Đang tải...</p>
+          <p>Đang tải dữ liệu...</p>
         </div>
       ) : cinemas.length === 0 ? (
         <div className="empty-state">
-          <FaMapMarkerAlt className="empty-icon" />
-          <p>Không có rạp nào trong chuỗi này</p>
+          <FaBuilding className="empty-icon" />
+          <p>Không có rạp nào</p>
           <button className="btn btn-primary" onClick={handleOpenCreateModal}>
-            <FaPlus /> Tạo rạp đầu tiên
+            <FaPlus /> Thêm Rạp Đầu Tiên
           </button>
         </div>
       ) : (
         <>
-          {/* Cinemas Grid or Table */}
+          {/* Cards Grid */}
           <div className="cinemas-grid">
             {cinemas.map((cinema) => (
               <div key={cinema.cinemaId} className={`cinema-card ${!cinema.isActive ? 'inactive' : ''}`}>
+                {/* Card Header */}
                 <div className="cinema-card-header">
-                  <h3>{cinema.cinemaName}</h3>
-                  {!cinema.isActive && <span className="badge-inactive">Vô hiệu</span>}
+                  <div className="cinema-card-title">
+                    <FaBuilding className="cinema-card-icon" />
+                    <h3>{cinema.cinemaName}</h3>
+                  </div>
+                  <span className={`badge ${cinema.isActive ? 'badge-success' : 'badge-danger'}`}>
+                    {cinema.isActive ? (
+                      <>
+                        <FaCheck /> HOẠT ĐỘNG
+                      </>
+                    ) : (
+                      'NGƯNG'
+                    )}
+                  </span>
                 </div>
-                
+
+                {/* Card Body */}
                 <div className="cinema-card-body">
-                  <div className="info-item">
-                    <FaMapMarkerAlt className="info-icon" />
-                    <div className="info-content">
-                      <p className="label">Địa chỉ</p>
-                      <p className="value">{cinema.address}</p>
-                      <p className="value text-muted">{cinema.city}, {cinema.district}</p>
+                  {/* Chain Info */}
+                  <div className="cinema-card-row">
+                    <span className="cinema-card-label">Chuỗi rạp:</span>
+                    <span className="cinema-card-value chain-name">{cinema.chainName || 'N/A'}</span>
+                  </div>
+
+                  {/* Manager Info */}
+                  <div className="cinema-card-row">
+                    <span className="cinema-card-label">
+                      <FaUser className="inline-icon" /> Quản lý:
+                    </span>
+                    <div className="manager-compact">
+                      <div className="manager-name">{cinema.managerName || 'N/A'}</div>
+                      {cinema.managerEmail && (
+                        <div className="manager-email">{cinema.managerEmail}</div>
+                      )}
                     </div>
                   </div>
 
-                  {cinema.phoneNumber && (
-                    <div className="info-item">
-                      <FaPhone className="info-icon" />
-                      <div className="info-content">
-                        <p className="label">Điện thoại</p>
-                        <a href={`tel:${cinema.phoneNumber}`}>{cinema.phoneNumber}</a>
-                      </div>
-                    </div>
-                  )}
+                  {/* Address */}
+                  <div className="cinema-card-row">
+                    <span className="cinema-card-label">
+                      <FaMapMarkerAlt className="inline-icon" /> Địa chỉ:
+                    </span>
+                    <span className="cinema-card-value">{cinema.address}</span>
+                  </div>
 
-                  {cinema.email && (
-                    <div className="info-item">
-                      <FaEnvelope className="info-icon" />
-                      <div className="info-content">
-                        <p className="label">Email</p>
-                        <a href={`mailto:${cinema.email}`}>{cinema.email}</a>
-                      </div>
-                    </div>
-                  )}
+                  {/* City */}
+                  <div className="cinema-card-row">
+                    <span className="cinema-card-label">Thành phố:</span>
+                    <span className="cinema-card-value">{cinema.city}, {cinema.district}</span>
+                  </div>
 
-                  {cinema.legalName && (
-                    <div className="info-item">
-                      <p className="label">Tên pháp lý</p>
-                      <p className="value">{cinema.legalName}</p>
+                  {/* Contact */}
+                  <div className="cinema-card-contact">
+                    <div className="contact-item-compact">
+                      <FaPhone className="contact-icon" />
+                      <span>{cinema.phoneNumber}</span>
                     </div>
-                  )}
-
-                  {cinema.managerName && (
-                    <div className="info-item">
-                      <p className="label">Người Quản Lý</p>
-                      <p className="value manager-info">
-                        {cinema.managerName} <br />
-                        <small className="text-muted">{cinema.managerEmail}</small>
-                      </p>
+                    <div className="contact-item-compact">
+                      <FaEnvelope className="contact-icon" />
+                      <span>{cinema.email}</span>
                     </div>
-                  )}
+                  </div>
 
-                  <div className="cinema-footer">
-                    <small className="text-muted">
-                      Tạo: {new Date(cinema.createdAt).toLocaleDateString('vi-VN')}
-                    </small>
+                  {/* Created Date */}
+                  <div className="cinema-card-footer-info">
+                    <small>Ngày tạo: {new Date(cinema.createdAt).toLocaleDateString('vi-VN')}</small>
                   </div>
                 </div>
 
-                <div className="cinema-card-actions">
-                  <button
+                {/* Card Footer */}
+                <div className="cinema-card-footer">
+                  <button 
                     className="btn btn-sm btn-info"
                     onClick={() => handleOpenEditModal(cinema)}
                     title="Chỉnh sửa"
                   >
-                    <FaEdit />
+                    <FaEdit /> Chỉnh sửa
                   </button>
-                  <button
+                  <button 
                     className="btn btn-sm btn-danger"
                     onClick={() => handleDeleteCinema(cinema.cinemaId)}
                     title="Xóa"
                   >
-                    <FaTrash />
+                    <FaTrash /> Xóa
                   </button>
                 </div>
               </div>
@@ -501,54 +582,58 @@ const CinemaManagement = () => {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="pagination-section">
-              <div className="pagination-info">
-                Hiển thị {cinemas.length > 0 ? page * 10 + 1 : 0} đến{' '}
-                {Math.min((page + 1) * 10, totalElements)} trong {totalElements} kết quả
-              </div>
-              <div className="pagination-controls">
-                <button
-                  className="btn btn-sm"
-                  onClick={() => fetchCinemas(page - 1, searchTerm)}
-                  disabled={page === 0}
-                >
-                  Trang Trước
-                </button>
-                <span className="page-indicator">
-                  Trang {page + 1} / {totalPages}
-                </span>
-                <button
-                  className="btn btn-sm"
-                  onClick={() => fetchCinemas(page + 1, searchTerm)}
-                  disabled={page >= totalPages - 1}
-                >
-                  Trang Sau
-                </button>
-              </div>
+          <div className="pagination-section">
+            <div className="pagination-info">
+              Hiển thị {cinemas.length} trên {totalElements} rạp
             </div>
-          )}
+            <div className="pagination-controls">
+              <button 
+                className="btn btn-secondary btn-sm"
+                onClick={() => {
+                  if (page > 0) {
+                    setPage(page - 1);
+                  }
+                }}
+                disabled={page === 0}
+              >
+                ← Trước
+              </button>
+              <span className="page-indicator">
+                Trang {page + 1} / {totalPages || 1}
+              </span>
+              <button 
+                className="btn btn-secondary btn-sm"
+                onClick={() => {
+                  if (page < totalPages - 1) {
+                    setPage(page + 1);
+                  }
+                }}
+                disabled={page >= totalPages - 1}
+              >
+                Tiếp →
+              </button>
+            </div>
+          </div>
         </>
       )}
 
       {/* Modal */}
       {showModal && (
-        <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay">
+          <div className="modal-content">
             <div className="modal-header">
-              <h2>{modalMode === 'create' ? 'Tạo Rạp Mới' : 'Chỉnh Sửa Rạp'}</h2>
+              <h2>{modalMode === 'create' ? 'Thêm Rạp Mới' : 'Chỉnh Sửa Rạp'}</h2>
               <button className="btn-close" onClick={handleCloseModal}>
                 <FaTimes />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="modal-form">
+            <form className="modal-form" onSubmit={handleSubmit}>
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="cinemaName">Tên Rạp *</label>
+                  <label>Tên Rạp <span className="required">*</span></label>
                   <input
                     type="text"
-                    id="cinemaName"
                     name="cinemaName"
                     value={formData.cinemaName}
                     onChange={handleFormChange}
@@ -556,22 +641,18 @@ const CinemaManagement = () => {
                     required
                   />
                 </div>
-              </div>
-
-              <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="managerId">Người Quản Lý (Manager)</label>
+                  <label>Chuỗi Rạp <span className="required">*</span></label>
                   <select
-                    id="managerId"
-                    name="managerId"
-                    value={formData.managerId}
+                    name="chainId"
+                    value={formData.chainId}
                     onChange={handleFormChange}
-                    disabled={loadingManagers}
+                    required
                   >
-                    <option value="">-- Chọn Người Quản Lý --</option>
-                    {managers.map((manager) => (
-                      <option key={manager.userId} value={manager.userId}>
-                        {manager.fullName} ({manager.email})
+                    <option value="">-- Chọn chuỗi rạp --</option>
+                    {cinemaChains.map(chain => (
+                      <option key={chain.chainId} value={chain.chainId}>
+                        {chain.chainName}
                       </option>
                     ))}
                   </select>
@@ -580,160 +661,408 @@ const CinemaManagement = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="city">Thành Phố *</label>
+                  <label>Quản Lý ID <small style={{color: '#999', fontWeight: 'normal'}}>(Tùy chọn)</small></label>
                   <input
-                    type="text"
-                    id="city"
-                    name="city"
-                    value={formData.city}
+                    type="number"
+                    name="managerId"
+                    value={formData.managerId}
                     onChange={handleFormChange}
-                    placeholder="Nhập thành phố"
-                    required
+                    placeholder="Để trống nếu chưa có quản lý"
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="district">Quận/Huyện</label>
+                  <label>Số Điện Thoại</label>
                   <input
                     type="text"
-                    id="district"
-                    name="district"
-                    value={formData.district}
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
                     onChange={handleFormChange}
-                    placeholder="Nhập quận/huyện"
+                    placeholder="Số điện thoại"
                   />
                 </div>
               </div>
 
               <div className="form-group">
-                <label htmlFor="address">Địa Chỉ *</label>
-                <textarea
-                  id="address"
+                <label>Địa Chỉ</label>
+                <input
+                  type="text"
                   name="address"
                   value={formData.address}
                   onChange={handleFormChange}
-                  placeholder="Nhập địa chỉ đầy đủ"
-                  rows="2"
-                  required
+                  placeholder="Địa chỉ đầy đủ"
                 />
               </div>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="phoneNumber">Điện Thoại</label>
+                  <label>Thành Phố</label>
                   <input
-                    type="tel"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
+                    type="text"
+                    name="city"
+                    value={formData.city}
                     onChange={handleFormChange}
-                    placeholder="Nhập số điện thoại"
+                    placeholder="Thành phố"
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="email">Email</label>
+                  <label>Quận/Huyện</label>
+                  <input
+                    type="text"
+                    name="district"
+                    value={formData.district}
+                    onChange={handleFormChange}
+                    placeholder="Quận/Huyện"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Email</label>
                   <input
                     type="email"
-                    id="email"
                     name="email"
                     value={formData.email}
                     onChange={handleFormChange}
-                    placeholder="Nhập email"
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="latitude">Vĩ Độ (Latitude)</label>
-                  <input
-                    type="number"
-                    id="latitude"
-                    name="latitude"
-                    value={formData.latitude}
-                    onChange={handleFormChange}
-                    placeholder="Ví dụ: 10.7769"
-                    step="0.0001"
+                    placeholder="email@example.com"
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="longitude">Kinh Độ (Longitude)</label>
-                  <input
-                    type="number"
-                    id="longitude"
-                    name="longitude"
-                    value={formData.longitude}
-                    onChange={handleFormChange}
-                    placeholder="Ví dụ: 106.7009"
-                    step="0.0001"
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="taxCode">Mã Số Thuế</label>
+                  <label>Mã Số Thuế</label>
                   <input
                     type="text"
-                    id="taxCode"
                     name="taxCode"
                     value={formData.taxCode}
                     onChange={handleFormChange}
-                    placeholder="Nhập mã số thuế"
+                    placeholder="Mã số thuế"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Tên Pháp Lý</label>
+                <input
+                  type="text"
+                  name="legalName"
+                  value={formData.legalName}
+                  onChange={handleFormChange}
+                  placeholder="Tên pháp lý công ty"
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Vĩ Độ (Latitude)</label>
+                  <input
+                    type="number"
+                    step="any"
+                    name="latitude"
+                    value={formData.latitude}
+                    onChange={handleFormChange}
+                    placeholder="10.7769"
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="legalName">Tên Pháp Lý</label>
+                  <label>Kinh Độ (Longitude)</label>
+                  <input
+                    type="number"
+                    step="any"
+                    name="longitude"
+                    value={formData.longitude}
+                    onChange={handleFormChange}
+                    placeholder="106.7001"
+                  />
+                </div>
+              </div>
+
+              <div className="form-section-title">Giờ Mở Cửa</div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Thứ 2 - Thứ 6</label>
                   <input
                     type="text"
-                    id="legalName"
-                    name="legalName"
-                    value={formData.legalName}
+                    name="openingHours.Mon-Fri"
+                    value={formData.openingHours?.["Mon-Fri"] || ''}
                     onChange={handleFormChange}
-                    placeholder="Nhập tên pháp lý"
+                    placeholder="09:00 - 23:00"
                   />
+                </div>
+                <div className="form-group">
+                  <label>Thứ 7 - Chủ Nhật</label>
+                  <input
+                    type="text"
+                    name="openingHours.Sat-Sun"
+                    value={formData.openingHours?.["Sat-Sun"] || ''}
+                    onChange={handleFormChange}
+                    placeholder="08:00 - 00:00"
+                  />
+                </div>
+              </div>
+
+              <div className="form-section-title">Tiện Ích</div>
+              <div className="facilities-checkboxes">
+                <div className="form-group-checkbox">
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="facilities.parking"
+                      checked={formData.facilities?.parking || false}
+                      onChange={handleFormChange}
+                    />
+                    Bãi đỗ xe
+                  </label>
+                </div>
+                <div className="form-group-checkbox">
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="facilities.wheelchairAccess"
+                      checked={formData.facilities?.wheelchairAccess || false}
+                      onChange={handleFormChange}
+                    />
+                    Tiện nghi cho người khuyết tật
+                  </label>
+                </div>
+                <div className="form-group-checkbox">
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="facilities.3D_support"
+                      checked={formData.facilities?.["3D_support"] || false}
+                      onChange={handleFormChange}
+                    />
+                    Hỗ trợ 3D
+                  </label>
+                </div>
+                <div className="form-group-checkbox">
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="facilities.4DX_support"
+                      checked={formData.facilities?.["4DX_support"] || false}
+                      onChange={handleFormChange}
+                    />
+                    Hỗ trợ 4DX
+                  </label>
+                </div>
+                <div className="form-group-checkbox">
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="facilities.IMAX_support"
+                      checked={formData.facilities?.["IMAX_support"] || false}
+                      onChange={handleFormChange}
+                    />
+                    Hỗ trợ IMAX
+                  </label>
+                </div>
+                <div className="form-group-checkbox">
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="facilities.VIP_lounge"
+                      checked={formData.facilities?.["VIP_lounge"] || false}
+                      onChange={handleFormChange}
+                    />
+                    Phòng chờ VIP
+                  </label>
                 </div>
               </div>
 
               {modalMode === 'edit' && (
-                <div className="form-group form-group-checkbox">
-                  <label htmlFor="isActive">
+                <div className="form-group-checkbox">
+                  <label>
                     <input
                       type="checkbox"
-                      id="isActive"
                       checked={isActive}
                       onChange={(e) => setIsActive(e.target.checked)}
                     />
-                    Hoạt động
+                    Đang hoạt động
                   </label>
                 </div>
               )}
 
               <div className="modal-actions">
-                <button
-                  type="button"
+                <button 
+                  type="button" 
                   className="btn btn-secondary"
                   onClick={handleCloseModal}
                   disabled={submitting}
                 >
-                  Hủy
+                  <FaTimes /> Hủy
                 </button>
-                <button
-                  type="submit"
+                <button 
+                  type="submit" 
                   className="btn btn-primary"
                   disabled={submitting}
                 >
                   {submitting ? (
                     <>
-                      <FaSpinner className="spinner-small" /> Đang lưu...
+                      <FaSpinner className="spinner-small" /> Đang xử lý...
                     </>
                   ) : (
                     <>
-                      <FaSave /> Lưu
+                      <FaSave /> {modalMode === 'create' ? 'Tạo Rạp' : 'Cập Nhật'}
                     </>
                   )}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      {showDetailModal && detailCinema && (
+        <div className="modal-overlay">
+          <div className="modal-content modal-detail">
+            <div className="modal-header">
+              <h2>Chi Tiết Rạp Sau Khi Cập Nhật</h2>
+              <button className="btn-close" onClick={() => setShowDetailModal(false)}>
+                <FaTimes />
+              </button>
+            </div>
+
+            <div className="detail-content">
+              <div className="detail-section">
+                <h3>Thông Tin Cơ Bản</h3>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>ID Rạp:</label>
+                    <span>{detailCinema.cinemaId}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Tên Rạp:</label>
+                    <span>{detailCinema.cinemaName}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Chuỗi Rạp:</label>
+                    <span>{detailCinema.chainName} (ID: {detailCinema.chainId})</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Trạng Thái:</label>
+                    <span className={`badge ${detailCinema.isActive ? 'badge-success' : 'badge-danger'}`}>
+                      {detailCinema.isActive ? 'Hoạt động' : 'Ngưng hoạt động'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3>Quản Lý</h3>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>ID Quản Lý:</label>
+                    <span>{detailCinema.managerId || 'N/A'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Tên Quản Lý:</label>
+                    <span>{detailCinema.managerName || 'N/A'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Email Quản Lý:</label>
+                    <span>{detailCinema.managerEmail || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3>Địa Chỉ & Liên Hệ</h3>
+                <div className="detail-grid">
+                  <div className="detail-item full-width">
+                    <label>Địa Chỉ:</label>
+                    <span>{detailCinema.address}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Thành Phố:</label>
+                    <span>{detailCinema.city}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Quận/Huyện:</label>
+                    <span>{detailCinema.district}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Số Điện Thoại:</label>
+                    <span>{detailCinema.phoneNumber}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Email:</label>
+                    <span>{detailCinema.email}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3>Thông Tin Pháp Lý</h3>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>Tên Pháp Lý:</label>
+                    <span>{detailCinema.legalName || 'N/A'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Mã Số Thuế:</label>
+                    <span>{detailCinema.taxCode || 'N/A'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Vĩ Độ:</label>
+                    <span>{detailCinema.latitude || 'N/A'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Kinh Độ:</label>
+                    <span>{detailCinema.longitude || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3>Giờ Mở Cửa</h3>
+                <div className="detail-grid">
+                  {detailCinema.openingHours && Object.entries(detailCinema.openingHours).map(([day, hours]) => (
+                    <div key={day} className="detail-item">
+                      <label>{day}:</label>
+                      <span>{hours}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3>Tiện Ích</h3>
+                <div className="facilities-badges">
+                  {detailCinema.facilities && Object.entries(detailCinema.facilities).map(([key, value]) => 
+                    value && (
+                      <span key={key} className="facility-badge">
+                        <FaCheck /> {key.replace(/_/g, ' ').replace('support', '').trim()}
+                      </span>
+                    )
+                  )}
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3>Thời Gian</h3>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>Ngày Tạo:</label>
+                    <span>{new Date(detailCinema.createdAt).toLocaleString('vi-VN')}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Cập Nhật Lần Cuối:</label>
+                    <span>{new Date(detailCinema.updatedAt).toLocaleString('vi-VN')}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button 
+                type="button" 
+                className="btn btn-primary"
+                onClick={() => setShowDetailModal(false)}
+              >
+                <FaCheck /> Đóng
+              </button>
+            </div>
           </div>
         </div>
       )}
