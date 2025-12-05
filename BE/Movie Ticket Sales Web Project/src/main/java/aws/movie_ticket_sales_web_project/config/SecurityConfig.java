@@ -152,6 +152,26 @@ public class SecurityConfig {
                         // Public showtime endpoints (GET only)
                         .requestMatchers(HttpMethod.GET, "/api/showtimes/**").permitAll()
                         
+                        // Booking endpoints (order matters - specific before general!)
+                        .requestMatchers(HttpMethod.POST, "/api/bookings").permitAll() // Allow guest bookings
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/code/**").permitAll() // Check booking by code (MUST be before /api/bookings/**)
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/user/**").authenticated() // User's bookings
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/status/**").authenticated() // Filter by status
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/showtime/**").authenticated() // Filter by showtime
+                        .requestMatchers(HttpMethod.PUT, "/api/bookings/**").authenticated() // Update booking
+                        .requestMatchers(HttpMethod.POST, "/api/bookings/*/cancel").authenticated() // Cancel booking
+                        .requestMatchers(HttpMethod.DELETE, "/api/bookings/admin/**").hasRole("SYSTEM_ADMIN") // Delete booking
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/**").authenticated() // View all bookings (MUST be last)
+                        
+                        // Seat hold endpoints (public for guest users)
+                        .requestMatchers(HttpMethod.POST, "/api/seats/hold").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/seats/release").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/seats/extend-hold").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/seats/availability/**").permitAll()
+                        
+                        // Test endpoints (REMOVE IN PRODUCTION)
+                        .requestMatchers("/api/test/**").permitAll()
+                        
                         // Admin-only endpoints
                         .requestMatchers("/api/admin/**").hasRole("SYSTEM_ADMIN")
                         

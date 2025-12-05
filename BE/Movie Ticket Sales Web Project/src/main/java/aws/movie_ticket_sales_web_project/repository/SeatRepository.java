@@ -38,4 +38,10 @@ public interface SeatRepository extends JpaRepository<Seat, Integer> {
      * Check if seat exists by row and number in a hall
      */
     boolean existsByHallIdAndSeatRowAndSeatNumber(Integer hallId, String seatRow, Integer seatNumber);
+
+    /**
+     * Find seats by IDs
+     */
+    @Query("SELECT s FROM Seat s WHERE s.id IN :seatIds")
+    List<Seat> findAllByIds(@Param("seatIds") List<Integer> seatIds);
 }
