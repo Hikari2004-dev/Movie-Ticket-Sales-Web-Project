@@ -43,6 +43,8 @@ const CinemaHallManagement = () => {
   });
   const [isActive, setIsActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [detailHall, setDetailHall] = useState(null);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
   const token = Cookies.get('accessToken');
@@ -217,6 +219,13 @@ const CinemaHallManagement = () => {
       if (result.success) {
         toast.success(successMessage);
         setShowModal(false);
+        
+        // Show detail modal with updated data for edit mode
+        if (modalMode === 'edit' && result.data) {
+          setDetailHall(result.data);
+          setShowDetailModal(true);
+        }
+        
         fetchHalls(page, searchTerm);
       } else {
         toast.error(result.message || 'Lỗi khi lưu phòng chiếu');
@@ -420,8 +429,8 @@ const CinemaHallManagement = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay">
+          <div className="modal-content">
             <div className="modal-header">
               <h2>{modalMode === 'create' ? 'Tạo Phòng Chiếu Mới' : 'Chỉnh Sửa Phòng Chiếu'}</h2>
               <button 
@@ -553,6 +562,121 @@ const CinemaHallManagement = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      {showDetailModal && detailHall && (
+        <div className="modal-overlay">
+          <div className="modal-content modal-detail">
+            <div className="modal-header">
+              <h2>Chi Tiết Phòng Chiếu Sau Khi Cập Nhật</h2>
+              <button className="btn-close" onClick={() => setShowDetailModal(false)}>
+                <FaTimes />
+              </button>
+            </div>
+
+            <div className="detail-content">
+              <div className="detail-section">
+                <h3><FaChair /> Thông Tin Cơ Bản</h3>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>ID Phòng:</label>
+                    <span>{detailHall.hallId}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Tên Phòng:</label>
+                    <span>{detailHall.hallName}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Rạp Chiếu:</label>
+                    <span>{detailHall.cinemaName}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Loại Phòng:</label>
+                    <span className="badge-type">{detailHall.hallType || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3><FaChair /> Thông Tin Ghế Ngồi</h3>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>Tổng Số Ghế:</label>
+                    <span className="highlight-number">{detailHall.totalSeats}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Số Hàng:</label>
+                    <span>{detailHall.rowsCount || 'N/A'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Ghế Mỗi Hàng:</label>
+                    <span>{detailHall.seatsPerRow || 'N/A'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Trạng Thái:</label>
+                    <span className={`badge ${detailHall.isActive ? 'badge-success' : 'badge-danger'}`}>
+                      {detailHall.isActive ? (
+                        <>
+                          <FaCheck /> Hoạt động
+                        </>
+                      ) : (
+                        'Ngưng hoạt động'
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3><FaFilm /> Thiết Bị Kỹ Thuật</h3>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>Loại Màn Hình:</label>
+                    <span>{detailHall.screenType || 'N/A'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label><FaVolumeUp /> Hệ Thống Âm Thanh:</label>
+                    <span>{detailHall.soundSystem || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {detailHall.seatLayout && Object.keys(detailHall.seatLayout).length > 0 && (
+                <div className="detail-section">
+                  <h3>Sơ Đồ Ghế</h3>
+                  <div className="seat-layout-preview">
+                    <pre>{JSON.stringify(detailHall.seatLayout, null, 2)}</pre>
+                  </div>
+                </div>
+              )}
+
+              <div className="detail-section">
+                <h3>Thời Gian</h3>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>Ngày Tạo:</label>
+                    <span>{new Date(detailHall.createdAt).toLocaleString('vi-VN')}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Cập Nhật Lần Cuối:</label>
+                    <span>{new Date(detailHall.updatedAt).toLocaleString('vi-VN')}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button 
+                type="button" 
+                className="btn-primary"
+                onClick={() => setShowDetailModal(false)}
+              >
+                <FaCheck /> Đóng
+              </button>
+            </div>
           </div>
         </div>
       )}

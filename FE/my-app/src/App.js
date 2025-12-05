@@ -17,6 +17,8 @@ import CinemaManagement from './components/CinemaManagement';
 import MyCinemaManagement from './components/MyCinemaManagement';
 import UnifiedCinemaManagement from './components/UnifiedCinemaManagement';
 import CinemaHallManagement from './components/CinemaHallManagement';
+import ShowtimeManagement from './components/ShowtimeManagement';
+import BookingManagement from './components/BookingManagement';
 import AdminLayout from './components/AdminLayout';
 import SystemAdminLayout from './components/SystemAdminLayout';
 import SystemAdminDashboard from './components/SystemAdminDashboard';
@@ -74,13 +76,13 @@ function App() {
             {/* Core Management */}
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="movies" element={<MovieManagement />} />
-            <Route path="cinema-management" element={<UnifiedCinemaManagement />} />
-            <Route path="cinema-halls/:cinemaId" element={<CinemaHallManagement />} />
-            <Route path="cinemas" element={<ComingSoon feature="Quản Lý Rạp" />} />
-            <Route path="showtimes" element={<ComingSoon feature="Quản Lý Suất Chiếu" />} />
+            <Route path="cinema-chains" element={<CinemaChainManagement />} />
+            <Route path="cinema-management" element={<CinemaChainManagement />} />
+            <Route path="cinemas" element={<CinemaManagement />} />
+            <Route path="showtimes" element={<ShowtimeManagement />} />
             
             {/* Sales */}
-            <Route path="bookings" element={<ComingSoon feature="Quản Lý Đặt Vé" />} />
+            <Route path="bookings" element={<BookingManagement />} />
             <Route path="promotions" element={<ComingSoon feature="Quản Lý Khuyến Mãi" />} />
             
             {/* User Management */}

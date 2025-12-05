@@ -276,7 +276,7 @@ public class CinemaController {
     }
 
     /**
-     * Get all cinemas (for SYSTEM_ADMIN)
+     * Get all cinemas for SYSTEM_ADMIN (all chains, all statuses)
      * GET /api/cinemas/admin/all
      */
     @GetMapping("/admin/all")
@@ -284,9 +284,10 @@ public class CinemaController {
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) Integer chainId,
             @RequestHeader("Authorization") String token) {
 
-        log.info("Getting all cinemas for SYSTEM_ADMIN - page: {}, size: {}, search: {}", page, size, search);
+        log.info("Getting all cinemas for SYSTEM_ADMIN - page: {}, size: {}, search: {}, chainId: {}", page, size, search, chainId);
 
         try {
             Integer userId = getUserIdFromToken(token);
@@ -298,7 +299,7 @@ public class CinemaController {
                                 .build());
             }
 
-            ApiResponse<PagedCinemaResponse> response = cinemaService.getAllCinemasForSystemAdmin(userId, page, size, search);
+            ApiResponse<PagedCinemaResponse> response = cinemaService.getAllCinemasForSystemAdmin(userId, page, size, search, chainId);
 
             if (response.getSuccess()) {
                 return ResponseEntity.ok(response);
