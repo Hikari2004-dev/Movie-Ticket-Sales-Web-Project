@@ -19,16 +19,13 @@ public class CreateBookingRequest {
     @NotNull(message = "Showtime ID is required")
     private Integer showtimeId;
     
-    // Customer information (required if user is not logged in)
-    @NotBlank(message = "Customer name is required")
+    // Customer information (required ONLY if userId is null - for guest bookings)
     @Size(max = 100, message = "Customer name must not exceed 100 characters")
     private String customerName;
     
-    @NotBlank(message = "Customer email is required")
     @Email(message = "Invalid email format")
     private String customerEmail;
     
-    @NotBlank(message = "Customer phone is required")
     @Pattern(regexp = "^[0-9]{10,20}$", message = "Invalid phone number format")
     private String customerPhone;
     

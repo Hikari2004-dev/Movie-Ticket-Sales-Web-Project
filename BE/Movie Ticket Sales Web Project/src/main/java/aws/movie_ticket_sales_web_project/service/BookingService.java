@@ -128,10 +128,37 @@ public class BookingService {
                 seats.add(seat);
             }
             
-            // Get user if provided
+            // Get user if provided and auto-fill customer info
             User user = null;
+            String customerName = request.getCustomerName();
+            String customerEmail = request.getCustomerEmail();
+            String customerPhone = request.getCustomerPhone();
+            
             if (request.getUserId() != null) {
-                user = userRepository.findById(request.getUserId()).orElse(null);
+                user = userRepository.findById(request.getUserId())
+                        .orElseThrow(() -> new RuntimeException("User not found with ID: " + request.getUserId()));
+                
+                // Auto-fill customer info from user if not provided
+                if (customerName == null || customerName.isBlank()) {
+                    customerName = user.getFullName();
+                }
+                if (customerEmail == null || customerEmail.isBlank()) {
+                    customerEmail = user.getEmail();
+                }
+                if (customerPhone == null || customerPhone.isBlank()) {
+                    customerPhone = user.getPhoneNumber();
+                }
+            } else {
+                // Guest booking - validate customer info is provided
+                if (customerName == null || customerName.isBlank()) {
+                    throw new RuntimeException("Customer name is required for guest bookings");
+                }
+                if (customerEmail == null || customerEmail.isBlank()) {
+                    throw new RuntimeException("Customer email is required for guest bookings");
+                }
+                if (customerPhone == null || customerPhone.isBlank()) {
+                    throw new RuntimeException("Customer phone is required for guest bookings");
+                }
             }
             
             // Calculate amounts
@@ -145,9 +172,9 @@ public class BookingService {
             booking.setBookingCode(generateBookingCode());
             booking.setUser(user);
             booking.setShowtime(showtime);
-            booking.setCustomerName(request.getCustomerName());
-            booking.setCustomerEmail(request.getCustomerEmail());
-            booking.setCustomerPhone(request.getCustomerPhone());
+            booking.setCustomerName(customerName);
+            booking.setCustomerEmail(customerEmail);
+            booking.setCustomerPhone(customerPhone);
             booking.setBookingDate(Instant.now());
             booking.setTotalSeats(seats.size());
             booking.setSubtotal(subtotal);
