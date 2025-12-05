@@ -11,8 +11,7 @@ import {
   FaTimes,
   FaSignOutAlt,
   FaHome,
-  FaStore,
-  FaMoneyBillWave
+  FaStore
 } from 'react-icons/fa';
 import './StaffLayout.css';
 import Cookies from 'js-cookie';
@@ -45,7 +44,6 @@ const StaffLayout = () => {
   const menuItems = [
     { path: '/staff/dashboard', icon: FaClock, label: 'Ca Làm Việc', active: true },
     { path: '/staff/check-in', icon: FaCheckCircle, label: 'Xác Nhận Vé', active: true },
-    { path: '/staff/payment', icon: FaMoneyBillWave, label: 'Thanh Toán', active: true },
   ];
 
   return (
