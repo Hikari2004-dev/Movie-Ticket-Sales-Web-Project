@@ -116,7 +116,7 @@ public class CinemaChainController {
      * Create cinema chain (admin only)
      * POST /api/cinema-chains/admin
      */
-    @PostMapping("/admin/")
+    @PostMapping("/admin")
     public ResponseEntity<ApiResponse<CinemaChainDto>> createCinemaChain(
             @RequestBody CreateCinemaChainRequest request,
             @RequestHeader("Authorization") String token) {

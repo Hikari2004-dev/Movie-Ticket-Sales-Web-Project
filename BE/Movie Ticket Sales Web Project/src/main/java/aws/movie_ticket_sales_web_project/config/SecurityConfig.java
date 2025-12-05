@@ -171,6 +171,7 @@ public class SecurityConfig {
                         
                         // Test endpoints (REMOVE IN PRODUCTION)
                         .requestMatchers("/api/test/**").permitAll()
+                        .requestMatchers("/api/debug/**").authenticated()
                         
                         // Admin-only endpoints
                         .requestMatchers("/api/admin/**").hasRole("SYSTEM_ADMIN")
