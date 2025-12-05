@@ -11,7 +11,9 @@ import {
   FaArrowLeft,
   FaChair,
   FaFilm,
-  FaVolumeUp
+  FaVolumeUp,
+  FaSync,
+  FaTrashAlt
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
@@ -39,12 +41,23 @@ const CinemaHallManagement = () => {
     rowsCount: '',
     seatsPerRow: '',
     screenType: '',
-    soundSystem: ''
+    soundSystem: '',
+    vipRows: 'A,B',
+    coupleRows: 'C',
+    wheelchairRows: 'E',
+    specificVipSeats: '',
+    specificCoupleSeats: '',
+    specificWheelchairSeats: '',
+    aisles: 'B-C',
+    verticalAisles: '5-6'
   });
   const [isActive, setIsActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [detailHall, setDetailHall] = useState(null);
+  const [showSeatMapModal, setShowSeatMapModal] = useState(false);
+  const [seatMapHall, setSeatMapHall] = useState(null);
+  const [seatMapData, setSeatMapData] = useState([]);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
   const token = Cookies.get('accessToken');
@@ -53,12 +66,14 @@ const CinemaHallManagement = () => {
   const fetchHalls = async (pageNum = 0, search = '') => {
     setLoading(true);
     try {
-      const url = `${API_BASE_URL}/cinema-halls/cinema/${cinemaId}/admin?page=${pageNum}&size=12&search=${search}`;
+      let url = `${API_BASE_URL}/cinema-halls/cinema/${cinemaId}?page=${pageNum}&size=12`;
+      if (search) {
+        url += `&search=${search}`;
+      }
 
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -115,7 +130,15 @@ const CinemaHallManagement = () => {
       rowsCount: '',
       seatsPerRow: '',
       screenType: '',
-      soundSystem: ''
+      soundSystem: '',
+      vipRows: 'A,B',
+      coupleRows: 'C',
+      wheelchairRows: 'E',
+      specificVipSeats: '',
+      specificCoupleSeats: '',
+      specificWheelchairSeats: '',
+      aisles: 'B-C',
+      verticalAisles: '5-6'
     });
     setIsActive(true);
     setSelectedHall(null);
@@ -125,6 +148,58 @@ const CinemaHallManagement = () => {
   // Open edit modal
   const handleOpenEditModal = (hall) => {
     setModalMode('edit');
+    
+    // Parse seatLayout to extract all seat type configurations
+    let vipRowsStr = '';
+    let coupleRowsStr = '';
+    let wheelchairRowsStr = '';
+    let specificVipSeatsStr = '';
+    let specificCoupleSeatsStr = '';
+    let specificWheelchairSeatsStr = '';
+    let aislesStr = '';
+    let verticalAislesStr = '';
+    
+    if (hall.seatLayout) {
+      if (hall.seatLayout.VIP_Rows && Array.isArray(hall.seatLayout.VIP_Rows)) {
+        vipRowsStr = hall.seatLayout.VIP_Rows.join(',');
+      }
+      if (hall.seatLayout.COUPLE_Rows && Array.isArray(hall.seatLayout.COUPLE_Rows)) {
+        coupleRowsStr = hall.seatLayout.COUPLE_Rows.join(',');
+      }
+      if (hall.seatLayout.WHEELCHAIR_Rows && Array.isArray(hall.seatLayout.WHEELCHAIR_Rows)) {
+        wheelchairRowsStr = hall.seatLayout.WHEELCHAIR_Rows.join(',');
+      }
+      
+      // Extract specific seat assignments (e.g., D5: VIP, E6: COUPLE)
+      const specificVipSeats = [];
+      const specificCoupleSeats = [];
+      const specificWheelchairSeats = [];
+      
+      Object.keys(hall.seatLayout).forEach(key => {
+        if (key.match(/^[A-Z]\d+$/)) { // Match seat pattern like A1, B5, etc
+          const seatType = hall.seatLayout[key];
+          if (seatType === 'VIP') {
+            specificVipSeats.push(key);
+          } else if (seatType === 'COUPLE') {
+            specificCoupleSeats.push(key);
+          } else if (seatType === 'WHEELCHAIR') {
+            specificWheelchairSeats.push(key);
+          }
+        }
+      });
+      
+      specificVipSeatsStr = specificVipSeats.join(',');
+      specificCoupleSeatsStr = specificCoupleSeats.join(',');
+      specificWheelchairSeatsStr = specificWheelchairSeats.join(',');
+      
+      if (hall.seatLayout.aisles && Array.isArray(hall.seatLayout.aisles)) {
+        aislesStr = hall.seatLayout.aisles.join(',');
+      }
+      if (hall.seatLayout.verticalAisles && Array.isArray(hall.seatLayout.verticalAisles)) {
+        verticalAislesStr = hall.seatLayout.verticalAisles.join(',');
+      }
+    }
+    
     setFormData({
       hallName: hall.hallName,
       hallType: hall.hallType || '2D',
@@ -132,7 +207,15 @@ const CinemaHallManagement = () => {
       rowsCount: hall.rowsCount || '',
       seatsPerRow: hall.seatsPerRow || '',
       screenType: hall.screenType || '',
-      soundSystem: hall.soundSystem || ''
+      soundSystem: hall.soundSystem || '',
+      vipRows: vipRowsStr,
+      coupleRows: coupleRowsStr,
+      wheelchairRows: wheelchairRowsStr,
+      specificVipSeats: specificVipSeatsStr,
+      specificCoupleSeats: specificCoupleSeatsStr,
+      specificWheelchairSeats: specificWheelchairSeatsStr,
+      aisles: aislesStr,
+      verticalAisles: verticalAislesStr
     });
     setIsActive(hall.isActive);
     setSelectedHall(hall);
@@ -166,19 +249,58 @@ const CinemaHallManagement = () => {
     try {
       let url, method, body, successMessage;
 
+      // Build seatLayout object
+      const seatLayout = {};
+      
+      if (formData.vipRows && formData.vipRows.trim()) {
+        seatLayout.VIP_Rows = formData.vipRows.split(',').map(r => r.trim()).filter(r => r);
+      }
+      if (formData.coupleRows && formData.coupleRows.trim()) {
+        seatLayout.COUPLE_Rows = formData.coupleRows.split(',').map(r => r.trim()).filter(r => r);
+      }
+      if (formData.wheelchairRows && formData.wheelchairRows.trim()) {
+        seatLayout.WHEELCHAIR_Rows = formData.wheelchairRows.split(',').map(r => r.trim()).filter(r => r);
+      }
+      
+      // Add specific seat assignments
+      if (formData.specificVipSeats && formData.specificVipSeats.trim()) {
+        const vipSeats = formData.specificVipSeats.split(',').map(s => s.trim()).filter(s => s);
+        vipSeats.forEach(seat => {
+          seatLayout[seat] = 'VIP';
+        });
+      }
+      if (formData.specificCoupleSeats && formData.specificCoupleSeats.trim()) {
+        const coupleSeats = formData.specificCoupleSeats.split(',').map(s => s.trim()).filter(s => s);
+        coupleSeats.forEach(seat => {
+          seatLayout[seat] = 'COUPLE';
+        });
+      }
+      if (formData.specificWheelchairSeats && formData.specificWheelchairSeats.trim()) {
+        const wheelchairSeats = formData.specificWheelchairSeats.split(',').map(s => s.trim()).filter(s => s);
+        wheelchairSeats.forEach(seat => {
+          seatLayout[seat] = 'WHEELCHAIR';
+        });
+      }
+      
+      if (formData.aisles && formData.aisles.trim()) {
+        seatLayout.aisles = formData.aisles.split(',').map(a => a.trim()).filter(a => a);
+      }
+      if (formData.verticalAisles && formData.verticalAisles.trim()) {
+        seatLayout.verticalAisles = formData.verticalAisles.split(',').map(a => a.trim()).filter(a => a);
+      }
+
       if (modalMode === 'create') {
         url = `${API_BASE_URL}/cinema-halls/admin`;
         method = 'POST';
         body = {
           cinemaId: parseInt(cinemaId),
           hallName: formData.hallName,
-          hallType: formData.hallType,
           totalSeats: parseInt(formData.totalSeats),
           rowsCount: formData.rowsCount ? parseInt(formData.rowsCount) : null,
           seatsPerRow: formData.seatsPerRow ? parseInt(formData.seatsPerRow) : null,
           screenType: formData.screenType,
           soundSystem: formData.soundSystem,
-          seatLayout: null
+          seatLayout: Object.keys(seatLayout).length > 0 ? seatLayout : null
         };
         successMessage = 'Tạo phòng chiếu thành công';
       } else {
@@ -188,13 +310,12 @@ const CinemaHallManagement = () => {
           hallId: selectedHall.hallId,
           cinemaId: parseInt(cinemaId),
           hallName: formData.hallName,
-          hallType: formData.hallType,
           totalSeats: parseInt(formData.totalSeats),
           rowsCount: formData.rowsCount ? parseInt(formData.rowsCount) : null,
           seatsPerRow: formData.seatsPerRow ? parseInt(formData.seatsPerRow) : null,
           screenType: formData.screenType,
           soundSystem: formData.soundSystem,
-          seatLayout: null,
+          seatLayout: Object.keys(seatLayout).length > 0 ? seatLayout : null,
           isActive: isActive
         };
         successMessage = 'Cập nhật phòng chiếu thành công';
@@ -267,6 +388,160 @@ const CinemaHallManagement = () => {
         }
       } catch (error) {
         console.error('Error deleting hall:', error);
+        toast.error('Lỗi: ' + error.message);
+      }
+    }
+  };
+
+  // Delete all seats in hall
+  const handleDeleteSeats = async (hall) => {
+    if (window.confirm(`Bạn có chắc muốn xóa TẤT CẢ ghế trong phòng "${hall.hallName}"?`)) {
+      try {
+        const url = `${API_BASE_URL}/cinema-halls/admin/${hall.hallId}/seats`;
+
+        const response = await fetch(url, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Lỗi khi xóa ghế');
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+          toast.success(result.data || 'Xóa ghế thành công');
+          fetchHalls(page, searchTerm);
+        } else {
+          toast.error(result.message || 'Lỗi khi xóa ghế');
+        }
+      } catch (error) {
+        console.error('Error deleting seats:', error);
+        toast.error('Lỗi: ' + error.message);
+      }
+    }
+  };
+
+  // Generate seat map from seatLayout
+  const generateSeatMapFromLayout = (hall) => {
+    if (!hall.rowsCount || !hall.seatsPerRow) {
+      return [];
+    }
+
+    const rowsCount = parseInt(hall.rowsCount);
+    const seatsPerRow = parseInt(hall.seatsPerRow);
+    const seatLayout = hall.seatLayout || {};
+    
+    // Get seat type configurations
+    const vipRows = seatLayout.VIP_Rows || [];
+    const coupleRows = seatLayout.COUPLE_Rows || [];
+    const wheelchairRows = seatLayout.WHEELCHAIR_Rows || [];
+    const verticalAisles = seatLayout.verticalAisles || [];
+    const horizontalAisles = seatLayout.aisles || [];
+    
+    // Generate row labels (A, B, C, ...)
+    const rows = [];
+    for (let i = 0; i < rowsCount; i++) {
+      rows.push(String.fromCharCode(65 + i)); // A=65 in ASCII
+    }
+    
+    // Check if a column has aisle after it
+    const hasVerticalAisleAfter = (seatNumber) => {
+      return verticalAisles.some(aisle => {
+        const [firstCol, secondCol] = aisle.split('-').map(n => parseInt(n));
+        return seatNumber === firstCol;
+      });
+    };
+    
+    // Check if a row has horizontal aisle after it
+    const hasHorizontalAisleAfter = (rowLabel) => {
+      return horizontalAisles.some(aisle => {
+        const [firstRow, secondRow] = aisle.split('-');
+        return rowLabel === firstRow;
+      });
+    };
+    
+    // Generate seat map
+    const seatMapArray = rows.map(row => {
+      const seats = [];
+      
+      // Determine seat type for this row
+      let defaultSeatType = 'STANDARD';
+      if (vipRows.includes(row)) {
+        defaultSeatType = 'VIP';
+      } else if (coupleRows.includes(row)) {
+        defaultSeatType = 'COUPLE';
+      } else if (wheelchairRows.includes(row)) {
+        defaultSeatType = 'WHEELCHAIR';
+      }
+      
+      // Generate seats for this row
+      for (let i = 1; i <= seatsPerRow; i++) {
+        const seatKey = `${row}${i}`;
+        // Check if specific seat has custom type in seatLayout
+        const seatType = seatLayout[seatKey] || defaultSeatType;
+        
+        seats.push({
+          seatId: seatKey,
+          rowName: row,
+          seatNumber: i,
+          seatType: seatType,
+          hasVerticalAisleAfter: hasVerticalAisleAfter(i)
+        });
+      }
+      
+      return { 
+        row, 
+        seats,
+        hasAisleAfter: hasHorizontalAisleAfter(row)
+      };
+    });
+    
+    return seatMapArray;
+  };
+
+  // Show seat map from hall's seatLayout
+  const handleShowSeatMap = (hall) => {
+    setSeatMapHall(hall);
+    const generatedSeatMap = generateSeatMapFromLayout(hall);
+    setSeatMapData(generatedSeatMap);
+    setShowSeatMapModal(true);
+  };
+
+  // Regenerate seats in hall
+  const handleRegenerateSeats = async (hall) => {
+    if (window.confirm(`Bạn có chắc muốn TẠO LẠI tất cả ghế cho phòng "${hall.hallName}"?\nGhế cũ sẽ bị xóa và tạo mới.`)) {
+      try {
+        const url = `${API_BASE_URL}/cinema-halls/admin/${hall.hallId}/regenerate-seats`;
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Lỗi khi tạo lại ghế');
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+          toast.success(result.data || 'Tạo lại ghế thành công');
+          fetchHalls(page, searchTerm);
+        } else {
+          toast.error(result.message || 'Lỗi khi tạo lại ghế');
+        }
+      } catch (error) {
+        console.error('Error regenerating seats:', error);
         toast.error('Lỗi: ' + error.message);
       }
     }
@@ -389,6 +664,30 @@ const CinemaHallManagement = () => {
                     {hall.isActive ? '✓ Hoạt động' : '✗ Vô hiệu'}
                   </span>
                 </div>
+              </div>
+
+              <div className="hall-card-footer">
+                <button 
+                  onClick={() => handleShowSeatMap(hall)}
+                  className="btn-view-seats"
+                  title="Xem sơ đồ ghế"
+                >
+                  <FaChair /> Sơ đồ ghế
+                </button>
+                <button 
+                  onClick={() => handleRegenerateSeats(hall)}
+                  className="btn-regenerate"
+                  title="Tạo lại ghế"
+                >
+                  <FaSync /> Tạo lại ghế
+                </button>
+                <button 
+                  onClick={() => handleDeleteSeats(hall)}
+                  className="btn-delete-seats"
+                  title="Xóa tất cả ghế"
+                >
+                  <FaTrashAlt /> Xóa ghế
+                </button>
               </div>
             </div>
           ))}
@@ -514,7 +813,7 @@ const CinemaHallManagement = () => {
                     name="screenType"
                     value={formData.screenType}
                     onChange={handleInputChange}
-                    placeholder="VD: Dolby Cinema, Standard"
+                    placeholder="VD: Laser 4K, Dolby Cinema"
                   />
                 </div>
                 <div className="form-group">
@@ -526,6 +825,115 @@ const CinemaHallManagement = () => {
                     onChange={handleInputChange}
                     placeholder="VD: Dolby Atmos, 7.1 Surround"
                   />
+                </div>
+              </div>
+
+              <h3 style={{ marginTop: '20px', marginBottom: '15px', color: '#667eea' }}>Cấu Hình Loại Ghế Theo Hàng</h3>
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Hàng Ghế VIP</label>
+                  <input
+                    type="text"
+                    name="vipRows"
+                    value={formData.vipRows}
+                    onChange={handleInputChange}
+                    placeholder="VD: A,B"
+                  />
+                  <small>Các hàng ghế VIP (VD: A,B,C)</small>
+                </div>
+                <div className="form-group">
+                  <label>Hàng Ghế Đôi</label>
+                  <input
+                    type="text"
+                    name="coupleRows"
+                    value={formData.coupleRows}
+                    onChange={handleInputChange}
+                    placeholder="VD: C,D"
+                  />
+                  <small>Các hàng ghế đôi (VD: C,D)</small>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Hàng Ghế Xe Lăn</label>
+                  <input
+                    type="text"
+                    name="wheelchairRows"
+                    value={formData.wheelchairRows}
+                    onChange={handleInputChange}
+                    placeholder="VD: E,F"
+                  />
+                  <small>Các hàng ghế dành cho xe lăn (VD: E,F)</small>
+                </div>
+              </div>
+
+              <h3 style={{ marginTop: '20px', marginBottom: '15px', color: '#667eea' }}>Chỉ Định Ghế Cụ Thể</h3>
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Ghế VIP Riêng Lẻ</label>
+                  <input
+                    type="text"
+                    name="specificVipSeats"
+                    value={formData.specificVipSeats}
+                    onChange={handleInputChange}
+                    placeholder="VD: D5,D6,E7"
+                  />
+                  <small>Chỉ định ghế VIP cụ thể (VD: D5,D6,E7)</small>
+                </div>
+                <div className="form-group">
+                  <label>Ghế Đôi Riêng Lẻ</label>
+                  <input
+                    type="text"
+                    name="specificCoupleSeats"
+                    value={formData.specificCoupleSeats}
+                    onChange={handleInputChange}
+                    placeholder="VD: E5,E6"
+                  />
+                  <small>Chỉ định ghế đôi cụ thể (VD: E5,E6,F8,F9)</small>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Ghế Xe Lăn Riêng Lẻ</label>
+                  <input
+                    type="text"
+                    name="specificWheelchairSeats"
+                    value={formData.specificWheelchairSeats}
+                    onChange={handleInputChange}
+                    placeholder="VD: A1,A2"
+                  />
+                  <small>Chỉ định ghế xe lăn cụ thể (VD: A1,A2)</small>
+                </div>
+              </div>
+
+              <h3 style={{ marginTop: '20px', marginBottom: '15px', color: '#667eea' }}>Cấu Hình Lối Đi</h3>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Lối Đi Ngang (Giữa Hàng)</label>
+                  <input
+                    type="text"
+                    name="aisles"
+                    value={formData.aisles}
+                    onChange={handleInputChange}
+                    placeholder="VD: B-C,D-E"
+                  />
+                  <small>Lối đi ngang giữa các hàng (VD: B-C,D-E)</small>
+                </div>
+                <div className="form-group">
+                  <label>Lối Đi Dọc (Giữa Cột)</label>
+                  <input
+                    type="text"
+                    name="verticalAisles"
+                    value={formData.verticalAisles}
+                    onChange={handleInputChange}
+                    placeholder="VD: 5-6,10-11"
+                  />
+                  <small>Lối đi dọc giữa các cột ghế (VD: 5-6,10-11)</small>
                 </div>
               </div>
 
@@ -675,6 +1083,93 @@ const CinemaHallManagement = () => {
                 onClick={() => setShowDetailModal(false)}
               >
                 <FaCheck /> Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Seat Map Modal */}
+      {showSeatMapModal && (
+        <div className="modal-overlay" onClick={() => setShowSeatMapModal(false)}>
+          <div className="modal-content seat-map-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>
+                <FaChair /> Sơ Đồ Ghế - {seatMapHall?.hallName}
+              </h2>
+              <button className="close-btn" onClick={() => setShowSeatMapModal(false)}>
+                <FaTimes />
+              </button>
+            </div>
+
+            <div className="seat-map-container">
+              <div className="screen-wrapper">
+                <div className="screen">Màn hình</div>
+              </div>
+
+              {seatMapData.length === 0 ? (
+                <div className="empty-seat-map">
+                  <p>Chưa có ghế nào được tạo cho phòng này</p>
+                </div>
+              ) : (
+                <div className="seat-map-grid">
+                  {seatMapData.map(({ row, seats, hasAisleAfter }) => {
+                    return (
+                      <div 
+                        key={row} 
+                        className={`seat-map-row ${hasAisleAfter ? 'with-aisle-after' : ''}`}
+                      >
+                        <span className="row-label">{row}</span>
+                        <div className="seats-grid">
+                          {seats.map((seat, idx) => (
+                            <React.Fragment key={seat.seatId}>
+                              <div
+                                className={`seat-box ${seat.seatType.toLowerCase()}`}
+                                title={`${seat.rowName}${seat.seatNumber} - ${seat.seatType}`}
+                              >
+                                {seat.seatNumber}
+                              </div>
+                              {seat.hasVerticalAisleAfter && (
+                                <div className="vertical-aisle-spacer"></div>
+                              )}
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {seatMapData.length > 0 && (
+                <div className="seat-legend">
+                  <div className="legend-item">
+                    <div className="legend-box standard"></div>
+                    <span>Ghế Thường</span>
+                  </div>
+                  <div className="legend-item">
+                    <div className="legend-box vip"></div>
+                    <span>Ghế VIP</span>
+                  </div>
+                  <div className="legend-item">
+                    <div className="legend-box couple"></div>
+                    <span>Ghế Đôi</span>
+                  </div>
+                  <div className="legend-item">
+                    <div className="legend-box wheelchair"></div>
+                    <span>Ghế Xe Lăn</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-actions">
+              <button 
+                type="button" 
+                className="btn-secondary"
+                onClick={() => setShowSeatMapModal(false)}
+              >
+                <FaTimes /> Đóng
               </button>
             </div>
           </div>

@@ -13,7 +13,8 @@ import {
   FaMapMarkerAlt,
   FaPhone,
   FaEnvelope,
-  FaUser
+  FaUser,
+  FaChair
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
@@ -492,7 +493,11 @@ const CinemaManagement = () => {
               <div key={cinema.cinemaId} className={`cinema-card ${!cinema.isActive ? 'inactive' : ''}`}>
                 {/* Card Header */}
                 <div className="cinema-card-header">
-                  <div className="cinema-card-title">
+                  <div 
+                    className="cinema-card-title clickable" 
+                    onClick={() => navigate(`/admin/cinemas/${cinema.cinemaId}`)}
+                    title="Xem phòng chiếu"
+                  >
                     <FaBuilding className="cinema-card-icon" />
                     <h3>{cinema.cinemaName}</h3>
                   </div>
@@ -562,6 +567,13 @@ const CinemaManagement = () => {
 
                 {/* Card Footer */}
                 <div className="cinema-card-footer">
+                  <button 
+                    className="btn btn-sm btn-primary"
+                    onClick={() => navigate(`/admin/cinemas/${cinema.cinemaId}`)}
+                    title="Quản lý phòng chiếu"
+                  >
+                    <FaChair /> Phòng chiếu
+                  </button>
                   <button 
                     className="btn btn-sm btn-info"
                     onClick={() => handleOpenEditModal(cinema)}

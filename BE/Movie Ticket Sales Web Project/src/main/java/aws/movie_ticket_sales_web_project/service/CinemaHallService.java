@@ -273,9 +273,14 @@ public class CinemaHallService {
             CinemaHall savedHall = cinemaHallRepository.save(hall);
             
             // Generate seats for the newly created hall
-            generateSeatsForHall(savedHall);
+            try {
+                generateSeatsForHall(savedHall);
+                log.info("Cinema hall created successfully with ID: {} and seats generated", savedHall.getId());
+            } catch (Exception seatException) {
+                log.error("Error generating seats for hall {}, but hall was created", savedHall.getId(), seatException);
+                // Hall is still created, just seats generation failed
+            }
 
-            log.info("Cinema hall created successfully with ID: {}", savedHall.getId());
             return ApiResponse.<CinemaHallDto>builder()
                     .success(true)
                     .message("Tạo phòng chiếu thành công")
@@ -385,11 +390,16 @@ public class CinemaHallService {
             
             // Regenerate seats if needed
             if (needRegenerateSeats) {
-                log.info("Regenerating seats for hall ID: {} due to configuration changes", updatedHall.getId());
-                // Delete existing seats
-                seatRepository.deleteByHallId(updatedHall.getId());
-                // Generate new seats
-                generateSeatsForHall(updatedHall);
+                try {
+                    log.info("Regenerating seats for hall ID: {} due to configuration changes", updatedHall.getId());
+                    // Delete existing seats
+                    seatRepository.deleteByHallId(updatedHall.getId());
+                    // Generate new seats
+                    generateSeatsForHall(updatedHall);
+                } catch (Exception seatException) {
+                    log.error("Error regenerating seats for hall {}, but hall was updated", updatedHall.getId(), seatException);
+                    // Hall is still updated, just seats regeneration failed
+                }
             }
 
             log.info("Cinema hall updated successfully with ID: {}", updatedHall.getId());
@@ -516,7 +526,7 @@ public class CinemaHallService {
             return SeatType.STANDARD;
         }
         
-        // Check specific seat configuration (e.g., "A1": "premium")
+        // Priority 1: Check specific seat configuration (e.g., "A1": "VIP", "B5": "COUPLE")
         String seatKey = rowLetter + seatNumber;
         if (seatLayout.containsKey(seatKey)) {
             String seatTypeStr = String.valueOf(seatLayout.get(seatKey)).toUpperCase();
@@ -530,15 +540,69 @@ public class CinemaHallService {
                         return SeatType.COUPLE;
                     case "WHEELCHAIR":
                         return SeatType.WHEELCHAIR;
+                    case "STANDARD":
+                        return SeatType.STANDARD;
                     default:
+                        log.warn("Unknown seat type in layout: {}, defaulting to STANDARD", seatTypeStr);
                         return SeatType.STANDARD;
                 }
             } catch (Exception e) {
-                log.warn("Invalid seat type in layout: {}", seatTypeStr);
+                log.warn("Invalid seat type in layout: {}", seatTypeStr, e);
             }
         }
         
-        // Default logic: First 2 rows (A, B) are VIP
+        // Priority 2: Check VIP_Rows array
+        if (seatLayout.containsKey("VIP_Rows")) {
+            try {
+                Object vipRowsObj = seatLayout.get("VIP_Rows");
+                if (vipRowsObj instanceof java.util.List) {
+                    java.util.List<?> vipRows = (java.util.List<?>) vipRowsObj;
+                    for (Object rowObj : vipRows) {
+                        if (rowLetter.equals(String.valueOf(rowObj))) {
+                            return SeatType.VIP;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Error processing VIP_Rows from seatLayout", e);
+            }
+        }
+        
+        // Priority 3: Check COUPLE_Rows array
+        if (seatLayout.containsKey("COUPLE_Rows")) {
+            try {
+                Object coupleRowsObj = seatLayout.get("COUPLE_Rows");
+                if (coupleRowsObj instanceof java.util.List) {
+                    java.util.List<?> coupleRows = (java.util.List<?>) coupleRowsObj;
+                    for (Object rowObj : coupleRows) {
+                        if (rowLetter.equals(String.valueOf(rowObj))) {
+                            return SeatType.COUPLE;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Error processing COUPLE_Rows from seatLayout", e);
+            }
+        }
+        
+        // Priority 4: Check WHEELCHAIR_Rows array
+        if (seatLayout.containsKey("WHEELCHAIR_Rows")) {
+            try {
+                Object wheelchairRowsObj = seatLayout.get("WHEELCHAIR_Rows");
+                if (wheelchairRowsObj instanceof java.util.List) {
+                    java.util.List<?> wheelchairRows = (java.util.List<?>) wheelchairRowsObj;
+                    for (Object rowObj : wheelchairRows) {
+                        if (rowLetter.equals(String.valueOf(rowObj))) {
+                            return SeatType.WHEELCHAIR;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Error processing WHEELCHAIR_Rows from seatLayout", e);
+            }
+        }
+        
+        // Priority 5: Fallback default - First 2 rows (A, B) are VIP
         if ("A".equals(rowLetter) || "B".equals(rowLetter)) {
             return SeatType.VIP;
         }
