@@ -15,6 +15,7 @@ const TicketCheckIn = () => {
       'PENDING': 'Chưa thanh toán',
       'CONFIRMED': 'Đã xác nhận',
       'PAID': 'Đã thanh toán',
+      'COMPLETED': 'Đã check-in',
       'CANCELLED': 'Đã hủy',
       'REFUNDED': 'Đã hoàn tiền',
       'CHECKED_IN': 'Đã check-in'
@@ -69,6 +70,9 @@ const TicketCheckIn = () => {
         });
       }
       
+      // Check if booking is already completed (checked in)
+      const isCompleted = data.status === 'COMPLETED';
+      
       // Check if booking is valid for check-in
       const validStatuses = ['CONFIRMED', 'PAID'];
       const isStatusValid = validStatuses.includes(data.status);
@@ -80,11 +84,18 @@ const TicketCheckIn = () => {
         return isCheckedIn;
       });
       
+      console.log('Status:', data.status);
+      console.log('Is Completed:', isCompleted);
       console.log('Status Valid:', isStatusValid);
       console.log('Has Checked In:', hasCheckedInTicket);
       
-      // Valid only if status is valid AND not checked in yet
-      const isValid = isStatusValid && !hasCheckedInTicket;
+      // Show warning if already checked in
+      if (isCompleted || hasCheckedInTicket) {
+        toast.warning('Vé đã được check-in trước đó! Không thể check-in lại.');
+      }
+      
+      // Valid only if status is valid AND not completed AND not checked in yet
+      const isValid = isStatusValid && !isCompleted && !hasCheckedInTicket;
       
       console.log('Final isValid:', isValid);
       
@@ -102,7 +113,7 @@ const TicketCheckIn = () => {
         totalTickets: data.totalSeats || seats.length,
         totalAmount: data.totalAmount || 0,
         status: isValid ? 'valid' : 'invalid',
-        originalStatus: hasCheckedInTicket ? 'CHECKED_IN' : data.status,
+        originalStatus: (isCompleted || hasCheckedInTicket) ? 'COMPLETED' : data.status,
         tickets: data.tickets || []
       });
       toast.success('Tìm thấy vé');
@@ -148,7 +159,9 @@ const TicketCheckIn = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        toast.error(errorData.message || 'Có lỗi xảy ra khi check-in');
+        // Show specific error message from backend
+        const errorMessage = errorData.message || errorData.error || 'Có lỗi xảy ra khi check-in';
+        toast.error(errorMessage);
         setIsLoading(false);
         return;
       }

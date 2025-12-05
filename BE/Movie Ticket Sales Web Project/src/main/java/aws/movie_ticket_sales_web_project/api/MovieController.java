@@ -101,7 +101,7 @@ public class MovieController {
     }
 
     /**
-     * Delete a movie (Admin only)
+     * Soft delete a movie (Admin only)
      * DELETE /api/movies/{movieId}
      */
     @DeleteMapping("/{movieId}")
@@ -109,7 +109,7 @@ public class MovieController {
     public ResponseEntity<ApiResponse<Void>> deleteMovie(
             @PathVariable Integer movieId) {
         
-        log.info("DELETE /api/movies/{} - Deleting movie", movieId);
+        log.info("DELETE /api/movies/{} - Soft deleting movie", movieId);
 
         ApiResponse<Void> response = movieService.deleteMovie(movieId);
 
@@ -117,6 +117,26 @@ public class MovieController {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+    /**
+     * Restore soft deleted movie (Admin only)
+     * POST /api/movies/{movieId}/restore
+     */
+    @PostMapping("/{movieId}/restore")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> restoreMovie(
+            @PathVariable Integer movieId) {
+        
+        log.info("POST /api/movies/{}/restore - Restoring deleted movie", movieId);
+
+        ApiResponse<Void> response = movieService.restoreMovie(movieId);
+
+        if (response.getSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 

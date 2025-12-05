@@ -12,9 +12,16 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MovieRepository extends JpaRepository<Movie, Integer> {
     
+    // Find movies excluding soft deleted ones
+    @Query("SELECT m FROM Movie m WHERE m.isDeleted = false OR m.isDeleted IS NULL")
+    Page<Movie> findAllActive(Pageable pageable);
+    
+    Page<Movie> findByStatusAndIsDeletedFalse(MovieStatus status, Pageable pageable);
+    
     Page<Movie> findByStatus(MovieStatus status, Pageable pageable);
     
     @Query("SELECT m FROM Movie m WHERE " +
+           "(m.isDeleted = false OR m.isDeleted IS NULL) AND " +
            "(:status IS NULL OR m.status = :status)")
     Page<Movie> findMoviesWithFilters(@Param("status") MovieStatus status, 
                                      Pageable pageable);

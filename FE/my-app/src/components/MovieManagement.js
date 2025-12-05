@@ -209,6 +209,7 @@ const MovieManagement = () => {
             <option value="">Tất cả trạng thái</option>
             <option value="NOW_SHOWING">Đang chiếu</option>
             <option value="COMING_SOON">Sắp chiếu</option>
+            <option value="END_SHOWING">Ngừng chiếu</option>
           </select>
 
           <select 
@@ -291,7 +292,9 @@ const MovieManagement = () => {
                       <td className="date-cell">{new Date(movie.releaseDate).toLocaleDateString('vi-VN')}</td>
                       <td className="status-cell">
                         <span className={`badge badge-${movie.status.toLowerCase()}`}>
-                          {movie.status === 'NOW_SHOWING' ? 'Đang chiếu' : 'Sắp chiếu'}
+                          {movie.status === 'NOW_SHOWING' ? 'Đang chiếu' : 
+                           movie.status === 'COMING_SOON' ? 'Sắp chiếu' : 
+                           movie.status === 'END_SHOWING' ? 'Ngừng chiếu' : movie.status}
                         </span>
                       </td>
                       <td className="rating-cell">

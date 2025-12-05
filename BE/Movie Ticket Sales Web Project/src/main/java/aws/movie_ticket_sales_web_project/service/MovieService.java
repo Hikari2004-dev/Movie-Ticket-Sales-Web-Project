@@ -48,18 +48,18 @@ public class MovieService {
             Sort sort = Sort.by(Sort.Direction.fromString(sortDir), mapSortField(sortBy));
             Pageable pageable = PageRequest.of(page, size, sort);
 
-            // Get movies
+            // Get movies (exclude soft deleted)
             Page<Movie> moviesPage;
             if (status != null && !status.isEmpty()) {
                 try {
                     MovieStatus movieStatus = MovieStatus.valueOf(status.toUpperCase());
-                    moviesPage = movieRepository.findByStatus(movieStatus, pageable);
+                    moviesPage = movieRepository.findByStatusAndIsDeletedFalse(movieStatus, pageable);
                 } catch (IllegalArgumentException e) {
                     log.warn("Invalid status parameter: {}", status);
-                    moviesPage = movieRepository.findAll(pageable);
+                    moviesPage = movieRepository.findAllActive(pageable);
                 }
             } else {
-                moviesPage = movieRepository.findAll(pageable);
+                moviesPage = movieRepository.findAllActive(pageable);
             }
 
             // Convert to DTOs
@@ -385,29 +385,26 @@ public class MovieService {
      */
     public ApiResponse<Void> deleteMovie(Integer movieId) {
         try {
-            log.info("Deleting movie ID: {}", movieId);
+            log.info("Soft deleting movie ID: {}", movieId);
 
-            if (!movieRepository.existsById(movieId)) {
+            Movie movie = movieRepository.findById(movieId)
+                    .orElseThrow(() -> new RuntimeException("Movie not found with ID: " + movieId));
+
+            // Check if already deleted
+            if (movie.getIsDeleted() != null && movie.getIsDeleted()) {
                 return ApiResponse.<Void>builder()
                         .success(false)
-                        .message("Movie not found with ID: " + movieId)
+                        .message("Movie is already deleted")
                         .build();
             }
 
-            // Check if movie has showtimes
-            List<Showtime> showtimes = showtimeRepository.findByMovieId(movieId);
-            if (!showtimes.isEmpty()) {
-                return ApiResponse.<Void>builder()
-                        .success(false)
-                        .message("Cannot delete movie. This movie has " + showtimes.size() + " showtime(s). Please delete all showtimes first.")
-                        .build();
-            }
+            // Soft delete - just mark as deleted
+            movie.setIsDeleted(true);
+            movie.setDeletedAt(java.time.Instant.now());
+            movie.setUpdatedAt(java.time.Instant.now());
+            movieRepository.save(movie);
 
-            // Delete genre mappings first
-            deleteGenreMappingsByMovieId(movieId);
-
-            // Delete movie
-            movieRepository.deleteById(movieId);
+            log.info("Movie soft deleted successfully: {}", movie.getTitle());
 
             return ApiResponse.<Void>builder()
                     .success(true)
@@ -415,10 +412,50 @@ public class MovieService {
                     .build();
 
         } catch (Exception e) {
-            log.error("Error deleting movie ID: {}", movieId, e);
+            log.error("Error soft deleting movie ID: {}", movieId, e);
             return ApiResponse.<Void>builder()
                     .success(false)
                     .message("Failed to delete movie: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * Restore soft deleted movie (Admin only)
+     */
+    public ApiResponse<Void> restoreMovie(Integer movieId) {
+        try {
+            log.info("Restoring soft deleted movie ID: {}", movieId);
+
+            Movie movie = movieRepository.findById(movieId)
+                    .orElseThrow(() -> new RuntimeException("Movie not found with ID: " + movieId));
+
+            // Check if movie is actually deleted
+            if (movie.getIsDeleted() == null || !movie.getIsDeleted()) {
+                return ApiResponse.<Void>builder()
+                        .success(false)
+                        .message("Movie is not deleted")
+                        .build();
+            }
+
+            // Restore movie
+            movie.setIsDeleted(false);
+            movie.setDeletedAt(null);
+            movie.setUpdatedAt(java.time.Instant.now());
+            movieRepository.save(movie);
+
+            log.info("Movie restored successfully: {}", movie.getTitle());
+
+            return ApiResponse.<Void>builder()
+                    .success(true)
+                    .message("Movie restored successfully")
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Error restoring movie ID: {}", movieId, e);
+            return ApiResponse.<Void>builder()
+                    .success(false)
+                    .message("Failed to restore movie: " + e.getMessage())
                     .build();
         }
     }

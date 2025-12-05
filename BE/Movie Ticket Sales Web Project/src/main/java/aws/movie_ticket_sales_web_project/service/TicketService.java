@@ -166,4 +166,46 @@ public class TicketService {
         log.info("Check-in successful for booking: {}, checked in {} tickets", bookingCode, checkedInCount);
         return result;
     }
+    
+    /**
+     * Process staff cash payment for booking
+     * Staff collects cash and marks booking as paid
+     */
+    @Transactional
+    public Map<String, Object> processStaffCashPayment(String bookingCode, Integer staffId) {
+        log.info("Processing cash payment for booking: {} by staff: {}", bookingCode, staffId);
+        
+        Booking booking = bookingRepository.findByBookingCode(bookingCode)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy booking với mã: " + bookingCode));
+
+        User staff = userRepository.findById(staffId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên với ID: " + staffId));
+
+        // Update booking to PAID status
+        booking.setPaymentStatus(aws.movie_ticket_sales_web_project.enums.PaymentStatus.PAID);
+        booking.setStatus(aws.movie_ticket_sales_web_project.enums.StatusBooking.PAID);
+        booking.setPaidAt(Instant.now());
+        booking.setPaymentMethod("CASH");
+        booking.setPaymentReference("CASH-" + staffId + "-" + System.currentTimeMillis());
+        bookingRepository.save(booking);
+
+        // Update all tickets to PAID status
+        List<Ticket> tickets = ticketRepository.findByBookingId(booking.getId());
+        tickets.forEach(ticket -> {
+            ticket.setStatus(TicketStatus.PAID);
+        });
+        ticketRepository.saveAll(tickets);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("message", "Thanh toán tiền mặt thành công");
+        result.put("bookingCode", bookingCode);
+        result.put("amount", booking.getTotalAmount());
+        result.put("paymentMethod", "CASH");
+        result.put("staffName", staff.getFullName());
+        result.put("paidAt", booking.getPaidAt());
+        
+        log.info("Cash payment processed successfully for booking: {}", bookingCode);
+        return result;
+    }
 }

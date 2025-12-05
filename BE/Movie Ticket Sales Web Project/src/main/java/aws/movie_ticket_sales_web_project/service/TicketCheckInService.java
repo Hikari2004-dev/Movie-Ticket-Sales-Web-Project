@@ -33,11 +33,19 @@ public class TicketCheckInService {
             Booking booking = bookingRepository.findByBookingCode(request.getBookingCode())
                     .orElseThrow(() -> new RuntimeException("Booking not found"));
 
-            // Validate booking status
+            // Validate booking status - only allow PAID bookings
+            // COMPLETED means already checked in
+            if (booking.getStatus() == StatusBooking.COMPLETED) {
+                return ApiResponse.<String>builder()
+                        .success(false)
+                        .message("Vé đã được check-in trước đó. Booking đã hoàn tất!")
+                        .build();
+            }
+            
             if (booking.getStatus() != StatusBooking.PAID) {
                 return ApiResponse.<String>builder()
                         .success(false)
-                        .message("Booking is not paid. Status: " + booking.getStatus())
+                        .message("Booking chưa thanh toán. Status: " + booking.getStatus())
                         .build();
             }
 
@@ -64,22 +72,28 @@ public class TicketCheckInService {
 
             // Update tickets
             List<Ticket> tickets = ticketRepository.findByBookingId(booking.getId());
+            
+            // Check if any ticket is already used
+            boolean hasUsedTicket = tickets.stream()
+                    .anyMatch(ticket -> ticket.getStatus() == TicketStatus.USED);
+            
+            if (hasUsedTicket) {
+                return ApiResponse.<String>builder()
+                        .success(false)
+                        .message("Vé đã được check-in trước đó. Không thể check-in lại!")
+                        .build();
+            }
+            
+            // Check-in all tickets
             for (Ticket ticket : tickets) {
-                if (ticket.getStatus() == TicketStatus.USED) {
-                    return ApiResponse.<String>builder()
-                            .success(false)
-                            .message("Ticket already checked in")
-                            .build();
-                }
-
                 ticket.setStatus(TicketStatus.USED);
                 ticket.setCheckedInAt(Instant.now());
                 ticket.setCheckedInBy(staff);
             }
             ticketRepository.saveAll(tickets);
 
-            // Update booking
-            booking.setStatus(StatusBooking.PAID);
+            // Update booking status to COMPLETED after successful check-in
+            booking.setStatus(StatusBooking.CONFIRMED);
             booking.setUpdatedAt(Instant.now());
             bookingRepository.save(booking);
 

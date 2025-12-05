@@ -248,13 +248,20 @@ const ShowtimeManagement = () => {
         return;
       }
 
+      // Normalize formatType - ensure it has underscore prefix for 2D, 3D, 4DX
+      let normalizedFormatType = formData.formatType;
+      if (normalizedFormatType && !normalizedFormatType.startsWith('_') && 
+          (normalizedFormatType === '2D' || normalizedFormatType === '3D' || normalizedFormatType === '4DX')) {
+        normalizedFormatType = '_' + normalizedFormatType;
+      }
+
       const requestData = {
         movieId: parseInt(formData.movieId),
         hallId: parseInt(formData.hallId),
         showDate: formData.showDate,
         startTime: formData.startTime,
         endTime: formData.endTime || null,
-        formatType: formData.formatType,
+        formatType: normalizedFormatType,
         subtitleLanguage: formData.subtitleLanguage,
         basePrice: formData.basePrice ? parseFloat(formData.basePrice) : null,
         status: formData.status
@@ -301,6 +308,13 @@ const ShowtimeManagement = () => {
     try {
       setSubmitting(true);
       
+      // Normalize formatType - ensure it has underscore prefix for 2D, 3D, 4DX
+      let normalizedFormatType = formData.formatType;
+      if (normalizedFormatType && !normalizedFormatType.startsWith('_') && 
+          (normalizedFormatType === '2D' || normalizedFormatType === '3D' || normalizedFormatType === '4DX')) {
+        normalizedFormatType = '_' + normalizedFormatType;
+      }
+      
       const requestData = {
         showtimeId: selectedShowtime.showtimeId,
         movieId: parseInt(formData.movieId),
@@ -308,7 +322,7 @@ const ShowtimeManagement = () => {
         showDate: formData.showDate,
         startTime: formData.startTime,
         endTime: formData.endTime || null,
-        formatType: formData.formatType,
+        formatType: normalizedFormatType,
         subtitleLanguage: formData.subtitleLanguage,
         basePrice: formData.basePrice ? parseFloat(formData.basePrice) : null,
         status: formData.status
@@ -386,10 +400,9 @@ const ShowtimeManagement = () => {
   const getStatusBadge = (status) => {
     const statusMap = {
       'SCHEDULED': { label: 'Đã lên lịch', class: 'badge-info' },
-      'AVAILABLE': { label: 'Đang bán', class: 'badge-success' },
-      'FULL': { label: 'Hết vé', class: 'badge-danger' },
-      'CANCELLED': { label: 'Đã hủy', class: 'badge-secondary' },
-      'COMPLETED': { label: 'Đã chiếu', class: 'badge-dark' }
+      'SELLING': { label: 'Đang bán vé', class: 'badge-success' },
+      'SOLD_OUT': { label: 'Hết vé', class: 'badge-danger' },
+      'CANCELLED': { label: 'Đã hủy', class: 'badge-secondary' }
     };
     const statusInfo = statusMap[status] || { label: status, class: 'badge-secondary' };
     return <span className={`badge ${statusInfo.class}`}>{statusInfo.label}</span>;
@@ -698,17 +711,17 @@ const ShowtimeManagement = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Trạng Thái</label>
+                  <label>Trạng Thái <span className="required">*</span></label>
                   <select
                     name="status"
                     value={formData.status}
                     onChange={handleFormChange}
+                    required
                   >
                     <option value="SCHEDULED">Đã lên lịch</option>
-                    <option value="AVAILABLE">Đang bán vé</option>
-                    <option value="FULL">Hết vé</option>
+                    <option value="SELLING">Đang bán vé</option>
+                    <option value="SOLD_OUT">Hết vé</option>
                     <option value="CANCELLED">Đã hủy</option>
-                    <option value="COMPLETED">Đã chiếu</option>
                   </select>
                 </div>
               </div>
