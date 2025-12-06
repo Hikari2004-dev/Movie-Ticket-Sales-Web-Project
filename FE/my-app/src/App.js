@@ -31,10 +31,6 @@ import ComingSoon from './components/ComingSoon';
 import NowShowingPage from './components/NowShowingPage';
 import ComingSoonPage from './components/ComingSoonPage';
 import CinemaListingPage from './components/CinemaListingPage';
-import PromotionsPage from './components/PromotionsPage';
-import EventsPage from './components/EventsPage';
-import EntertainmentPage from './components/EntertainmentPage';
-import AboutPage from './components/AboutPage';
 import BookingPage from './components/BookingPage';
 import SeatSelection from './components/SeatSelection';
 import BookingConfirmation from './components/BookingConfirmation';
@@ -82,10 +78,6 @@ function App() {
           <Route path="/now-showing" element={<NowShowingPage />} />
           <Route path="/coming-soon" element={<ComingSoonPage />} />
           <Route path="/cinemas" element={<CinemaListingPage />} />
-          <Route path="/promotions" element={<PromotionsPage />} />
-          <Route path="/events" element={<EventsPage />} />
-          <Route path="/entertainment" element={<EntertainmentPage />} />
-          <Route path="/about" element={<AboutPage />} />
           
           {/* Protected Customer Routes */}
           <Route path="/profile" element={

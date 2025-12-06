@@ -224,18 +224,6 @@ const Header = () => {
           </div>
         </div>
       </div>
-
-      {/* Bottom Navigation - Luôn hiển thị cho người dùng, không hiển thị ở trang admin */}
-      {!isAdminPage && (
-        <nav className="bottom-nav expanded">
-          <Link to="/cinemas" className={`nav-link ${location.pathname === '/cinemas' ? 'active' : ''}`}>Chọn rạp</Link>
-          <Link to="/now-showing" className={`nav-link ${location.pathname === '/now-showing' ? 'active' : ''}`}>Lịch chiếu</Link>
-          <Link to="/promotions" className={`nav-link ${location.pathname === '/promotions' ? 'active' : ''}`}>Khuyến mãi</Link>
-          <Link to="/events" className={`nav-link ${location.pathname === '/events' ? 'active' : ''}`}>Tổ chức sự kiện</Link>
-          <Link to="/entertainment" className={`nav-link ${location.pathname === '/entertainment' ? 'active' : ''}`}>Dịch vụ giải trí khác</Link>
-          <Link to="/about" className={`nav-link ${location.pathname === '/about' ? 'active' : ''}`}>Giới thiệu</Link>
-        </nav>
-      )}
     </header>
   );
 };
