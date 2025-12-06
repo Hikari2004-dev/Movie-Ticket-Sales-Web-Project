@@ -35,6 +35,7 @@ import BookingPage from './components/BookingPage';
 import SeatSelection from './components/SeatSelection';
 import BookingConfirmation from './components/BookingConfirmation';
 import ProtectedRoute from './components/ProtectedRoute';
+import GeminiChatbot from './components/GeminiChatbot';
 import { ROLES } from './utils/roleUtils';
 
 function App() {
@@ -156,6 +157,9 @@ function App() {
           theme="light"
           style={{ fontSize: '14px', width: '320px' }}
         />
+        
+        {/* Gemini AI Chatbot */}
+        <GeminiChatbot />
       </div>
     </Router>
   );

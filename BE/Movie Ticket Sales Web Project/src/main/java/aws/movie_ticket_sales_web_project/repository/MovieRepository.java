@@ -20,6 +20,10 @@ public interface MovieRepository extends JpaRepository<Movie, Integer> {
     
     Page<Movie> findByStatus(MovieStatus status, Pageable pageable);
     
+    // For chatbot - get all movies by status without pagination
+    @Query("SELECT m FROM Movie m WHERE m.status = :status AND (m.isDeleted = false OR m.isDeleted IS NULL)")
+    java.util.List<Movie> findByStatus(@Param("status") MovieStatus status);
+    
     @Query("SELECT m FROM Movie m WHERE " +
            "(m.isDeleted = false OR m.isDeleted IS NULL) AND " +
            "(:status IS NULL OR m.status = :status)")
