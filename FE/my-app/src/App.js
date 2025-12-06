@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -26,6 +26,7 @@ import StaffLayout from './components/StaffLayout';
 import StaffDashboard from './components/StaffDashboard';
 import TicketCheckIn from './components/TicketCheckIn';
 import StaffPayment from './components/StaffPayment';
+import StaffPaymentManager from './components/StaffPaymentManager';
 import ComingSoon from './components/ComingSoon';
 import NowShowingPage from './components/NowShowingPage';
 import ComingSoonPage from './components/ComingSoonPage';
@@ -35,10 +36,37 @@ import EventsPage from './components/EventsPage';
 import EntertainmentPage from './components/EntertainmentPage';
 import AboutPage from './components/AboutPage';
 import BookingPage from './components/BookingPage';
+import SeatSelection from './components/SeatSelection';
+import BookingConfirmation from './components/BookingConfirmation';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ROLES } from './utils/roleUtils';
 
 function App() {
+  // Clean up corrupted localStorage on app initialization
+  useEffect(() => {
+    const cleanupLocalStorage = () => {
+      try {
+        const userStr = localStorage.getItem('user');
+        if (userStr === 'undefined' || userStr === 'null') {
+          console.warn('Removing corrupted user data from localStorage');
+          localStorage.removeItem('user');
+        } else if (userStr) {
+          // Try to parse and validate
+          try {
+            JSON.parse(userStr);
+          } catch (e) {
+            console.error('Invalid JSON in localStorage, removing:', e);
+            localStorage.removeItem('user');
+          }
+        }
+      } catch (e) {
+        console.error('Error cleaning localStorage:', e);
+      }
+    };
+    
+    cleanupLocalStorage();
+  }, []);
+
   return (
     <Router>
       <div className="App">
@@ -49,6 +77,8 @@ function App() {
           <Route path="/login" element={<LoginForm />} />
           <Route path="/movie/:id" element={<MovieDetail />} />
           <Route path="/booking" element={<BookingPage />} />
+          <Route path="/booking/:showtimeId" element={<SeatSelection />} />
+          <Route path="/booking-confirmation" element={<BookingConfirmation />} />
           <Route path="/now-showing" element={<NowShowingPage />} />
           <Route path="/coming-soon" element={<ComingSoonPage />} />
           <Route path="/cinemas" element={<CinemaListingPage />} />
@@ -118,6 +148,7 @@ function App() {
             <Route path="dashboard" element={<StaffDashboard />} />
             <Route path="check-in" element={<TicketCheckIn />} />
             <Route path="payment" element={<StaffPayment />} />
+            <Route path="payment-manager" element={<StaffPaymentManager />} />
           </Route>
         </Routes>
         <ToastContainer

@@ -42,27 +42,10 @@ public class TicketCheckInService {
                         .build();
             }
             
-            if (booking.getStatus() != StatusBooking.PAID) {
+            if (booking.getStatus() != StatusBooking.PAID && booking.getStatus() != StatusBooking.CONFIRMED) {
                 return ApiResponse.<String>builder()
                         .success(false)
                         .message("Booking chưa thanh toán. Status: " + booking.getStatus())
-                        .build();
-            }
-
-            // Check showtime timing (allow check-in 30 minutes before)
-            LocalTime startTime = booking.getShowtime().getStartTime();
-            LocalTime now = LocalTime.now();
-            if (now.isBefore(startTime.minusMinutes(30))) {
-                return ApiResponse.<String>builder()
-                        .success(false)
-                        .message("Too early for check-in. Please arrive 30 minutes before showtime.")
-                        .build();
-            }
-
-            if (now.isAfter(startTime.plusMinutes(30))) {
-                return ApiResponse.<String>builder()
-                        .success(false)
-                        .message("Check-in time has passed. Showtime started " + startTime)
                         .build();
             }
 
@@ -93,7 +76,7 @@ public class TicketCheckInService {
             ticketRepository.saveAll(tickets);
 
             // Update booking status to COMPLETED after successful check-in
-            booking.setStatus(StatusBooking.CONFIRMED);
+            booking.setStatus(StatusBooking.COMPLETED);
             booking.setUpdatedAt(Instant.now());
             bookingRepository.save(booking);
 

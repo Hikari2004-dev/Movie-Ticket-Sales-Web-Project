@@ -1,6 +1,8 @@
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const API_URL = 'http://localhost:8080/api/booking';
+const BOOKING_API_URL = 'http://localhost:8080/api/bookings';
 
 // Cấu hình axios instance
 const api = axios.create({
@@ -9,6 +11,34 @@ const api = axios.create({
     'Content-Type': 'application/json'
   }
 });
+
+// Axios instance riêng cho bookings API
+const bookingApi = axios.create({
+  baseURL: BOOKING_API_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
+// Interceptor để tự động thêm token vào mọi request
+const addAuthInterceptor = (axiosInstance) => {
+  axiosInstance.interceptors.request.use(
+    (config) => {
+      const token = Cookies.get('accessToken');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
+};
+
+// Thêm interceptor cho cả 2 axios instances
+addAuthInterceptor(api);
+addAuthInterceptor(bookingApi);
 
 const bookingService = {
   // Lấy tất cả rạp
@@ -94,6 +124,54 @@ const bookingService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching showtimes by cinema:', error);
+      throw error;
+    }
+  },
+
+  // ===== BOOKING ENDPOINTS =====
+  
+  // Tạo booking mới
+  createBooking: async (bookingData) => {
+    try {
+      console.log('🎫 Creating booking with data:', bookingData);
+      const response = await bookingApi.post('', bookingData);
+      console.log('✅ Booking created successfully:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error creating booking:', error.response?.data || error);
+      throw error;
+    }
+  },
+
+  // Lấy thông tin booking theo ID
+  getBookingById: async (bookingId) => {
+    try {
+      const response = await bookingApi.get(`/${bookingId}`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error fetching booking:', error);
+      throw error;
+    }
+  },
+
+  // Lấy danh sách booking của user
+  getUserBookings: async (userId) => {
+    try {
+      const response = await bookingApi.get(`/user/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error fetching user bookings:', error);
+      throw error;
+    }
+  },
+
+  // Hủy booking
+  cancelBooking: async (bookingId) => {
+    try {
+      const response = await bookingApi.delete(`/${bookingId}`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error canceling booking:', error);
       throw error;
     }
   }

@@ -40,21 +40,18 @@ public class PaymentService {
                     .orElseThrow(() -> new RuntimeException("Booking not found"));
             
             // Validate booking status
-            if (booking.getStatus() != StatusBooking.PENDING) {
+            if (booking.getStatus() != StatusBooking.PENDING && booking.getStatus() != StatusBooking.CONFIRMED) {
                 return ApiResponse.<PaymentResponse>builder()
                         .success(false)
-                        .message("Booking is not in pending status")
+                        .message("Booking is not available for payment")
                         .build();
             }
             
-            // Check if payment amount matches
-            if (request.getAmount().compareTo(booking.getTotalAmount()) != 0) {
-                log.warn("Payment amount mismatch - Request: {}, Booking Total: {}", 
-                    request.getAmount(), booking.getTotalAmount());
+            // Check if already paid
+            if (booking.getPaymentStatus() == PaymentStatus.COMPLETED) {
                 return ApiResponse.<PaymentResponse>builder()
                         .success(false)
-                        .message(String.format("Payment amount does not match booking total. Expected: %s, Received: %s", 
-                            booking.getTotalAmount(), request.getAmount()))
+                        .message("Booking has already been paid")
                         .build();
             }
             
@@ -69,8 +66,8 @@ public class PaymentService {
             // Generate transaction ID
             String transactionId = "TXN" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
             
-            // Simulate payment processing based on method
-            boolean paymentSuccess = processPaymentWithGateway(request, transactionId);
+            // Assume payment is successful (for bank transfer, payment is confirmed manually)
+            boolean paymentSuccess = true;
             
             if (paymentSuccess) {
                 // Update booking status
@@ -78,7 +75,10 @@ public class PaymentService {
                 booking.setPaymentStatus(PaymentStatus.COMPLETED);
                 booking.setPaidAt(Instant.now());
                 booking.setPaymentReference(transactionId);
-                booking.setPaymentMethod(request.getPaymentMethod());
+                // Use existing payment method from booking
+                if (booking.getPaymentMethod() == null) {
+                    booking.setPaymentMethod("BANK_TRANSFER");
+                }
                 booking.setUpdatedAt(Instant.now());
                 
                 // Update ticket status
@@ -119,7 +119,7 @@ public class PaymentService {
                         .bookingCode(booking.getBookingCode())
                         .status("COMPLETED")
                         .amount(booking.getTotalAmount())
-                        .paymentMethod(request.getPaymentMethod())
+                        .paymentMethod(booking.getPaymentMethod())
                         .qrCodeUrl(qrCodeUrl)
                         .paidAt(Instant.now())
                         .message("Payment successful")
@@ -160,23 +160,6 @@ public class PaymentService {
                     .message("Failed to process payment: " + e.getMessage())
                     .build();
         }
-    }
-    
-    /**
-     * Simulate payment gateway processing
-     * In production, integrate with real payment gateway (VNPay, Momo, ZaloPay, etc.)
-     */
-    private boolean processPaymentWithGateway(PaymentRequest request, String transactionId) {
-        // Simulate payment processing delay
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        
-        // In production: Call real payment gateway API
-        // For testing: Always return success (change back to Math.random() > 0.05 for 95% rate)
-        return true;
     }
     
     /**

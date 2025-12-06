@@ -219,21 +219,30 @@ public class SeatHoldService {
             
             List<Integer> availableSeatIds = new ArrayList<>();
             List<SeatAvailabilityResponse.SeatHoldInfo> heldSeats = new ArrayList<>();
+            List<SeatAvailabilityResponse.SeatInfo> seatInfoList = new ArrayList<>();
             
             for (Seat seat : allSeats) {
                 // Check if permanently booked (active tickets only)
                 boolean isBooked = ticketRepository.findActiveBySeatIdAndShowtimeId(
                         seat.getId(), showtimeId).isPresent();
                 
-                if (!isBooked) {
+                String status;
+                String holdSessionId = null;
+                
+                if (isBooked) {
+                    status = "BOOKED";
+                } else {
                     String seatKey = buildSeatHoldKey(showtimeId, seat.getId());
                     SeatHoldDto holdInfo = (SeatHoldDto) redisTemplate.opsForValue().get(seatKey);
                     
                     if (holdInfo == null) {
                         // Seat is available
+                        status = "AVAILABLE";
                         availableSeatIds.add(seat.getId());
                     } else {
                         // Seat is held
+                        status = "HELD";
+                        holdSessionId = holdInfo.getSessionId();
                         String heldBy = holdInfo.getSessionId().equals(sessionId) ? "you" : "another_user";
                         heldSeats.add(SeatAvailabilityResponse.SeatHoldInfo.builder()
                                 .seatId(seat.getId())
@@ -242,12 +251,26 @@ public class SeatHoldService {
                                 .build());
                     }
                 }
+                
+                // Add full seat information
+                seatInfoList.add(SeatAvailabilityResponse.SeatInfo.builder()
+                        .seatId(seat.getId())
+                        .seatRow(seat.getSeatRow())
+                        .seatNumber(seat.getSeatNumber())
+                        .seatType(seat.getSeatType() != null ? seat.getSeatType().toString() : "STANDARD")
+                        .status(status)
+                        .sessionId(holdSessionId)
+                        .positionX(seat.getPositionX())
+                        .positionY(seat.getPositionY())
+                        .build());
             }
             
             return SeatAvailabilityResponse.builder()
                     .showtimeId(showtimeId)
+                    .hallId(showtime.getHall().getId())
                     .availableSeatIds(availableSeatIds)
                     .heldSeats(heldSeats)
+                    .seats(seatInfoList)
                     .build();
             
         } catch (Exception e) {

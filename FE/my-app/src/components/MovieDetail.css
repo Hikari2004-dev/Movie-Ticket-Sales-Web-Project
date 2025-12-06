@@ -187,6 +187,45 @@
   background: linear-gradient(135deg, #ff416c, #ff4b2b);
 }
 
+.schedule-loading {
+  text-align: center;
+  padding: 40px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 16px;
+}
+
+.schedule-content {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.date-selector {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.date-selector::-webkit-scrollbar {
+  height: 6px;
+}
+
+.date-selector::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.date-selector::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.date-selector::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 .schedule-date-selector {
   display: flex;
   gap: 15px;
@@ -196,26 +235,194 @@
 }
 
 .date-btn {
-  padding: 15px 25px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  flex: 0 0 auto;
+  min-width: 90px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.1);
   color: white;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 14px;
-  line-height: 1.4;
-  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
 .date-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }
 
 .date-btn.active {
-  background: linear-gradient(135deg, #ff416c, #ff4b2b);
+  background: linear-gradient(135deg, #e50914, #ff4b2b);
   border-color: transparent;
+  box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+}
+
+.date-day {
+  font-size: 12px;
+  text-transform: uppercase;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+.date-number {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.date-month {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.cinema-showtimes {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.cinema-group {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+
+.cinema-group:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.cinema-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #e50914;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid rgba(229, 9, 20, 0.3);
+}
+
+.showtimes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.showtime-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.showtime-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(229, 9, 20, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(229, 9, 20, 0.2);
+}
+
+.showtime-time {
+  font-size: 24px;
+  font-weight: 700;
+  color: #e50914;
+  text-align: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.showtime-hall {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  font-weight: 500;
+}
+
+.showtime-info {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.showtime-format, .showtime-subtitle {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
   font-weight: 600;
+  text-transform: uppercase;
+}
+
+.showtime-format {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.showtime-subtitle {
+  background: rgba(33, 150, 243, 0.2);
+  color: #2196f3;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.showtime-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: #4caf50;
+  text-align: center;
+  padding: 8px 0;
+}
+
+.showtime-seats {
+  text-align: center;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.seats-available {
+  color: #4caf50;
+  font-weight: 500;
+}
+
+.seats-full {
+  color: #f44336;
+  font-weight: 600;
+}
+
+.btn-book-showtime {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(135deg, #e50914, #ff4b2b);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+.btn-book-showtime:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ff1a24, #ff5a3a);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
+}
+
+.btn-book-showtime:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
 }
 
 /* Theaters List */

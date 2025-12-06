@@ -37,8 +37,14 @@ const Header = () => {
     // Kiểm tra user trong localStorage khi component mount
     const checkUser = () => {
       const userData = localStorage.getItem('user');
-      if (userData) {
-        setUser(JSON.parse(userData));
+      if (userData && userData !== 'undefined') {
+        try {
+          setUser(JSON.parse(userData));
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+          localStorage.removeItem('user');
+          setUser(null);
+        }
       } else {
         setUser(null);
       }

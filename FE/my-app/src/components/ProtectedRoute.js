@@ -21,7 +21,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   try {
-    const user = JSON.parse(userStr);
+    const user = JSON.parse(userStr || '{}');
     const userRoles = user.roles || [];
 
     // Nếu không có role yêu cầu, cho phép tất cả user đã đăng nhập

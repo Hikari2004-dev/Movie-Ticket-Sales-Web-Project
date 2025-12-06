@@ -61,6 +61,47 @@ public class CinemaHallService {
     }
 
     /**
+     * Get cinema hall by ID (public - active only)
+     */
+    public ApiResponse<CinemaHallDto> getHallById(Integer hallId) {
+        log.info("Getting cinema hall by ID: {}", hallId);
+
+        try {
+            Optional<CinemaHall> hallOptional = cinemaHallRepository.findById(hallId);
+            
+            if (hallOptional.isEmpty()) {
+                return ApiResponse.<CinemaHallDto>builder()
+                        .success(false)
+                        .message("Phòng chiếu không tồn tại")
+                        .build();
+            }
+
+            CinemaHall hall = hallOptional.get();
+
+            // Only return active halls for public access
+            if (!hall.getIsActive()) {
+                return ApiResponse.<CinemaHallDto>builder()
+                        .success(false)
+                        .message("Phòng chiếu không hoạt động")
+                        .build();
+            }
+
+            return ApiResponse.<CinemaHallDto>builder()
+                    .success(true)
+                    .message("Lấy thông tin phòng chiếu thành công")
+                    .data(convertToCinemaHallDto(hall))
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Error getting cinema hall by ID: {}", hallId, e);
+            return ApiResponse.<CinemaHallDto>builder()
+                    .success(false)
+                    .message("Lỗi khi lấy thông tin phòng chiếu: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
      * Get all halls in a cinema (public - active only)
      */
     public ApiResponse<PagedCinemaHallResponse> getAllHallsByCinema(Integer cinemaId, Integer page, Integer size, String search) {

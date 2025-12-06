@@ -18,7 +18,8 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     
     Optional<Booking> findByBookingCode(String bookingCode);
     
-    Page<Booking> findByUserId(Integer userId, Pageable pageable);
+    @Query("SELECT b FROM Booking b WHERE b.user.id = :userId")
+    Page<Booking> findByUserId(@Param("userId") Integer userId, Pageable pageable);
     
     Page<Booking> findByStatus(StatusBooking status, Pageable pageable);
     
@@ -35,6 +36,10 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     Page<Booking> findByCustomerEmail(@Param("email") String email, Pageable pageable);
     
     boolean existsByBookingCode(String bookingCode);
+    
+    // Find bookings excluding cancelled status
+    @Query("SELECT b FROM Booking b WHERE b.status != :excludedStatus")
+    Page<Booking> findByStatusNot(@Param("excludedStatus") StatusBooking excludedStatus, Pageable pageable);
     
     // For scheduler
     List<Booking> findByStatusAndHoldExpiresAtBefore(StatusBooking status, Instant expiresAt);

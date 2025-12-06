@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
-import { API_BASE_URL } from '../config/api';
+import bookingService from '../services/bookingService';
 import { FaTicketAlt, FaCalendar, FaClock, FaMapMarkerAlt, FaChair } from 'react-icons/fa';
 import './BookingHistory.css';
 
@@ -19,33 +17,56 @@ const BookingHistory = () => {
 
   const fetchBookings = async () => {
     try {
-      const token = Cookies.get('accessToken');
-      if (!token) {
+      // Lấy thông tin user từ localStorage
+      const userData = localStorage.getItem('user');
+      if (!userData || userData === 'undefined') {
         toast.error('Vui lòng đăng nhập để xem lịch sử');
         navigate('/login');
         return;
       }
 
-      try {
-        const response = await axios.get(`${API_BASE_URL}/users/bookings`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+      const user = JSON.parse(userData);
+      const userId = user.userId;
 
-        console.log('Bookings API Response:', response.data);
-
-        if (response.data.success) {
-          setBookings(response.data.data || []);
-        }
-      } catch (apiError) {
-        console.log('Bookings API Error:', apiError.response?.data || apiError.message);
-        // Nếu API chưa có, hiển thị empty state
-        toast.info('API lịch sử đặt vé chưa sẵn sàng');
-        setBookings([]);
+      if (!userId) {
+        toast.error('Không tìm thấy thông tin người dùng');
+        navigate('/login');
+        return;
       }
+
+      console.log('📋 Fetching bookings for userId:', userId);
+      
+      // Gọi API lấy danh sách bookings của user
+      const response = await bookingService.getUserBookings(userId);
+      
+      console.log('✅ Bookings Response:', response);
+      
+      // Response là PagedBookingResponse với structure:
+      // { data: [], totalElements, totalPages, currentPage, pageSize }
+      if (response.data && Array.isArray(response.data)) {
+        console.log('📦 Total bookings:', response.totalElements);
+        console.log('📄 Bookings data:', response.data);
+        setBookings(response.data);
+        
+        if (response.data.length === 0) {
+          toast.info('Bạn chưa có booking nào');
+        }
+      } else if (response.content && Array.isArray(response.content)) {
+        // Fallback for 'content' structure
+        console.log('📦 Bookings from content:', response.content.length);
+        setBookings(response.content);
+      } else if (Array.isArray(response)) {
+        console.log('📦 Bookings array:', response.length);
+        setBookings(response);
+      } else {
+        console.log('⚠️ No bookings data found in response');
+        console.log('Response structure:', Object.keys(response));
+        setBookings([]);
+        toast.info('Chưa có lịch sử đặt vé');
+      }
+      
     } catch (error) {
-      console.error('Error fetching bookings:', error);
+      console.error('❌ Error fetching bookings:', error);
       if (error.response?.status === 401) {
         toast.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại');
         navigate('/login');
@@ -99,23 +120,12 @@ const BookingHistory = () => {
     }
 
     try {
-      const token = Cookies.get('accessToken');
-      const response = await axios.post(
-        `${API_BASE_URL}/bookings/${bookingId}/cancel`,
-        {},
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
-
-      if (response.data.success) {
-        toast.success('Hủy vé thành công!');
-        fetchBookings(); // Reload bookings
-      }
+      console.log('🚫 Canceling booking:', bookingId);
+      await bookingService.cancelBooking(bookingId);
+      toast.success('Hủy vé thành công!');
+      fetchBookings(); // Reload bookings
     } catch (error) {
-      console.error('Error cancelling booking:', error);
+      console.error('❌ Error cancelling booking:', error);
       toast.error(error.response?.data?.message || 'Không thể hủy vé');
     }
   };
@@ -191,69 +201,48 @@ const BookingHistory = () => {
         ) : (
           <div className="bookings-list">
             {filteredBookings.map(booking => (
-              <div key={booking.id} className="booking-card">
-                <div className="booking-header">
-                  <div className="booking-id">
-                    <FaTicketAlt />
-                    <span>Mã đặt vé: #{booking.id || booking.bookingCode}</span>
+              <div key={booking.bookingId} className="booking-card">
+                {/* Main Info */}
+                <div className="booking-info">
+                  <h3 className="booking-movie-title">{booking.movieTitle || 'N/A'}</h3>
+                  <div className="booking-meta">
+                    <span className="booking-meta-item">
+                      <FaCalendar style={{ fontSize: '11px', marginRight: '4px' }} />
+                      {booking.showDate || 'N/A'} {booking.startTime || ''}
+                    </span>
+                    <span className="booking-meta-item">
+                      <FaMapMarkerAlt style={{ fontSize: '11px', marginRight: '4px' }} />
+                      {booking.cinemaName || 'N/A'} - {booking.hallName || 'N/A'}
+                    </span>
+                    <span className="booking-meta-item">
+                      <FaChair style={{ fontSize: '11px', marginRight: '4px' }} />
+                      {booking.totalSeats || 0} ghế
+                    </span>
                   </div>
+                </div>
+
+                {/* Status */}
+                <div className="booking-status">
                   {getStatusBadge(booking.status)}
                 </div>
 
-                <div className="booking-content">
-                  <div className="movie-poster">
-                    <img 
-                      src={booking.moviePoster || 'https://via.placeholder.com/150x200?text=Movie'} 
-                      alt={booking.movieTitle} 
-                    />
-                  </div>
-
-                  <div className="booking-details">
-                    <h3 className="movie-title">{booking.movieTitle || 'Tên phim'}</h3>
-                    
-                    <div className="detail-row">
-                      <FaCalendar className="detail-icon" />
-                      <span>{formatDate(booking.showtimeDate || booking.createdAt)}</span>
-                    </div>
-
-                    <div className="detail-row">
-                      <FaClock className="detail-icon" />
-                      <span>{formatTime(booking.showtimeDate || booking.createdAt)}</span>
-                    </div>
-
-                    <div className="detail-row">
-                      <FaMapMarkerAlt className="detail-icon" />
-                      <span>{booking.cinemaName || 'CGV Cinema'} - {booking.roomName || 'Phòng 1'}</span>
-                    </div>
-
-                    <div className="detail-row">
-                      <FaChair className="detail-icon" />
-                      <span>Ghế: {booking.seats?.join(', ') || 'A1, A2'}</span>
-                    </div>
-
-                    <div className="booking-price">
-                      <span className="price-label">Tổng tiền:</span>
-                      <span className="price-value">{formatCurrency(booking.totalAmount || 0)}</span>
-                    </div>
-                  </div>
+                {/* Amount */}
+                <div className="booking-amount">
+                  <span className="amount-label">Tổng tiền</span>
+                  <span className="amount-value">{formatCurrency(booking.totalAmount || 0)}</span>
                 </div>
 
-                <div className="booking-actions">
-                  <button 
-                    className="view-detail-btn"
-                    onClick={() => navigate(`/booking/${booking.id}`)}
-                  >
-                    Xem chi tiết
-                  </button>
-                  {booking.status === 'CONFIRMED' && (
+                {/* Actions */}
+                {(booking.status === 'CONFIRMED' || booking.status === 'PENDING') && (
+                  <div className="booking-actions">
                     <button 
-                      className="cancel-btn"
-                      onClick={() => handleCancelBooking(booking.id)}
+                      className="btn-cancel"
+                      onClick={() => handleCancelBooking(booking.bookingId)}
                     >
                       Hủy vé
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

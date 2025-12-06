@@ -40,11 +40,11 @@ public class BookingService {
     private static final BigDecimal SERVICE_FEE = new BigDecimal("5000"); // 5000 VND service fee per ticket
     
     /**
-     * Get all bookings with pagination
+     * Get all bookings with pagination (excluding CANCELLED)
      */
     public PagedBookingResponse getAllBookings(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("bookingDate").descending());
-        Page<Booking> bookingPage = bookingRepository.findAll(pageable);
+        Page<Booking> bookingPage = bookingRepository.findByStatusNot(StatusBooking.CANCELLED, pageable);
         
         return buildPagedResponse(bookingPage);
     }

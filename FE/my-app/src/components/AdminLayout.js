@@ -32,13 +32,14 @@ const AdminLayout = () => {
   // Check if user is SYSTEM_ADMIN
   React.useEffect(() => {
     const user = localStorage.getItem('user');
-    if (user) {
+    if (user && user !== 'undefined') {
       try {
         const userData = JSON.parse(user);
         const hasSystemAdminRole = userData.roles && userData.roles.includes('SYSTEM_ADMIN');
         setIsSystemAdmin(hasSystemAdminRole);
       } catch (e) {
         console.error('Error parsing user data:', e);
+        localStorage.removeItem('user');
       }
     }
   }, []);

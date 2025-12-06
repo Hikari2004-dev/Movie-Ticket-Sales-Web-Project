@@ -93,8 +93,12 @@ const LoginForm = () => {
             Cookies.set('refreshToken', refreshToken);
           }
 
-          // Lưu thông tin user vào localStorage
-          localStorage.setItem('user', JSON.stringify(user));
+          // Lưu thông tin user vào localStorage (kiểm tra user tồn tại)
+          if (user) {
+            localStorage.setItem('user', JSON.stringify(user));
+          } else {
+            console.error('User data is undefined in response');
+          }
 
           // Dispatch event để Header cập nhật
           window.dispatchEvent(new Event('userChanged'));

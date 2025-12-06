@@ -33,6 +33,23 @@ public class CinemaHallController {
     }
 
     /**
+     * Get cinema hall by ID (public - active only)
+     * GET /api/cinema-halls/{hallId}
+     */
+    @GetMapping("/{hallId}")
+    public ResponseEntity<ApiResponse<CinemaHallDto>> getHallById(@PathVariable Integer hallId) {
+        log.info("Getting cinema hall by ID: {}", hallId);
+
+        ApiResponse<CinemaHallDto> response = cinemaHallService.getHallById(hallId);
+
+        if (response.getSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+    /**
      * Get all cinema halls for a cinema (public - active only)
      * GET /api/cinema-halls/cinema/{cinemaId}
      */

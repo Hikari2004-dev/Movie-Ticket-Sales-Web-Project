@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FaPlay, FaStar, FaClock, FaCalendar, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import movieService from '../services/movieService';
+import showtimeService from '../services/showtimeService';
 import './MovieDetail.css';
 
 const MovieDetail = () => {
@@ -12,10 +13,14 @@ const MovieDetail = () => {
   const [loading, setLoading] = useState(true);
   const [relatedMovies, setRelatedMovies] = useState([]);
   const [currentMovieIndex, setCurrentMovieIndex] = useState(0);
+  const [showtimes, setShowtimes] = useState([]);
+  const [showtimesLoading, setShowtimesLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
 
   useEffect(() => {
     fetchMovieDetails();
     fetchRelatedMovies();
+    fetchShowtimes();
   }, [id]);
 
   const fetchMovieDetails = async () => {
@@ -55,6 +60,26 @@ const MovieDetail = () => {
     }
   };
 
+  const fetchShowtimes = async () => {
+    try {
+      setShowtimesLoading(true);
+      const response = await showtimeService.getShowtimesByMovie(id);
+      
+      if (response.success && response.data) {
+        setShowtimes(response.data);
+        // Set first available date as selected
+        if (response.data.length > 0) {
+          const dates = [...new Set(response.data.map(s => s.showDate))];
+          setSelectedDate(dates[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching showtimes:', error);
+    } finally {
+      setShowtimesLoading(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'Chưa có thông tin';
     const date = new Date(dateString);
@@ -75,6 +100,50 @@ const MovieDetail = () => {
       'K': 'K (Phim không dành cho trẻ em dưới 13 tuổi và cần có người bảo hộ đi kèm)'
     };
     return ratings[ageRating] || ageRating;
+  };
+
+  const formatTime = (timeString) => {
+    if (!timeString) return '';
+    return timeString.substring(0, 5); // HH:MM
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+  };
+
+  const getFormatLabel = (format) => {
+    const formats = {
+      '_2D': '2D',
+      '_3D': '3D',
+      'IMAX': 'IMAX',
+      'IMAX_3D': 'IMAX 3D'
+    };
+    return formats[format] || format;
+  };
+
+  const getAvailableDates = () => {
+    const dates = [...new Set(showtimes.map(s => s.showDate))];
+    return dates.sort();
+  };
+
+  const getShowtimesByDateAndCinema = () => {
+    if (!selectedDate) return {};
+    
+    const filtered = showtimes.filter(s => s.showDate === selectedDate);
+    const grouped = {};
+    
+    filtered.forEach(showtime => {
+      const key = showtime.cinemaId;
+      if (!grouped[key]) {
+        grouped[key] = {
+          cinemaName: showtime.cinemaName,
+          showtimes: []
+        };
+      }
+      grouped[key].showtimes.push(showtime);
+    });
+    
+    return grouped;
   };
 
   useEffect(() => {
@@ -215,10 +284,64 @@ const MovieDetail = () => {
         </section>
         <section className='movie-schedule'>
           <h2>Lịch chiếu</h2>
-          <div className='schedule-placeholder'>
-            <p>Chức năng đặt vé sẽ được cập nhật trong thời gian tới!</p>
-            <p>Vui lòng quay lại sau hoặc liên hệ rạp để biết thêm chi tiết.</p>
-          </div>
+          {showtimesLoading ? (
+            <div className='schedule-loading'>Đang tải lịch chiếu...</div>
+          ) : showtimes.length === 0 ? (
+            <div className='schedule-placeholder'>
+              <p>Hiện tại chưa có lịch chiếu cho phim này.</p>
+              <p>Vui lòng quay lại sau hoặc liên hệ rạp để biết thêm chi tiết.</p>
+            </div>
+          ) : (
+            <div className='schedule-content'>
+              <div className='date-selector'>
+                {getAvailableDates().map(date => (
+                  <button
+                    key={date}
+                    className={`date-btn ${selectedDate === date ? 'active' : ''}`}
+                    onClick={() => setSelectedDate(date)}
+                  >
+                    <div className='date-day'>{new Date(date + 'T00:00:00').toLocaleDateString('vi-VN', { weekday: 'short' })}</div>
+                    <div className='date-number'>{new Date(date + 'T00:00:00').getDate()}</div>
+                    <div className='date-month'>Tháng {new Date(date + 'T00:00:00').getMonth() + 1}</div>
+                  </button>
+                ))}
+              </div>
+              <div className='cinema-showtimes'>
+                {Object.entries(getShowtimesByDateAndCinema()).map(([cinemaId, data]) => (
+                  <div key={cinemaId} className='cinema-group'>
+                    <h3 className='cinema-name'>{data.cinemaName}</h3>
+                    <div className='showtimes-grid'>
+                      {data.showtimes.map(showtime => (
+                        <div key={showtime.showtimeId} className='showtime-card'>
+                          <div className='showtime-time'>{formatTime(showtime.startTime)}</div>
+                          <div className='showtime-hall'>{showtime.hallName}</div>
+                          <div className='showtime-info'>
+                            <span className='showtime-format'>{getFormatLabel(showtime.formatType)}</span>
+                            <span className='showtime-subtitle'>{showtime.subtitleLanguage}</span>
+                          </div>
+                          <div className='showtime-price'>{formatPrice(showtime.basePrice)}</div>
+                          <div className='showtime-seats'>
+                            {showtime.availableSeats > 0 ? (
+                              <span className='seats-available'>Còn {showtime.availableSeats} ghế</span>
+                            ) : (
+                              <span className='seats-full'>Hết chỗ</span>
+                            )}
+                          </div>
+                          <button 
+                            className='btn-book-showtime'
+                            disabled={showtime.availableSeats === 0}
+                            onClick={() => navigate(`/booking/${showtime.showtimeId}`)}
+                          >
+                            {showtime.availableSeats > 0 ? 'Đặt vé' : 'Hết chỗ'}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
         {relatedMovies.length > 0 && (
           <section className='other-movies-section'>

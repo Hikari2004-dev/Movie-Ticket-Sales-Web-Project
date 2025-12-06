@@ -23,15 +23,22 @@ public class BookingController {
     private final BookingService bookingService;
     
     /**
-     * Get all bookings with pagination
-     * GET /api/bookings?page=0&size=10
+     * Get all bookings with pagination and optional status filter
+     * GET /api/bookings?page=0&size=10&status=PENDING
      */
     @GetMapping
     public ResponseEntity<PagedBookingResponse> getAllBookings(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) StatusBooking status) {
         try {
-            PagedBookingResponse response = bookingService.getAllBookings(page, size);
+            PagedBookingResponse response;
+            if (status != null) {
+                log.info("Getting bookings with status: {}, page: {}, size: {}", status, page, size);
+                response = bookingService.getBookingsByStatus(status, page, size);
+            } else {
+                response = bookingService.getAllBookings(page, size);
+            }
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error getting all bookings", e);
@@ -89,12 +96,14 @@ public class BookingController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
+            log.info("📋 Getting bookings for userId: {}, page: {}, size: {}", userId, page, size);
             PagedBookingResponse response = bookingService.getBookingsByUserId(userId, page, size);
+            log.info("✅ Found {} bookings for userId: {}", response.getTotalElements(), userId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("Error getting bookings by user ID: {}", userId, e);
+            log.error("❌ Error getting bookings by user ID: {}", userId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("Internal server error"));
+                    .body(createErrorResponse("Internal server error: " + e.getMessage()));
         }
     }
     

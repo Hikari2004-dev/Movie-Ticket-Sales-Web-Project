@@ -30,7 +30,7 @@ const ProfilePage = () => {
       const storedUser = localStorage.getItem('user');
       console.log('Stored user from localStorage:', storedUser);
       
-      if (storedUser) {
+      if (storedUser && storedUser !== 'undefined') {
         const userData = JSON.parse(storedUser);
         console.log('Parsed user data:', userData);
         setUser(userData);

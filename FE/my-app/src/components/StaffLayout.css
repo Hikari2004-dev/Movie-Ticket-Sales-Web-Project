@@ -7,13 +7,13 @@
 .staff-sidebar {
   position: fixed;
   left: 0;
-  top: 0;
-  height: 100vh;
+  top: 70px;
+  height: calc(100vh - 70px);
   width: 220px;
   background: linear-gradient(180deg, #1e3a1a 0%, #0f1e0d 100%);
   border-right: 1px solid rgba(34, 197, 94, 0.3);
   transition: width 0.3s ease;
-  z-index: 1000;
+  z-index: 999;
   display: flex;
   flex-direction: column;
   box-shadow: 2px 0 15px rgba(34, 197, 94, 0.2);
@@ -198,8 +198,9 @@
 
 .staff-content {
   margin-left: 220px;
+  margin-top: 70px;
   flex: 1;
-  min-height: 100vh;
+  min-height: calc(100vh - 70px);
   transition: margin-left 0.3s ease;
 }
 

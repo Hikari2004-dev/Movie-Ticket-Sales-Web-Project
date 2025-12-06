@@ -44,6 +44,7 @@ const StaffLayout = () => {
   const menuItems = [
     { path: '/staff/dashboard', icon: FaClock, label: 'Ca Làm Việc', active: true },
     { path: '/staff/check-in', icon: FaCheckCircle, label: 'Xác Nhận Vé', active: true },
+    { path: '/staff/payment-manager', icon: FaTicketAlt, label: 'Quản Lý Thanh Toán', active: true },
   ];
 
   return (
