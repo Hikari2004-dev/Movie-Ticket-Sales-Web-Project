@@ -74,11 +74,13 @@ public class CinemaConcessionService {
             BigDecimal customPrice,
             Integer stockQuantity) {
         
+        log.info("=== SERVICE: Looking for cinema with ID: {}", cinemaId);
         Cinema cinema = cinemaRepository.findById(cinemaId)
-                .orElseThrow(() -> new RuntimeException("Rạp không tồn tại"));
+                .orElseThrow(() -> new RuntimeException("Rạp không tồn tại với ID: " + cinemaId));
         
+        log.info("=== SERVICE: Looking for concession item with ID: {}", itemId);
         ConcessionItem item = concessionItemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item không tồn tại"));
+                .orElseThrow(() -> new RuntimeException("Item không tồn tại với ID: " + itemId));
         
         // Kiểm tra đã tồn tại chưa
         if (cinemaConcessionItemRepository.existsByCinemaIdAndItemId(cinemaId, itemId)) {

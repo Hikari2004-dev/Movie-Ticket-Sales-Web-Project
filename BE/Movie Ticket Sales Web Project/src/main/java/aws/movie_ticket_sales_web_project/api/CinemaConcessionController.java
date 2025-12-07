@@ -76,6 +76,10 @@ public class CinemaConcessionController {
             @PathVariable Integer cinemaId,
             @RequestBody Map<String, Object> request) {
         
+        log.info("=== ADD ITEM TO CINEMA REQUEST ===");
+        log.info("Cinema ID from path: {}", cinemaId);
+        log.info("Request body: {}", request);
+        
         Integer itemId = (Integer) request.get("itemId");
         BigDecimal customPrice = request.containsKey("customPrice") 
                 ? new BigDecimal(request.get("customPrice").toString()) 

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import bookingService from '../services/bookingService';
 import paymentService from '../services/paymentService';
 import { calculateBookingPrice, formatPrice as formatCurrency, SERVICE_FEE_PER_TICKET } from '../utils/priceCalculation';
+import ConcessionSelection from './ConcessionSelection';
 import './BookingConfirmation.css';
 
 const BookingConfirmation = () => {
@@ -20,12 +21,17 @@ const BookingConfirmation = () => {
   const [showQRCode, setShowQRCode] = useState(false);
   const [bookingId, setBookingId] = useState(null);
   const [bookingCode, setBookingCode] = useState(null);
+  const [concessionData, setConcessionData] = useState({ items: [], total: 0 });
+  const [showConcessionStep, setShowConcessionStep] = useState(true);
 
   // Tính toán giá tiền sử dụng utility (đồng bộ với backend)
   const priceDetails = calculateBookingPrice(
     showtime?.basePrice || 0,
     selectedSeats?.length || 0
   );
+
+  // Tổng tiền bao gồm cả đồ ăn
+  const grandTotal = priceDetails.total + concessionData.total;
 
   useEffect(() => {
     // Lấy thông tin user từ localStorage
@@ -49,6 +55,10 @@ const BookingConfirmation = () => {
       toast.error('Thông tin đặt vé không hợp lệ');
       navigate('/');
     }
+
+    // Debug: Log showtime data to check cinemaId
+    console.log('🎬 Showtime data in BookingConfirmation:', showtime);
+    console.log('🏢 Cinema ID:', showtime?.cinemaId);
   }, [navigate, selectedSeats, sessionId, showtime]);
 
   const formatDateTime = (dateString) => {
@@ -64,6 +74,15 @@ const BookingConfirmation = () => {
     }).format(date);
   };
 
+  const handleConcessionChange = useCallback((data) => {
+    setConcessionData(data);
+    console.log('🍿 Concession updated:', data);
+  }, []);
+
+  const handleContinueToPayment = () => {
+    setShowConcessionStep(false);
+  };
+
   const generateVietQR = (paymentReference) => {
     // VietQR API format
     // https://img.vietqr.io/image/[BANK_ID]-[ACCOUNT_NUMBER]-[TEMPLATE].png?amount=[AMOUNT]&addInfo=[DESCRIPTION]&accountName=[ACCOUNT_NAME]
@@ -72,7 +91,7 @@ const BookingConfirmation = () => {
     const accountNumber = '0915232119'; // Số tài khoản (thay bằng số thật)
     const accountName = 'CINEMA BOOKING'; // Tên tài khoản
     const template = 'compact2'; // Template: compact, compact2, qr_only, print
-    const amount = priceDetails.total; // Sử dụng giá đã tính toán
+    const amount = grandTotal; // Sử dụng tổng tiền bao gồm cả đồ ăn
     
     // Nội dung chuyển khoản: Payment Reference + thông tin booking
     const description = paymentReference 
@@ -90,7 +109,9 @@ const BookingConfirmation = () => {
     console.log('Subtotal:', priceDetails.subtotal);
     console.log('Service Fee:', priceDetails.serviceFee);
     console.log('Tax (10%):', priceDetails.tax);
-    console.log('Total Amount:', priceDetails.total);
+    console.log('Ticket Total:', priceDetails.total);
+    console.log('Concession Total:', concessionData.total);
+    console.log('Grand Total:', grandTotal);
     console.log('🏦 Payment Reference:', paymentReference);
     console.log('🏦 VietQR Generated:', qrUrl);
   };
@@ -114,7 +135,12 @@ const BookingConfirmation = () => {
       seatIds: selectedSeats.map(seat => seat.seatId),
       sessionId: sessionId,
       voucherCode: voucherCode.trim() || null,
-      paymentMethod: 'BANK_TRANSFER'
+      paymentMethod: 'BANK_TRANSFER',
+      concessionItems: concessionData.items.length > 0 ? concessionData.items.map(item => ({
+        itemId: item.itemId,
+        quantity: item.quantity,
+        price: item.price
+      })) : null
     };
 
     console.log('🎫 === BOOKING REQUEST ===');
@@ -224,7 +250,48 @@ const BookingConfirmation = () => {
       <div className="booking-confirmation-container">
         <h1 className="booking-confirmation-title">🎬 Xác nhận đặt vé</h1>
 
+        {/* Progress Steps */}
+        <div className="booking-progress">
+          <div className={`progress-step ${!showConcessionStep ? 'completed' : 'active'}`}>
+            <div className="step-number">1</div>
+            <div className="step-label">Chọn đồ ăn</div>
+          </div>
+          <div className="progress-line"></div>
+          <div className={`progress-step ${!showConcessionStep ? 'active' : ''}`}>
+            <div className="step-number">2</div>
+            <div className="step-label">Thanh toán</div>
+          </div>
+        </div>
+
         <div className="booking-confirmation-content">
+          {/* Concession Selection Step */}
+          {showConcessionStep && (
+            <div className="concession-step">
+              <ConcessionSelection 
+                cinemaId={showtime?.cinemaId} 
+                onConcessionChange={handleConcessionChange}
+              />
+              
+              <div className="concession-step-actions">
+                <button
+                  className="btn-skip-concession"
+                  onClick={handleContinueToPayment}
+                >
+                  Bỏ qua
+                </button>
+                <button
+                  className="btn-continue-payment"
+                  onClick={handleContinueToPayment}
+                >
+                  Tiếp tục thanh toán →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Payment Step */}
+          {!showConcessionStep && (
+            <>
           {/* Layout 2 cột */}
           <div className="booking-layout">
             {/* Cột trái - Thông tin */}
@@ -331,24 +398,68 @@ const BookingConfirmation = () => {
                 </div>
               </div>
 
+              {/* Đồ ăn đã chọn */}
+              {concessionData.items.length > 0 && (
+                <div className="booking-card concession-summary-card">
+                  <div className="card-header">
+                    <h2>🍿 Đồ ăn & Nước uống</h2>
+                    <button 
+                      className="btn-edit-concession"
+                      onClick={() => setShowConcessionStep(true)}
+                    >
+                      ✏️ Sửa
+                    </button>
+                  </div>
+                  <div className="card-body">
+                    {concessionData.items.map((item, index) => (
+                      <div key={index} className="concession-item-row">
+                        <div className="concession-item-info">
+                          <span className="concession-item-name">{item.itemName}</span>
+                          <span className="concession-item-qty">x{item.quantity}</span>
+                        </div>
+                        <span className="concession-item-price">{formatCurrency(item.total)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Tổng tiền */}
               <div className="booking-card summary-card">
                 <div className="card-header">
                   <h2>💰 Chi tiết thanh toán</h2>
                 </div>
                 <div className="card-body">
-                  <div className="summary-row">
-                    <span className="summary-label">Giá vé ({selectedSeats.length} ghế × {formatCurrency(showtime.basePrice || 0)})</span>
-                    <span className="summary-value">{formatCurrency(priceDetails.subtotal)}</span>
+                  <div className="summary-section">
+                    <div className="summary-section-title">🎫 Vé xem phim</div>
+                    <div className="summary-row">
+                      <span className="summary-label">Giá vé ({selectedSeats.length} ghế × {formatCurrency(showtime.basePrice || 0)})</span>
+                      <span className="summary-value">{formatCurrency(priceDetails.subtotal)}</span>
+                    </div>
+                    <div className="summary-row">
+                      <span className="summary-label">Phí dịch vụ ({selectedSeats.length} × {formatCurrency(SERVICE_FEE_PER_TICKET)})</span>
+                      <span className="summary-value">{formatCurrency(priceDetails.serviceFee)}</span>
+                    </div>
+                    <div className="summary-row">
+                      <span className="summary-label">Thuế VAT (10%)</span>
+                      <span className="summary-value">{formatCurrency(priceDetails.tax)}</span>
+                    </div>
+                    <div className="summary-row subtotal-row">
+                      <span className="summary-label">Tạm tính vé</span>
+                      <span className="summary-value">{formatCurrency(priceDetails.total)}</span>
+                    </div>
                   </div>
-                  <div className="summary-row">
-                    <span className="summary-label">Phí dịch vụ ({selectedSeats.length} × {formatCurrency(SERVICE_FEE_PER_TICKET)})</span>
-                    <span className="summary-value">{formatCurrency(priceDetails.serviceFee)}</span>
-                  </div>
-                  <div className="summary-row">
-                    <span className="summary-label">Thuế VAT (10%)</span>
-                    <span className="summary-value">{formatCurrency(priceDetails.tax)}</span>
-                  </div>
+
+                  {concessionData.total > 0 && (
+                    <div className="summary-section">
+                      <div className="summary-section-title">🍿 Đồ ăn & Nước</div>
+                      <div className="summary-row">
+                        <span className="summary-label">{concessionData.items.length} món</span>
+                        <span className="summary-value">{formatCurrency(concessionData.total)}</span>
+                      </div>
+                    </div>
+                  )}
+
                   {priceDetails.discount > 0 && (
                     <div className="summary-row">
                       <span className="summary-label">Giảm giá</span>
@@ -357,8 +468,8 @@ const BookingConfirmation = () => {
                   )}
                   <div className="summary-divider"></div>
                   <div className="summary-total">
-                    <span className="total-label">Tổng cộng</span>
-                    <span className="total-amount">{formatCurrency(priceDetails.total)}</span>
+                    <span className="total-label">Tổng thanh toán</span>
+                    <span className="total-amount">{formatCurrency(grandTotal)}</span>
                   </div>
                 </div>
               </div>
@@ -439,6 +550,8 @@ const BookingConfirmation = () => {
             {/* Cột trái kết thúc */}
           </div>
           {/* Layout kết thúc */}
+            </>
+          )}
         </div>
         {/* Content kết thúc */}
       </div>

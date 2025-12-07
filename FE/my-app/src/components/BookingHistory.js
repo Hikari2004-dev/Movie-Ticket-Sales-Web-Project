@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import bookingService from '../services/bookingService';
-import { FaTicketAlt, FaCalendar, FaClock, FaMapMarkerAlt, FaChair } from 'react-icons/fa';
+import Cookies from 'js-cookie';
+import { FaTicketAlt, FaCalendar, FaClock, FaMapMarkerAlt, FaChair, FaQrcode, FaUtensils } from 'react-icons/fa';
 import './BookingHistory.css';
 
 const BookingHistory = () => {
@@ -10,6 +11,9 @@ const BookingHistory = () => {
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, upcoming, completed, cancelled
+  const [expandedBooking, setExpandedBooking] = useState(null); // Track which booking's details are expanded
+  const [showQRCode, setShowQRCode] = useState({}); // Track QR code visibility for each booking
+  const [concessionOrders, setConcessionOrders] = useState({}); // Store concession orders by bookingId
 
   useEffect(() => {
     fetchBookings();
@@ -46,6 +50,7 @@ const BookingHistory = () => {
       if (response.data && Array.isArray(response.data)) {
         console.log('📦 Total bookings:', response.totalElements);
         console.log('📄 Bookings data:', response.data);
+        console.log('🔍 First booking structure:', response.data[0]);
         setBookings(response.data);
         
         if (response.data.length === 0) {
@@ -112,6 +117,86 @@ const BookingHistory = () => {
       style: 'currency', 
       currency: 'VND' 
     }).format(amount);
+  };
+
+  const toggleBookingDetails = (bookingId) => {
+    setExpandedBooking(expandedBooking === bookingId ? null : bookingId);
+    
+    // Load concession order when expanding booking details
+    if (expandedBooking !== bookingId && !concessionOrders[bookingId]) {
+      fetchConcessionOrder(bookingId);
+    }
+  };
+
+  const fetchConcessionOrder = async (bookingId) => {
+    try {
+      const token = Cookies.get('accessToken');
+      
+      console.log('🔑 Access token:', token ? 'Found' : 'Not found');
+      console.log('📦 Fetching concession order for booking:', bookingId);
+      
+      if (!token) {
+        console.warn('⚠️ No access token found, skipping concession fetch');
+        return;
+      }
+
+      const response = await fetch(
+        `http://localhost:8080/api/concessions/orders/booking/${bookingId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      console.log('📡 Response status:', response.status);
+
+      if (response.status === 204) {
+        // No concession order for this booking
+        console.log(`ℹ️ No concession items for booking ${bookingId}`);
+        return;
+      }
+
+      if (response.status === 401) {
+        console.error('🔒 Unauthorized - token may be invalid or expired');
+        return;
+      }
+
+      if (response.ok) {
+        const concessionOrder = await response.json();
+        console.log('✅ Concession order loaded:', concessionOrder);
+        
+        setConcessionOrders(prev => ({
+          ...prev,
+          [bookingId]: concessionOrder
+        }));
+      } else {
+        console.error('❌ Failed to fetch concession order:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching concession order:', error);
+    }
+  };
+
+  const toggleQRCode = (bookingId) => {
+    setShowQRCode(prev => ({
+      ...prev,
+      [bookingId]: !prev[bookingId]
+    }));
+  };
+
+  const getTicketQRCode = (booking) => {
+    // Return the QR code URL from booking if available
+    if (booking.qrCode) {
+      // If qrCode is already a full URL
+      if (booking.qrCode.startsWith('http')) {
+        return booking.qrCode;
+      }
+      // If qrCode is a relative path, prepend base URL
+      return `http://localhost:8080${booking.qrCode}`;
+    }
+    return null;
   };
 
   const handleCancelBooking = async (bookingId) => {
@@ -204,7 +289,15 @@ const BookingHistory = () => {
               <div key={booking.bookingId} className="booking-card">
                 {/* Main Info */}
                 <div className="booking-info">
-                  <h3 className="booking-movie-title">{booking.movieTitle || 'N/A'}</h3>
+                  <div className="booking-header-row">
+                    <h3 className="booking-movie-title">{booking.movieTitle || 'N/A'}</h3>
+                    <span className="booking-id">ID: #{booking.bookingId}</span>
+                  </div>
+                  {booking.bookingCode && (
+                    <div className="booking-code">
+                      Mã vé: <strong>{booking.bookingCode}</strong>
+                    </div>
+                  )}
                   <div className="booking-meta">
                     <span className="booking-meta-item">
                       <FaCalendar style={{ fontSize: '11px', marginRight: '4px' }} />
@@ -230,17 +323,107 @@ const BookingHistory = () => {
                 <div className="booking-amount">
                   <span className="amount-label">Tổng tiền</span>
                   <span className="amount-value">{formatCurrency(booking.totalAmount || 0)}</span>
+                  {booking.paymentStatus === 'COMPLETED' && booking.totalAmount && (
+                    <span className="points-earned">
+                      💎 +{Math.floor(booking.totalAmount / 1000)} điểm
+                    </span>
+                  )}
                 </div>
 
-                {/* Actions */}
-                {(booking.status === 'CONFIRMED' || booking.status === 'PENDING') && (
-                  <div className="booking-actions">
+                {/* Toggle Details Button */}
+                <div className="booking-actions">
+                  <button 
+                    className="btn-details"
+                    onClick={() => toggleBookingDetails(booking.bookingId)}
+                  >
+                    {expandedBooking === booking.bookingId ? '▲ Thu gọn' : '▼ Chi tiết'}
+                  </button>
+                  {(booking.status === 'CONFIRMED' || booking.status === 'PENDING') && (
                     <button 
                       className="btn-cancel"
                       onClick={() => handleCancelBooking(booking.bookingId)}
                     >
                       Hủy vé
                     </button>
+                  )}
+                </div>
+
+                {/* Expanded Details Section */}
+                {expandedBooking === booking.bookingId && (
+                  <div className="booking-details-expanded">
+                    {/* Seats Detail */}
+                    {booking.tickets && booking.tickets.length > 0 && (
+                      <div className="detail-section">
+                        <h4 className="detail-title">
+                          <FaChair /> Danh sách ghế ({booking.tickets.length})
+                        </h4>
+                        <div className="seats-grid">
+                          {booking.tickets.map((ticket, index) => (
+                            <div key={index} className="seat-detail-badge">
+                              <span className="seat-label">{ticket.seatRow}{ticket.seatNumber}</span>
+                              <span className="seat-type">{ticket.seatType}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Concession Items - from API */}
+                    {concessionOrders[booking.bookingId] && concessionOrders[booking.bookingId].items && concessionOrders[booking.bookingId].items.length > 0 && (
+                      <div className="detail-section">
+                        <h4 className="detail-title">
+                          <FaUtensils /> Đồ ăn & Nước uống ({concessionOrders[booking.bookingId].items.length} món)
+                        </h4>
+                        <div className="concession-items-list">
+                          {concessionOrders[booking.bookingId].items.map((item, index) => (
+                            <div key={index} className="concession-item">
+                              <div className="concession-item-info">
+                                <span className="concession-name">{item.itemName || 'Món ăn'}</span>
+                                <span className="concession-qty">x{item.quantity}</span>
+                              </div>
+                              <span className="concession-price">{formatCurrency(item.subtotal || (item.unitPrice * item.quantity))}</span>
+                            </div>
+                          ))}
+                          <div className="concession-total">
+                            <span>Tổng đồ ăn:</span>
+                            <span className="total-price">{formatCurrency(concessionOrders[booking.bookingId].totalAmount)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* QR Code Section */}
+                    <div className="detail-section">
+                      <h4 className="detail-title">
+                        <FaQrcode /> Mã QR vé (Check-in)
+                      </h4>
+                      <button 
+                        className="btn-show-qr"
+                        onClick={() => toggleQRCode(booking.bookingId)}
+                      >
+                        {showQRCode[booking.bookingId] ? '🔒 Ẩn mã QR' : '📱 Hiển thị mã QR vé'}
+                      </button>
+                      
+                      {showQRCode[booking.bookingId] && (
+                        <div className="qr-code-container">
+                          {getTicketQRCode(booking) ? (
+                            <>
+                              <img 
+                                src={getTicketQRCode(booking)} 
+                                alt="Ticket QR Code" 
+                                className="qr-code-image"
+                              />
+                              <p className="qr-instruction">Xuất trình mã QR này khi check-in tại rạp</p>
+                              {booking.bookingCode && (
+                                <p className="payment-reference">Mã vé: {booking.bookingCode}</p>
+                              )}
+                            </>
+                          ) : (
+                            <p className="qr-unavailable">Mã QR vé chưa được tạo hoặc không khả dụng</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

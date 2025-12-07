@@ -2,6 +2,7 @@ package aws.movie_ticket_sales_web_project.service;
 
 import aws.movie_ticket_sales_web_project.dto.*;
 import aws.movie_ticket_sales_web_project.entity.*;
+import aws.movie_ticket_sales_web_project.enums.ConcessionOrderStatus;
 import aws.movie_ticket_sales_web_project.enums.PaymentStatus;
 import aws.movie_ticket_sales_web_project.enums.StatusBooking;
 import aws.movie_ticket_sales_web_project.enums.TicketStatus;
@@ -35,6 +36,9 @@ public class BookingService {
     private final SeatRepository seatRepository;
     private final UserRepository userRepository;
     private final SeatHoldService seatHoldService;
+    private final ConcessionOrderRepository concessionOrderRepository;
+    private final ConcessionOrderItemRepository concessionOrderItemRepository;
+    private final CinemaConcessionItemRepository cinemaConcessionItemRepository;
     
     private static final BigDecimal TAX_RATE = new BigDecimal("0.10"); // 10% tax
     private static final BigDecimal SERVICE_FEE = new BigDecimal("5000"); // 5000 VND service fee per ticket
@@ -220,6 +224,76 @@ public class BookingService {
             }
             
             ticketRepository.saveAll(tickets);
+            
+            // Create concession order if items are provided
+            if (request.getConcessionItems() != null && !request.getConcessionItems().isEmpty()) {
+                log.info("Creating concession order with {} items", request.getConcessionItems().size());
+                
+                ConcessionOrder concessionOrder = new ConcessionOrder();
+                concessionOrder.setBooking(savedBooking);
+                concessionOrder.setUser(user);
+                concessionOrder.setCinema(showtime.getHall().getCinema());
+                concessionOrder.setCreatedAt(Instant.now());
+                concessionOrder.setStatus(ConcessionOrderStatus.PENDING);
+                
+                // Initialize amount fields to avoid null constraint violations
+                concessionOrder.setSubtotal(BigDecimal.ZERO);
+                concessionOrder.setTaxAmount(BigDecimal.ZERO);
+                concessionOrder.setTotalAmount(BigDecimal.ZERO);
+                concessionOrder.setDiscountAmount(BigDecimal.ZERO);
+                
+                // Generate order number: CON + timestamp + random 4 digits
+                String orderNumber = "CON" + System.currentTimeMillis() + String.format("%04d", (int)(Math.random() * 10000));
+                concessionOrder.setOrderNumber(orderNumber);
+                
+                BigDecimal concessionSubtotal = BigDecimal.ZERO;
+                
+                ConcessionOrder savedOrder = concessionOrderRepository.save(concessionOrder);
+                
+                // Create order items
+                for (CreateBookingRequest.ConcessionItemRequest itemReq : request.getConcessionItems()) {
+                    CinemaConcessionItem cinemaConcessionItem = cinemaConcessionItemRepository
+                            .findByCinemaIdAndItemId(showtime.getHall().getCinema().getId(), itemReq.getItemId())
+                            .orElseThrow(() -> new RuntimeException("Concession item not found at this cinema: " + itemReq.getItemId()));
+                    
+                    // Check stock availability
+                    if (cinemaConcessionItem.getStockQuantity() < itemReq.getQuantity()) {
+                        throw new RuntimeException("Insufficient stock for item: " + cinemaConcessionItem.getItem().getItemName());
+                    }
+                    
+                    ConcessionOrderItem orderItem = new ConcessionOrderItem();
+                    orderItem.setConcessionOrder(savedOrder);
+                    orderItem.setItem(cinemaConcessionItem.getItem());
+                    orderItem.setQuantity(itemReq.getQuantity());
+                    orderItem.setUnitPrice(itemReq.getPrice());
+                    orderItem.setTotalPrice(itemReq.getPrice().multiply(new BigDecimal(itemReq.getQuantity())));
+                    
+                    concessionOrderItemRepository.save(orderItem);
+                    
+                    // Update stock
+                    cinemaConcessionItem.setStockQuantity(cinemaConcessionItem.getStockQuantity() - itemReq.getQuantity());
+                    cinemaConcessionItemRepository.save(cinemaConcessionItem);
+                    
+                    concessionSubtotal = concessionSubtotal.add(orderItem.getTotalPrice());
+                }
+                
+                // Calculate tax (10%)
+                BigDecimal concessionTax = concessionSubtotal.multiply(new BigDecimal("0.10"));
+                BigDecimal concessionTotal = concessionSubtotal.add(concessionTax);
+                
+                // Update order totals
+                savedOrder.setSubtotal(concessionSubtotal);
+                savedOrder.setTaxAmount(concessionTax);
+                savedOrder.setTotalAmount(concessionTotal);
+                savedOrder.setUpdatedAt(Instant.now());
+                concessionOrderRepository.save(savedOrder);
+                
+                // Update booking total to include concession
+                savedBooking.setTotalAmount(savedBooking.getTotalAmount().add(concessionTotal));
+                bookingRepository.save(savedBooking);
+                
+                log.info("Concession order created with total: {}", concessionTotal);
+            }
             
             // Update available seats in showtime
             int newAvailableSeats = showtime.getAvailableSeats() - seats.size();
@@ -416,6 +490,30 @@ public class BookingService {
             dto.setTickets(tickets.stream().map(this::convertTicketToDto).collect(Collectors.toList()));
         }
         
+        // Include concession order if exists
+        concessionOrderRepository.findByBookingId(booking.getId()).ifPresent(concessionOrder -> {
+            List<ConcessionOrderItem> orderItems = concessionOrderItemRepository.findByOrderId(concessionOrder.getId());
+            
+            List<BookingDto.ConcessionItemSummary> itemSummaries = orderItems.stream()
+                    .map(item -> BookingDto.ConcessionItemSummary.builder()
+                            .itemId(item.getItem().getId())
+                            .itemName(item.getItem().getItemName())
+                            .quantity(item.getQuantity())
+                            .unitPrice(item.getUnitPrice())
+                            .totalPrice(item.getTotalPrice())
+                            .build())
+                    .collect(Collectors.toList());
+            
+            BookingDto.ConcessionOrderSummary orderSummary = BookingDto.ConcessionOrderSummary.builder()
+                    .orderId(concessionOrder.getId())
+                    .totalAmount(concessionOrder.getTotalAmount())
+                    .status(concessionOrder.getStatus().name())
+                    .items(itemSummaries)
+                    .build();
+            
+            dto.setConcessionOrder(orderSummary);
+        });
+        
         return dto;
     }
     
@@ -445,7 +543,7 @@ public class BookingService {
      */
     private PagedBookingResponse buildPagedResponse(Page<Booking> bookingPage) {
         List<BookingDto> bookingDtos = bookingPage.getContent().stream()
-                .map(booking -> convertToDto(booking, false))
+                .map(booking -> convertToDto(booking, true)) // Changed to true to include tickets
                 .collect(Collectors.toList());
         
         return PagedBookingResponse.builder()

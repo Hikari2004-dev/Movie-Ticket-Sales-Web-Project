@@ -798,3 +798,247 @@
   opacity: 0;
   animation: fadeIn 0.5s ease-out 0.4s forwards;
 }
+
+/* Progress Steps */
+.booking-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  background: white;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  color: #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  transition: all 0.3s ease;
+}
+
+.progress-step.active .step-number {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transform: scale(1.1);
+}
+
+.progress-step.completed .step-number {
+  background: #4caf50;
+  color: white;
+}
+
+.progress-step.completed .step-number::after {
+  content: '✓';
+}
+
+.step-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 600;
+}
+
+.progress-step.active .step-label {
+  color: #667eea;
+}
+
+.progress-line {
+  width: 100px;
+  height: 3px;
+  background: #e0e0e0;
+  margin: 0 20px;
+}
+
+.progress-step.active ~ .progress-line,
+.progress-step.completed ~ .progress-line {
+  background: #4caf50;
+}
+
+/* Concession Step */
+.concession-step {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.concession-step-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 0 24px;
+}
+
+.btn-skip-concession,
+.btn-continue-payment {
+  padding: 16px 32px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.btn-skip-concession {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.btn-skip-concession:hover {
+  background: #e0e0e0;
+  transform: translateY(-2px);
+}
+
+.btn-continue-payment {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-continue-payment:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Concession Summary Card */
+.concession-summary-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-edit-concession {
+  padding: 6px 16px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-edit-concession:hover {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.concession-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.concession-item-row:last-child {
+  border-bottom: none;
+}
+
+.concession-item-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.concession-item-name {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.concession-item-qty {
+  font-size: 13px;
+  color: #999;
+  background: #f5f5f5;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.concession-item-price {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ff6b35;
+}
+
+/* Summary Sections */
+.summary-section {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed #e0e0e0;
+}
+
+.summary-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.summary-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #666;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.subtotal-row {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.subtotal-row .summary-label {
+  font-weight: 600;
+}
+
+/* Responsive for new elements */
+@media (max-width: 768px) {
+  .booking-progress {
+    padding: 20px 10px;
+  }
+
+  .progress-line {
+    width: 60px;
+    margin: 0 10px;
+  }
+
+  .step-label {
+    font-size: 12px;
+  }
+
+  .step-number {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .concession-step-actions {
+    flex-direction: column;
+    padding: 0 16px;
+  }
+
+  .btn-skip-concession,
+  .btn-continue-payment {
+    width: 100%;
+  }
+}
+

@@ -15,6 +15,21 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Integer> {
     @Query("SELECT DISTINCT s.formatType FROM Showtime s WHERE s.movie.id = :movieId")
     List<FormatType> findDistinctFormatTypesByMovieId(@Param("movieId") Integer movieId);
     
+    @Query("SELECT s FROM Showtime s " +
+           "LEFT JOIN FETCH s.movie " +
+           "LEFT JOIN FETCH s.hall h " +
+           "LEFT JOIN FETCH h.cinema " +
+           "WHERE s.movie.id = :movieId")
+    List<Showtime> findByMovieIdWithDetails(@Param("movieId") Integer movieId);
+    
+    // Fallback query without JOIN FETCH if needed
     @Query("SELECT s FROM Showtime s WHERE s.movie.id = :movieId")
     List<Showtime> findByMovieId(@Param("movieId") Integer movieId);
+    
+    @Query("SELECT s FROM Showtime s " +
+           "JOIN FETCH s.movie " +
+           "JOIN FETCH s.hall h " +
+           "JOIN FETCH h.cinema " +
+           "WHERE s.id = :showtimeId")
+    java.util.Optional<Showtime> findByIdWithDetails(@Param("showtimeId") Integer showtimeId);
 }

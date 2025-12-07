@@ -62,7 +62,34 @@ public class BookingDto {
     // Tickets
     private List<TicketDto> tickets;
     
+    // Concession Order
+    private ConcessionOrderSummary concessionOrder;
+    
     // Timestamps
     private Instant createdAt;
     private Instant updatedAt;
+    
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ConcessionOrderSummary {
+        private Integer orderId;
+        private BigDecimal totalAmount;
+        private String status;
+        private List<ConcessionItemSummary> items;
+    }
+    
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ConcessionItemSummary {
+        private Integer itemId;
+        private String itemName;
+        private Integer quantity;
+        private BigDecimal unitPrice;
+        private BigDecimal totalPrice;
+    }
 }
+

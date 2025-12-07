@@ -173,4 +173,80 @@ public class AdminController {
                             .build());
         }
     }
+
+    /**
+     * Delete user account (Admin only)
+     * DELETE /api/admin/users/{userId}
+     */
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<ApiResponse<String>> deleteUser(
+            @PathVariable Integer userId,
+            @RequestHeader(value = "Authorization", required = false) String token) {
+        
+        log.info("🗑️ DELETE request for user: {}", userId);
+        log.info("📋 Authorization header: {}", token != null ? "Present (length: " + token.length() + ")" : "MISSING");
+        
+        try {
+            if (token == null || token.isEmpty()) {
+                log.error("❌ No authorization token provided");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.<String>builder()
+                                .success(false)
+                                .message("No authorization token provided")
+                                .build());
+            }
+            
+            Integer requestingUserId = getUserIdFromToken(token);
+            log.info("👤 Requesting user ID: {}", requestingUserId);
+            log.info("🎯 Target user ID: {}", userId);
+            
+            ApiResponse<String> response = roleManagementService.deleteUser(userId, requestingUserId);
+
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+        } catch (Exception e) {
+            log.error("❌ Error deleting user: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.<String>builder()
+                            .success(false)
+                            .message("Error: " + e.getMessage())
+                            .build());
+        }
+    }
+
+    /**
+     * Activate user account (Admin only)
+     * PUT /api/admin/users/{userId}/activate
+     */
+    @PutMapping("/users/{userId}/activate")
+    public ResponseEntity<ApiResponse<String>> activateUser(
+            @PathVariable Integer userId,
+            @RequestHeader("Authorization") String token) {
+        
+        log.info("✅ ACTIVATE request for user: {}", userId);
+        
+        try {
+            Integer requestingUserId = getUserIdFromToken(token);
+            log.info("👤 Requesting user ID: {}", requestingUserId);
+            log.info("🎯 Target user ID: {}", userId);
+            
+            ApiResponse<String> response = roleManagementService.activateUser(userId, requestingUserId);
+
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+        } catch (Exception e) {
+            log.error("❌ Error activating user: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.<String>builder()
+                            .success(false)
+                            .message("Error: " + e.getMessage())
+                            .build());
+        }
+    }
 }

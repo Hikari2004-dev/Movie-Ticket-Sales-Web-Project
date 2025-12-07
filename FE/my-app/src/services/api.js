@@ -28,11 +28,32 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token hết hạn hoặc không hợp lệ
-      Cookies.remove('accessToken');
-      Cookies.remove('refreshToken');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      // Danh sách các endpoint public không cần logout
+      const publicEndpoints = [
+        '/api/movies',
+        '/api/cinemas',
+        '/api/showtimes',
+        '/api/concessions',
+        '/api/auth/login',
+        '/api/auth/register'
+      ];
+      
+      // Danh sách các endpoint admin - để component tự xử lý lỗi
+      const adminEndpoints = [
+        '/api/admin'
+      ];
+      
+      const requestUrl = error.config?.url || '';
+      const isPublicEndpoint = publicEndpoints.some(endpoint => requestUrl.includes(endpoint));
+      const isAdminEndpoint = adminEndpoints.some(endpoint => requestUrl.includes(endpoint));
+      
+      // Chỉ logout nếu không phải endpoint public hoặc admin
+      if (!isPublicEndpoint && !isAdminEndpoint) {
+        Cookies.remove('accessToken');
+        Cookies.remove('refreshToken');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

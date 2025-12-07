@@ -79,6 +79,25 @@ public class ConcessionOrderController {
     }
 
     /**
+     * Lấy concession order theo booking ID
+     * GET /api/concessions/orders/booking/123
+     */
+    @GetMapping("/booking/{bookingId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ConcessionOrderDTO> getOrderByBookingId(
+            @PathVariable Integer bookingId) {
+        
+        log.info("Fetching concession order for booking: {}", bookingId);
+        ConcessionOrderDTO order = orderService.getOrderByBookingId(bookingId);
+        
+        if (order == null) {
+            return ResponseEntity.noContent().build(); // 204 No Content - no concession order for this booking
+        }
+        
+        return ResponseEntity.ok(order);
+    }
+
+    /**
      * Lấy danh sách đơn hàng của rạp
      * GET /api/concessions/orders/cinema/1?status=PENDING
      */

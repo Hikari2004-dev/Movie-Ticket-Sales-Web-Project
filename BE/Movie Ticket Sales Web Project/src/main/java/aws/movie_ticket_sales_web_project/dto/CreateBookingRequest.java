@@ -43,4 +43,23 @@ public class CreateBookingRequest {
     // Payment
     @NotBlank(message = "Payment method is required")
     private String paymentMethod;
+    
+    // Concession items (optional)
+    private List<ConcessionItemRequest> concessionItems;
+    
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ConcessionItemRequest {
+        @NotNull(message = "Item ID is required")
+        private Integer itemId;
+        
+        @Min(value = 1, message = "Quantity must be at least 1")
+        private Integer quantity;
+        
+        @NotNull(message = "Price is required")
+        private java.math.BigDecimal price;
+    }
 }
+

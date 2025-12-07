@@ -53,6 +53,12 @@ public interface ConcessionOrderRepository extends JpaRepository<ConcessionOrder
     Optional<ConcessionOrder> findByOrderNumber(String orderNumber);
 
     /**
+     * Tìm order theo booking
+     */
+    @Query("SELECT co FROM ConcessionOrder co WHERE co.booking.id = :bookingId")
+    Optional<ConcessionOrder> findByBookingId(@Param("bookingId") Integer bookingId);
+
+    /**
      * Tìm orders trong khoảng thời gian
      */
     @Query("SELECT co FROM ConcessionOrder co " +

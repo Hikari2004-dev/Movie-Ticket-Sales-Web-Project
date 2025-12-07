@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaUsers, FaSearch, FaEdit, FaFilter } from 'react-icons/fa';
+import { FaUsers, FaSearch, FaEdit, FaFilter, FaTrash, FaCheckCircle } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import api from '../services/api';
 import './AccountManagement.css';
@@ -23,6 +23,9 @@ const AccountManagement = () => {
     try {
       setLoading(true);
       const response = await api.get('/admin/users');
+      
+      console.log('👥 Users API response:', response.data);
+      console.log('📊 First user structure:', response.data.data?.[0]);
       
       if (response.data.success) {
         setUsers(response.data.data);
@@ -78,6 +81,65 @@ const AccountManagement = () => {
     } catch (error) {
       console.error('Error updating role:', error);
       toast.error('Không thể cập nhật vai trò');
+    }
+  };
+
+  const handleDeleteUser = async (user) => {
+    if (window.confirm(`Bạn có chắc chắn muốn vô hiệu hóa tài khoản "${user.fullName}" (${user.email})?`)) {
+      try {
+        console.log('🗑️ Deactivating user:', user.userId);
+        const response = await api.delete(`/admin/users/${user.userId}`);
+        console.log('✅ Deactivate response:', response.data);
+        
+        if (response.data.success) {
+          toast.success('Đã vô hiệu hóa tài khoản thành công');
+          fetchUsers();
+        } else {
+          toast.error(response.data.message);
+        }
+      } catch (error) {
+        console.error('❌ Error deactivating user:', error);
+        console.error('Error response:', error.response);
+        
+        if (error.response?.status === 401) {
+          toast.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+        } else if (error.response?.status === 403) {
+          toast.error('Bạn không có quyền vô hiệu hóa tài khoản này');
+        } else if (error.response?.data?.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error('Không thể vô hiệu hóa tài khoản');
+        }
+      }
+    }
+  };
+
+  const handleActivateUser = async (user) => {
+    if (window.confirm(`Bạn có chắc chắn muốn kích hoạt lại tài khoản "${user.fullName}" (${user.email})?`)) {
+      try {
+        console.log('✅ Activating user:', user.userId);
+        const response = await api.put(`/admin/users/${user.userId}/activate`);
+        console.log('✅ Activate response:', response.data);
+        
+        if (response.data.success) {
+          toast.success('Đã kích hoạt tài khoản thành công');
+          fetchUsers();
+        } else {
+          toast.error(response.data.message);
+        }
+      } catch (error) {
+        console.error('❌ Error activating user:', error);
+        
+        if (error.response?.status === 401) {
+          toast.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+        } else if (error.response?.status === 403) {
+          toast.error('Bạn không có quyền kích hoạt tài khoản này');
+        } else if (error.response?.data?.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error('Không thể kích hoạt tài khoản');
+        }
+      }
     }
   };
 
@@ -191,13 +253,14 @@ const AccountManagement = () => {
               <th>Vai trò</th>
               <th>Hạng thành viên</th>
               <th>Điểm tích lũy</th>
+              <th>Trạng thái</th>
               <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
             {filteredUsers.length === 0 ? (
               <tr>
-                <td colSpan="7" className="no-data">
+                <td colSpan="8" className="no-data">
                   Không tìm thấy người dùng nào
                 </td>
               </tr>
@@ -230,10 +293,29 @@ const AccountManagement = () => {
                     </div>
                   </td>
                   <td className="membership-tier">
-                    {user.membershipTier || <span className="text-muted">N/A</span>}
+                    {user.membershipTier ? (
+                      <span className={`tier-badge tier-${user.membershipTier.toLowerCase()}`}>
+                        {user.membershipTier}
+                      </span>
+                    ) : (
+                      <span className="text-muted">Chưa có</span>
+                    )}
                   </td>
                   <td className="points">
-                    <span className="points-badge">{user.availablePoints}</span>
+                    <span className="points-badge">
+                      {user.availablePoints !== undefined ? user.availablePoints : 0} điểm
+                    </span>
+                  </td>
+                  <td className="status">
+                    {user.isActive !== undefined && user.isActive !== null ? (
+                      user.isActive ? (
+                        <span className="status-badge status-active">Hoạt động</span>
+                      ) : (
+                        <span className="status-badge status-inactive">Vô hiệu hóa</span>
+                      )
+                    ) : (
+                      <span className="status-badge status-active">Hoạt động</span>
+                    )}
                   </td>
                   <td>
                     <div className="action-buttons">
@@ -244,6 +326,23 @@ const AccountManagement = () => {
                       >
                         <FaEdit />
                       </button>
+                      {(user.isActive === undefined || user.isActive === null || user.isActive) ? (
+                        <button 
+                          className="btn-action btn-delete"
+                          onClick={() => handleDeleteUser(user)}
+                          title="Vô hiệu hóa tài khoản"
+                        >
+                          <FaTrash />
+                        </button>
+                      ) : (
+                        <button 
+                          className="btn-action btn-activate"
+                          onClick={() => handleActivateUser(user)}
+                          title="Kích hoạt lại tài khoản"
+                        >
+                          <FaCheckCircle />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

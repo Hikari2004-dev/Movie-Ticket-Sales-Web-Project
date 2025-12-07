@@ -20,6 +20,7 @@ public class RoleManagementService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
+    private final MembershipRepository membershipRepository;
 
     /**
      * Check if user has admin role
@@ -141,10 +142,19 @@ public class RoleManagementService {
         userInfo.setEmail(user.getEmail());
         userInfo.setFullName(user.getFullName());
         userInfo.setRoles(roleNames);
+        userInfo.setIsActive(user.getIsActive() != null ? user.getIsActive() : true);
         
-        // Note: Membership info could be added here if needed
-        userInfo.setMembershipTier(null);
-        userInfo.setAvailablePoints(0);
+        // Fetch and populate membership information
+        membershipRepository.findByUserId(user.getId()).ifPresentOrElse(
+            membership -> {
+                userInfo.setMembershipTier(membership.getTier() != null ? membership.getTier().getTierName() : null);
+                userInfo.setAvailablePoints(membership.getAvailablePoints() != null ? membership.getAvailablePoints() : 0);
+            },
+            () -> {
+                userInfo.setMembershipTier(null);
+                userInfo.setAvailablePoints(0);
+            }
+        );
 
         return userInfo;
     }
@@ -284,6 +294,94 @@ public class RoleManagementService {
             return ApiResponse.<List<UserInfo>>builder()
                     .success(false)
                     .message("Failed to get users: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * Soft delete user account (Admin only)
+     */
+    @Transactional
+    public ApiResponse<String> deleteUser(Integer userIdToDelete, Integer requestingUserId) {
+        log.info("🗑️ Soft deleting user: {}, requested by: {}", userIdToDelete, requestingUserId);
+
+        if (!isUserAdmin(requestingUserId)) {
+            return ApiResponse.<String>builder()
+                    .success(false)
+                    .message("Chỉ admin mới có quyền xóa user")
+                    .build();
+        }
+
+        try {
+            // Không cho phép xóa chính mình
+            if (userIdToDelete.equals(requestingUserId)) {
+                return ApiResponse.<String>builder()
+                        .success(false)
+                        .message("Không thể xóa chính tài khoản của bạn")
+                        .build();
+            }
+
+            // Kiểm tra user có tồn tại không
+            User user = userRepository.findById(userIdToDelete)
+                    .orElseThrow(() -> new RuntimeException("User không tồn tại"));
+
+            // Soft delete - chỉ set isActive = false
+            user.setIsActive(false);
+            user.setUpdatedAt(Instant.now());
+            userRepository.save(user);
+
+            log.info("✅ Successfully soft deleted user: {}", userIdToDelete);
+            return ApiResponse.<String>builder()
+                    .success(true)
+                    .message("Vô hiệu hóa tài khoản thành công")
+                    .data("User ID: " + userIdToDelete)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("❌ Error soft deleting user {}", userIdToDelete, e);
+            return ApiResponse.<String>builder()
+                    .success(false)
+                    .message("Lỗi: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * Activate user account (Admin only)
+     */
+    @Transactional
+    public ApiResponse<String> activateUser(Integer userIdToActivate, Integer requestingUserId) {
+        log.info("✅ Activating user: {}, requested by: {}", userIdToActivate, requestingUserId);
+
+        if (!isUserAdmin(requestingUserId)) {
+            return ApiResponse.<String>builder()
+                    .success(false)
+                    .message("Chỉ admin mới có quyền kích hoạt user")
+                    .build();
+        }
+
+        try {
+            // Kiểm tra user có tồn tại không
+            User user = userRepository.findById(userIdToActivate)
+                    .orElseThrow(() -> new RuntimeException("User không tồn tại"));
+
+            // Activate - set isActive = true
+            user.setIsActive(true);
+            user.setUpdatedAt(Instant.now());
+            userRepository.save(user);
+
+            log.info("✅ Successfully activated user: {}", userIdToActivate);
+            return ApiResponse.<String>builder()
+                    .success(true)
+                    .message("Kích hoạt tài khoản thành công")
+                    .data("User ID: " + userIdToActivate)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("❌ Error activating user {}", userIdToActivate, e);
+            return ApiResponse.<String>builder()
+                    .success(false)
+                    .message("Lỗi: " + e.getMessage())
                     .build();
         }
     }

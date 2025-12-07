@@ -138,6 +138,16 @@ public class ConcessionOrderService {
     }
 
     /**
+     * Lấy concession order theo booking ID
+     */
+    @Transactional(readOnly = true)
+    public ConcessionOrderDTO getOrderByBookingId(Integer bookingId) {
+        return orderRepository.findByBookingId(bookingId)
+                .map(this::convertToDTO)
+                .orElse(null); // Return null if no concession order for this booking
+    }
+
+    /**
      * Lấy danh sách orders của rạp
      */
     @Transactional(readOnly = true)

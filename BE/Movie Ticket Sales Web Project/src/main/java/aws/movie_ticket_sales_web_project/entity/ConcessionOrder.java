@@ -16,6 +16,7 @@ import java.time.Instant;
 @Table(name = "concession_orders")
 public class ConcessionOrder {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "concession_order_id", nullable = false)
     private Integer id;
 

@@ -167,6 +167,19 @@ public class AuthenticationService {
         log.info("Login attempt for user: {}", request.getEmail());
 
         try {
+            // Get user first to check if account is active
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Check if account is active
+            if (user.getIsActive() != null && !user.getIsActive()) {
+                log.warn("Login attempt for deactivated account: {}", request.getEmail());
+                return ApiResponse.<LoginResponse>builder()
+                        .success(false)
+                        .message("Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.")
+                        .build();
+            }
+
             // Authenticate
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -176,10 +189,6 @@ public class AuthenticationService {
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            // Get user
-            User user = userRepository.findByEmail(request.getEmail())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
 
 
             // Generate tokens

@@ -28,6 +28,7 @@ public class PaymentService {
     private final TicketRepository ticketRepository;
     private final QRCodeService qrCodeService;
     private final EmailService emailService;
+    private final LoyaltyPointsService loyaltyPointsService;
     
     /**
      * Process payment for a booking
@@ -110,6 +111,14 @@ public class PaymentService {
                     emailService.sendBookingConfirmation(booking);
                 } catch (Exception e) {
                     log.warn("Failed to send confirmation email for booking: {}. Payment was successful.", booking.getBookingCode(), e);
+                }
+                
+                // Tích điểm cho user
+                try {
+                    Integer earnedPoints = loyaltyPointsService.earnPointsFromBooking(booking);
+                    log.info("💎 User earned {} loyalty points from booking {}", earnedPoints, booking.getBookingCode());
+                } catch (Exception e) {
+                    log.error("Failed to earn loyalty points for booking: {}. Payment was successful.", booking.getBookingCode(), e);
                 }
                 
                 log.info("Payment processed successfully for booking: {}", booking.getBookingCode());

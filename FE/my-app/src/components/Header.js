@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FaSearch, FaUser, FaSignOutAlt, FaTachometerAlt } from 'react-icons/fa';
+import { FaSearch, FaUser, FaSignOutAlt, FaTachometerAlt, FaCoins, FaHistory } from 'react-icons/fa';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { getDashboardPath, getRoleDisplayName, getHighestRole, isStaffMember } from '../utils/roleUtils';
 import QuickBooking from './QuickBooking';
+import { loyaltyService } from '../services/loyaltyService';
 import './Header.css';
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(null);
+  const [loyaltyPoints, setLoyaltyPoints] = useState(0);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(() => {
@@ -35,18 +37,32 @@ const Header = () => {
 
   useEffect(() => {
     // Kiểm tra user trong localStorage khi component mount
-    const checkUser = () => {
+    const checkUser = async () => {
       const userData = localStorage.getItem('user');
       if (userData && userData !== 'undefined') {
         try {
-          setUser(JSON.parse(userData));
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+          
+          // Fetch loyalty points
+          if (parsedUser.userId) {
+            try {
+              const balance = await loyaltyService.getPointsBalance(parsedUser.userId);
+              setLoyaltyPoints(balance.availablePoints || 0);
+            } catch (error) {
+              console.error('Error fetching loyalty points:', error);
+              setLoyaltyPoints(0);
+            }
+          }
         } catch (e) {
           console.error('Error parsing user data:', e);
           localStorage.removeItem('user');
           setUser(null);
+          setLoyaltyPoints(0);
         }
       } else {
         setUser(null);
+        setLoyaltyPoints(0);
       }
     };
 
@@ -140,7 +156,7 @@ const Header = () => {
               >
                 <FaUser size={16} />
                 <span>{user.fullName}</span>
-                <span className="user-points">{user.availablePoints} điểm</span>
+                <span className="user-points">💎 {loyaltyPoints.toLocaleString()} điểm</span>
               </button>
               {showUserMenu && (
                 <div className="user-dropdown">
@@ -160,7 +176,7 @@ const Header = () => {
                     <FaUser /> Thông tin cá nhân
                   </Link>
                   <Link to="/bookings" className="dropdown-item" onClick={() => setShowUserMenu(false)}>
-                    <FaUser /> Lịch sử đặt vé
+                    <FaHistory /> Lịch sử đặt vé
                   </Link>
                   
                   {/* Hiển thị dashboard tương ứng với role - Dùng roles array */}

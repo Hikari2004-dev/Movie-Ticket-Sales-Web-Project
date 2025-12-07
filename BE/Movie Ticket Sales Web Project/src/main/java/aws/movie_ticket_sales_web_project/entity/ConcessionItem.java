@@ -4,12 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Map;
 
 @Getter
 @Setter
@@ -17,6 +14,7 @@ import java.util.Map;
 @Table(name = "concession_items")
 public class ConcessionItem {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "item_id", nullable = false)
     private Integer id;
 
@@ -62,17 +60,17 @@ public class ConcessionItem {
     @Column(name = "is_combo")
     private Boolean isCombo;
 
+    @Lob
     @Column(name = "combo_items")
-    @JdbcTypeCode(SqlTypes.JSON)
-    private Map<String, Object> comboItems;
+    private String comboItems;
 
     @ColumnDefault("1")
     @Column(name = "is_available")
     private Boolean isAvailable;
 
+    @Lob
     @Column(name = "available_cinemas")
-    @JdbcTypeCode(SqlTypes.JSON)
-    private Map<String, Object> availableCinemas;
+    private String availableCinemas;
 
     @ColumnDefault("0")
     @Column(name = "display_order")

@@ -134,8 +134,18 @@ public class ShowtimeService {
                         .build();
             }
 
-            List<Showtime> showtimes = showtimeRepository.findByMovieId(movieId);
+            // Try to fetch with details first
+            List<Showtime> showtimes;
+            try {
+                showtimes = showtimeRepository.findByMovieIdWithDetails(movieId);
+            } catch (Exception e) {
+                log.warn("Failed to fetch with details, falling back to simple query", e);
+                showtimes = showtimeRepository.findByMovieId(movieId);
+            }
+            
+            // Remove duplicates if any (from JOIN FETCH)
             List<ShowtimeDto> showtimeDtos = showtimes.stream()
+                    .distinct()
                     .map(this::convertToDto)
                     .collect(Collectors.toList());
 
@@ -155,13 +165,14 @@ public class ShowtimeService {
     }
 
     /**
-     * Get showtime by ID
+     * Get showtime by ID (with eager loaded relationships)
      */
     public ApiResponse<ShowtimeDto> getShowtimeById(Integer showtimeId) {
         log.info("Getting showtime by ID: {}", showtimeId);
 
         try {
-            Optional<Showtime> showtime = showtimeRepository.findById(showtimeId);
+            // Use custom query with JOIN FETCH to eagerly load hall and cinema
+            Optional<Showtime> showtime = showtimeRepository.findByIdWithDetails(showtimeId);
             
             if (showtime.isEmpty()) {
                 return ApiResponse.<ShowtimeDto>builder()

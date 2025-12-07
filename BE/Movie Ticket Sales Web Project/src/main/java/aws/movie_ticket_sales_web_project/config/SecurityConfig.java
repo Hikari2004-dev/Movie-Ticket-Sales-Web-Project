@@ -72,7 +72,7 @@ public class SecurityConfig {
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(false); // Don't set to true with allowedOriginPatterns("*")
-        configuration.setExposedHeaders(Arrays.asList("Authorization"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -127,6 +127,9 @@ public class SecurityConfig {
                         // Authenticated cinema endpoints
                         .requestMatchers(HttpMethod.GET, "/api/cinemas/my-cinemas").authenticated()
 
+                        // Cinema concessions - PUBLIC READ (must be BEFORE /api/cinemas/**)
+                        .requestMatchers(HttpMethod.GET, "/api/cinemas/*/concessions/**").permitAll()
+
                         // Public cinema endpoints (GET only)
                         .requestMatchers(HttpMethod.GET, "/api/cinemas/**").permitAll()
 
@@ -169,6 +172,45 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/seats/availability/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/seats/verify-hold").permitAll()
 
+                        // Concession endpoints
+                        // Categories (public read, admin write)
+                        .requestMatchers(HttpMethod.GET, "/api/concessions/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/concessions/categories/**").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/concessions/categories/**").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/concessions/categories/**").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN")
+                        
+                        // Items master data (public read, admin write)
+                        .requestMatchers(HttpMethod.GET, "/api/concessions/items/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/concessions/items/**").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/concessions/items/**").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/concessions/items/**").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN")
+                        
+                        // Cinema concessions - MANAGER WRITE (GET already defined above before /api/cinemas/**)
+                        .requestMatchers(HttpMethod.POST, "/api/cinemas/*/concessions/**").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/cinemas/*/concessions/**").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/cinemas/*/concessions/**").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
+                        
+                        // Concession orders (authenticated users)
+                        .requestMatchers(HttpMethod.POST, "/api/concessions/orders").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/concessions/orders/number/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/concessions/orders/booking/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/concessions/orders/user/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/concessions/orders/cinema/**").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/status").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/confirm").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
+                        
+                        // Loyalty points (authenticated users)
+                        .requestMatchers(HttpMethod.GET, "/api/loyalty/points/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/prepare").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/ready").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/complete").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/cancel").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/concessions/orders/**").authenticated()
+
+                        // Payment endpoints - MUST BE BEFORE OTHER RULES
+                        // TODO: Enable authentication in production - change .permitAll() to .authenticated()
+                        .requestMatchers("/api/payments/**").permitAll()
+
                         // AI Chatbot endpoints - public access
                         .requestMatchers("/api/chat/**").permitAll()
 
@@ -177,11 +219,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/debug/**").authenticated()
 
                         // Admin-only endpoints
-                        .requestMatchers("/api/admin/**").hasRole("SYSTEM_ADMIN")
-
-                        // Payment endpoints
-                        // TODO: Enable authentication in production - change .permitAll() to .authenticated()
-                        .requestMatchers("/api/payments/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasAnyRole("SYSTEM_ADMIN", "ADMIN")
 
                         // Staff ticket endpoints (staff, manager, admin)
                         .requestMatchers("/api/tickets/staff/**").hasAnyRole("CINEMA_STAFF", "CINEMA_MANAGER", "SYSTEM_ADMIN")
