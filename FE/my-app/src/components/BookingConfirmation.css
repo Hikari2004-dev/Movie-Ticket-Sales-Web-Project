@@ -500,6 +500,152 @@
   color: #28a745;
 }
 
+/* Points Redemption Section */
+.points-section {
+  background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 8px;
+  border: 1px solid #ffc107;
+}
+
+.points-info-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.points-balance {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.points-label {
+  color: #856404;
+  font-size: 14px;
+}
+
+.points-value {
+  font-weight: 700;
+  color: #d4a106;
+  font-size: 16px;
+}
+
+.points-rate {
+  flex: 1;
+  text-align: right;
+}
+
+.points-hint {
+  font-size: 12px;
+  color: #856404;
+}
+
+.points-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.points-input {
+  flex: 1;
+  min-width: 150px;
+  padding: 10px 14px;
+  border: 2px solid #ffc107;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.points-input:focus {
+  outline: none;
+  border-color: #d4a106;
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.25);
+}
+
+.points-input::placeholder {
+  color: #adb5bd;
+  font-weight: 400;
+}
+
+.points-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-use-all-points {
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #ffc107 0%, #d4a106 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-use-all-points:hover {
+  background: linear-gradient(135deg, #d4a106 0%, #b8860b 100%);
+  transform: translateY(-1px);
+}
+
+.btn-clear-points {
+  padding: 10px 14px;
+  background: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-clear-points:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.points-discount-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(40, 167, 69, 0.1);
+  border-radius: 8px;
+  border: 1px dashed #28a745;
+}
+
+.points-discount-preview .discount-label {
+  color: #155724;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.points-discount-preview .discount-amount {
+  color: #28a745;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.points-discount-row {
+  background: rgba(40, 167, 69, 0.08);
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 4px;
+}
+
 .summary-divider {
   height: 1px;
   background: linear-gradient(to right, transparent, #dee2e6, transparent);
@@ -623,6 +769,13 @@
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+}
+
+/* Center button when alone */
+.btn-confirm.btn-center {
+  grid-column: 1 / -1;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 /* Spinner animation */

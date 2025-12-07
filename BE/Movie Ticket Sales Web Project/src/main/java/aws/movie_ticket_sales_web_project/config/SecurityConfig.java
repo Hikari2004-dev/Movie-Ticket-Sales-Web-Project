@@ -205,7 +205,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/status").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
                         .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/confirm").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
                         
-                        // Loyalty points (authenticated users)
+                        // Loyalty points (public balance check for booking, authenticated for history)
+                        .requestMatchers(HttpMethod.GET, "/api/loyalty/points/balance/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/loyalty/points/preview").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/loyalty/points/history/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/loyalty/points/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/prepare").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
                         .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/ready").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")

@@ -23,17 +23,35 @@ export const loyaltyService = {
         }
     },
 
-    // Lấy số dư điểm
+    // Lấy số dư điểm (public endpoint - không cần auth token)
     getPointsBalance: async (userId) => {
         try {
             const response = await axios.get(
-                `${API_BASE_URL}/points/balance/${userId}`,
-                { headers: getAuthHeader() }
+                `${API_BASE_URL}/points/balance/${userId}`
             );
             return response.data.data || response.data;
         } catch (error) {
             console.error('Error fetching points balance:', error);
-            throw error;
+            // Return default value instead of throwing to avoid breaking booking flow
+            return { availablePoints: 0, totalEarned: 0, totalRedeemed: 0 };
+        }
+    },
+
+    // Preview giảm giá khi sử dụng điểm (public endpoint)
+    previewPointsDiscount: async (userId, pointsToUse, totalAmount) => {
+        try {
+            const response = await axios.get(
+                `${API_BASE_URL}/points/preview`,
+                { 
+                    params: { userId, pointsToUse, totalAmount }
+                }
+            );
+            return response.data;
+        } catch (error) {
+            console.error('Error previewing points discount:', error);
+            return null;
         }
     }
 };
+
+export default loyaltyService;

@@ -40,6 +40,11 @@ public class CreateBookingRequest {
     // Optional voucher/discount
     private String voucherCode;
     
+    // Points to redeem for discount (optional)
+    // 1 point = 1000 VND discount
+    @Min(value = 0, message = "Points to use must be non-negative")
+    private Integer pointsToUse;
+    
     // Payment
     @NotBlank(message = "Payment method is required")
     private String paymentMethod;

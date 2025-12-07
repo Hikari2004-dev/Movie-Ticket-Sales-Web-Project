@@ -45,6 +45,8 @@ public class BookingDto {
     private BigDecimal taxAmount;
     private BigDecimal serviceFee;
     private BigDecimal totalAmount;
+    private Integer pointsUsed;
+    private BigDecimal pointsDiscount; // Calculated: pointsUsed * 1000
     
     // Status
     private StatusBooking status;

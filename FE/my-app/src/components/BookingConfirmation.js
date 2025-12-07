@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import bookingService from '../services/bookingService';
 import paymentService from '../services/paymentService';
-import seatService from '../services/seatService';
+import { loyaltyService } from '../services/loyaltyService';
 import { calculateBookingPrice, formatPrice as formatCurrency, SERVICE_FEE_PER_TICKET } from '../utils/priceCalculation';
 import ConcessionSelection from './ConcessionSelection';
 import './BookingConfirmation.css';
@@ -25,8 +25,11 @@ const BookingConfirmation = () => {
   const [concessionData, setConcessionData] = useState({ items: [], total: 0 });
   const [showConcessionStep, setShowConcessionStep] = useState(true);
   
-  // Track if booking was completed to avoid releasing seats
-  const bookingCompletedRef = useRef(false);
+  // Points redemption states
+  const [pointsBalance, setPointsBalance] = useState(null);
+  const [pointsToUse, setPointsToUse] = useState(0);
+  const [pointsDiscount, setPointsDiscount] = useState(0);
+  const [loadingPoints, setLoadingPoints] = useState(false);
 
   // Tính toán giá tiền sử dụng utility (đồng bộ với backend)
   const priceDetails = calculateBookingPrice(
@@ -34,8 +37,61 @@ const BookingConfirmation = () => {
     selectedSeats?.length || 0
   );
 
-  // Tổng tiền bao gồm cả đồ ăn
-  const grandTotal = priceDetails.total + concessionData.total;
+  // Tổng tiền bao gồm cả đồ ăn và giảm giá từ điểm
+  const grandTotal = Math.max(0, priceDetails.total + concessionData.total - pointsDiscount);
+
+  // Fetch points balance when user is loaded
+  useEffect(() => {
+    const fetchPointsBalance = async () => {
+      if (user && user.userId) {
+        setLoadingPoints(true);
+        try {
+          const balance = await loyaltyService.getPointsBalance(user.userId);
+          setPointsBalance(balance);
+          console.log('💰 User points balance:', balance);
+        } catch (error) {
+          console.error('Error fetching points balance:', error);
+          setPointsBalance({ availablePoints: 0 });
+        } finally {
+          setLoadingPoints(false);
+        }
+      }
+    };
+    
+    fetchPointsBalance();
+  }, [user]);
+
+  // Calculate points discount when points to use changes
+  useEffect(() => {
+    if (pointsToUse > 0) {
+      const discountFromPoints = pointsToUse * 1000; // 1 point = 1000 VND
+      const totalBeforeDiscount = priceDetails.total + concessionData.total;
+      const maxDiscount = totalBeforeDiscount * 0.5; // Max 50% discount
+      const actualDiscount = Math.min(discountFromPoints, maxDiscount);
+      setPointsDiscount(actualDiscount);
+    } else {
+      setPointsDiscount(0);
+    }
+  }, [pointsToUse, priceDetails.total, concessionData.total]);
+
+  const handlePointsChange = (e) => {
+    const value = parseInt(e.target.value) || 0;
+    const maxPoints = pointsBalance?.availablePoints || 0;
+    // Limit to available points
+    setPointsToUse(Math.min(Math.max(0, value), maxPoints));
+  };
+
+  const handleUseAllPoints = () => {
+    const maxPoints = pointsBalance?.availablePoints || 0;
+    const totalBeforeDiscount = priceDetails.total + concessionData.total;
+    // Calculate max points that gives 50% discount
+    const maxPointsFor50Percent = Math.floor((totalBeforeDiscount * 0.5) / 1000);
+    setPointsToUse(Math.min(maxPoints, maxPointsFor50Percent));
+  };
+
+  const handleClearPoints = () => {
+    setPointsToUse(0);
+  };
 
   useEffect(() => {
     // Lấy thông tin user từ localStorage
@@ -45,6 +101,7 @@ const BookingConfirmation = () => {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
       } catch (error) {
+        console.error('Error parsing user data:', error);
         toast.error('Vui lòng đăng nhập lại');
         navigate('/login');
       }
@@ -59,34 +116,10 @@ const BookingConfirmation = () => {
       navigate('/');
     }
 
-    // Handle beforeunload event (đóng tab, refresh trang) - release seats
-    const handleBeforeUnload = () => {
-      if (!bookingCompletedRef.current && selectedSeats && selectedSeats.length > 0) {
-        const seatIds = selectedSeats.map(s => s.seatId);
-        const url = `http://localhost:8080/api/seats/release?sessionId=${sessionId}&showtimeId=${showtime.showtimeId}&seatIds=${seatIds.join(',')}`;
-        navigator.sendBeacon(url);
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
+    // Debug: Log showtime data to check cinemaId
+    console.log('🎬 Showtime data in BookingConfirmation:', showtime);
+    console.log('🏢 Cinema ID:', showtime?.cinemaId);
   }, [navigate, selectedSeats, sessionId, showtime]);
-
-  // Xử lý quay lại - release ghế
-  const handleGoBack = async () => {
-    if (selectedSeats && selectedSeats.length > 0) {
-      try {
-        const seatIds = selectedSeats.map(s => s.seatId);
-        await seatService.releaseSeats(sessionId, showtime.showtimeId, seatIds);
-      } catch (error) {
-        // Silent fail
-      }
-    }
-    navigate(-1);
-  };
 
   const formatDateTime = (dateString) => {
     if (!dateString) return '';
@@ -103,6 +136,7 @@ const BookingConfirmation = () => {
 
   const handleConcessionChange = useCallback((data) => {
     setConcessionData(data);
+    console.log('🍿 Concession updated:', data);
   }, []);
 
   const handleContinueToPayment = () => {
@@ -128,6 +162,19 @@ const BookingConfirmation = () => {
     
     setQrCodeUrl(qrUrl);
     setShowQRCode(true);
+    
+    console.log('💰 === PRICE CALCULATION ===');
+    console.log('Base Price:', showtime.basePrice);
+    console.log('Number of Seats:', selectedSeats.length);
+    console.log('Subtotal:', priceDetails.subtotal);
+    console.log('Service Fee:', priceDetails.serviceFee);
+    console.log('Tax (10%):', priceDetails.tax);
+    console.log('Ticket Total:', priceDetails.total);
+    console.log('Concession Total:', concessionData.total);
+    console.log('Points Discount:', pointsDiscount);
+    console.log('Grand Total:', grandTotal);
+    console.log('🏦 Payment Reference:', paymentReference);
+    console.log('🏦 VietQR Generated:', qrUrl);
   };
 
   const handleConfirmBooking = async () => {
@@ -149,6 +196,7 @@ const BookingConfirmation = () => {
       seatIds: selectedSeats.map(seat => seat.seatId),
       sessionId: sessionId,
       voucherCode: voucherCode.trim() || null,
+      pointsToUse: pointsToUse > 0 ? pointsToUse : null,
       paymentMethod: 'BANK_TRANSFER',
       concessionItems: concessionData.items.length > 0 ? concessionData.items.map(item => ({
         itemId: item.itemId,
@@ -157,28 +205,38 @@ const BookingConfirmation = () => {
       })) : null
     };
 
-    // Verify seats are still held before booking
+    console.log('🎫 === BOOKING REQUEST ===');
+    console.log('Request Body:', JSON.stringify(bookingData, null, 2));
+    console.log('Points to use:', pointsToUse);
+    console.log('Points discount:', pointsDiscount);
+    console.log('Endpoint: POST /api/bookings');
+
+    // IMPORTANT: Re-verify seats are still held before booking
     try {
       const verifyUrl = `http://localhost:8080/api/seats/verify-hold?showtimeId=${bookingData.showtimeId}&sessionId=${sessionId}&seatIds=${bookingData.seatIds.join(',')}`;
+      console.log('🔍 Verifying seat holds:', verifyUrl);
       
       const verifyResponse = await fetch(verifyUrl);
       const verifyData = await verifyResponse.json();
       
+      console.log('✅ Verification result:', verifyData);
+      
       if (!verifyData.allSeatsHeld) {
+        console.error('❌ Not all seats are held:', verifyData);
         toast.error('Một số ghế không còn được giữ. Vui lòng chọn lại ghế!');
         setIsProcessing(false);
         navigate(`/showtime/${bookingData.showtimeId}`);
         return;
       }
     } catch (verifyError) {
+      console.warn('⚠️ Could not verify seat holds:', verifyError);
       // Continue anyway - backend will validate
     }
 
     try {
       const response = await bookingService.createBooking(bookingData);
       
-      // Đánh dấu booking đã hoàn thành - không release ghế nữa
-      bookingCompletedRef.current = true;
+      console.log('✅ Booking Success:', response);
       
       // Lưu bookingId và bookingCode
       setBookingId(response.bookingId);
@@ -191,6 +249,8 @@ const BookingConfirmation = () => {
       toast.success('Đặt vé thành công! Vui lòng quét mã QR để thanh toán 🎉');
 
     } catch (error) {
+      console.error('❌ Booking Failed:', error);
+      
       const errorMessage = error.response?.data?.message 
         || error.response?.data?.error
         || 'Đặt vé thất bại. Vui lòng thử lại!';
@@ -210,7 +270,10 @@ const BookingConfirmation = () => {
 
     setIsProcessing(true);
     try {
+      console.log('💳 Confirming payment for booking:', bookingId);
       const response = await paymentService.processPayment(bookingId);
+      
+      console.log('✅ Payment confirmed:', response);
       
       if (response.success) {
         toast.success('Xác nhận thanh toán thành công! 🎉');
@@ -223,6 +286,7 @@ const BookingConfirmation = () => {
         toast.error(response.message || 'Xác nhận thanh toán thất bại');
       }
     } catch (error) {
+      console.error('❌ Payment confirmation failed:', error);
       const errorMessage = error.response?.data?.message 
         || error.response?.data?.error
         || 'Xác nhận thanh toán thất bại. Vui lòng thử lại!';
@@ -460,6 +524,64 @@ const BookingConfirmation = () => {
                     </div>
                   )}
 
+                  {/* Points Redemption Section */}
+                  {pointsBalance && pointsBalance.availablePoints > 0 && !showQRCode && (
+                    <div className="summary-section points-section">
+                      <div className="summary-section-title">🎁 Sử dụng điểm thưởng</div>
+                      <div className="points-info-box">
+                        <div className="points-balance">
+                          <span className="points-label">Điểm hiện có:</span>
+                          <span className="points-value">{pointsBalance.availablePoints.toLocaleString()} điểm</span>
+                        </div>
+                        <div className="points-rate">
+                          <span className="points-hint">💡 1 điểm = 1,000 VND (Tối đa giảm 50%)</span>
+                        </div>
+                      </div>
+                      <div className="points-input-group">
+                        <input
+                          type="number"
+                          className="points-input"
+                          value={pointsToUse}
+                          onChange={handlePointsChange}
+                          min="0"
+                          max={pointsBalance.availablePoints}
+                          placeholder="Nhập số điểm muốn dùng"
+                        />
+                        <div className="points-buttons">
+                          <button 
+                            type="button" 
+                            className="btn-use-all-points"
+                            onClick={handleUseAllPoints}
+                          >
+                            Dùng tối đa
+                          </button>
+                          {pointsToUse > 0 && (
+                            <button 
+                              type="button" 
+                              className="btn-clear-points"
+                              onClick={handleClearPoints}
+                            >
+                              Xóa
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      {pointsToUse > 0 && (
+                        <div className="points-discount-preview">
+                          <span className="discount-label">Giảm giá từ điểm:</span>
+                          <span className="discount-amount">- {formatCurrency(pointsDiscount)}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {pointsDiscount > 0 && (
+                    <div className="summary-row points-discount-row">
+                      <span className="summary-label">🎁 Giảm giá điểm ({pointsToUse} điểm)</span>
+                      <span className="summary-value discount">- {formatCurrency(pointsDiscount)}</span>
+                    </div>
+                  )}
+
                   {priceDetails.discount > 0 && (
                     <div className="summary-row">
                       <span className="summary-label">Giảm giá</span>
@@ -480,7 +602,7 @@ const BookingConfirmation = () => {
                   <>
                     <button
                       className="btn-back"
-                      onClick={handleGoBack}
+                      onClick={() => navigate(-1)}
                       disabled={isProcessing}
                     >
                       ← Quay lại
@@ -504,32 +626,12 @@ const BookingConfirmation = () => {
                     </button>
                   </>
                 ) : (
-                  <>
-                    <button
-                      className="btn-back"
-                      onClick={() => navigate('/bookings')}
-                      disabled={isProcessing}
-                    >
-                      Xem lịch sử
-                    </button>
-                    <button
-                      className="btn-confirm"
-                      onClick={handleConfirmPayment}
-                      disabled={isProcessing}
-                    >
-                      {isProcessing ? (
-                        <>
-                          <span className="spinner"></span>
-                          Đang xử lý...
-                        </>
-                      ) : (
-                        <>
-                          <span>✅</span>
-                          Đã thanh toán
-                        </>
-                      )}
-                    </button>
-                  </>
+                  <button
+                    className="btn-confirm btn-center"
+                    onClick={() => navigate('/bookings')}
+                  >
+                    📋 Xem lịch sử đặt vé
+                  </button>
                 )}
               </div>
             </div>

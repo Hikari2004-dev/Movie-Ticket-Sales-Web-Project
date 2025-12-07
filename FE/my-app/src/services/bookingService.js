@@ -130,11 +130,16 @@ const bookingService = {
 
   // ===== BOOKING ENDPOINTS =====
   
-  // Tạo booking mới
+  // Tạo booking mới (public endpoint - không cần token)
   createBooking: async (bookingData) => {
     try {
       console.log('🎫 Creating booking with data:', bookingData);
-      const response = await bookingApi.post('', bookingData);
+      // Sử dụng axios trực tiếp không có interceptor để tránh gửi token invalid
+      const response = await axios.post('http://localhost:8080/api/bookings', bookingData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       console.log('✅ Booking created successfully:', response.data);
       return response.data;
     } catch (error) {
