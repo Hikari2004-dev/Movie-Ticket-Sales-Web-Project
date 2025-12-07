@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import HomePage from './components/HomePage';
 import LoginForm from './components/LoginForm';
 import MovieDetail from './components/MovieDetail';
@@ -37,12 +38,24 @@ import BookingPage from './components/BookingPage';
 import SeatSelection from './components/SeatSelection';
 import BookingConfirmation from './components/BookingConfirmation';
 import ProtectedRoute from './components/ProtectedRoute';
-import GeminiChatbot from './components/GeminiChatbot';
 import ConcessionCategoryManagement from './components/ConcessionCategoryManagement';
 import ConcessionItemManagement from './components/ConcessionItemManagement';
 import CinemaConcessionManagement from './components/CinemaConcessionManagement';
 import ConcessionOrderManagement from './components/ConcessionOrderManagement';
 import { ROLES } from './utils/roleUtils';
+// Import LoadingSpinner.css last to override other loading-spinner styles
+import './components/LoadingSpinner.css';
+
+// Component to conditionally render Footer
+const ConditionalFooter = () => {
+  const location = useLocation();
+  // Hide footer on admin, staff, login, and booking-related pages
+  const hideFooterPaths = ['/admin', '/staff', '/system-admin', '/login', '/booking'];
+  const shouldHideFooter = hideFooterPaths.some(path => location.pathname.startsWith(path));
+  
+  if (shouldHideFooter) return null;
+  return <Footer />;
+};
 
 function App() {
   // Clean up corrupted localStorage on app initialization
@@ -162,6 +175,7 @@ function App() {
             <Route path="payment-manager" element={<StaffPaymentManager />} />
           </Route>
         </Routes>
+        <ConditionalFooter />
         <ToastContainer
           position="bottom-right"
           autoClose={3000}
@@ -175,9 +189,6 @@ function App() {
           theme="light"
           style={{ fontSize: '14px', width: '320px' }}
         />
-        
-        {/* Gemini AI Chatbot */}
-        <GeminiChatbot />
       </div>
     </Router>
   );

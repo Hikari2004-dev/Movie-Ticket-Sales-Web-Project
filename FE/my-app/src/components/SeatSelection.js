@@ -360,7 +360,10 @@ const SeatSelection = () => {
   if (loading) {
     return (
       <div className="seat-selection-loading">
-        <div className="spinner">Đang tải sơ đồ ghế...</div>
+        <div className="loading-spinner-box">
+          <div className="spinner"></div>
+          <span>Đang tải sơ đồ ghế...</span>
+        </div>
       </div>
     );
   }

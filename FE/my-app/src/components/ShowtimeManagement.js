@@ -63,6 +63,18 @@ const ShowtimeManagement = () => {
     fetchCinemas();
   }, [token, page]);
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (showModal || showDetailModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showModal, showDetailModal]);
+
   // Fetch showtimes
   const fetchShowtimes = async (pageNum = page, search = searchTerm) => {
     setLoading(true);
@@ -439,8 +451,8 @@ const ShowtimeManagement = () => {
       {/* Loading State */}
       {loading ? (
         <div className="loading-container">
-          <FaSpinner className="spinner" />
-          <p>Đang tải dữ liệu...</p>
+          <div className="spinner"></div>
+          <span className="loading-text-animated">Đang tải dữ liệu</span>
         </div>
       ) : showtimes.length === 0 ? (
         <div className="empty-state">

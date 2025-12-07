@@ -62,15 +62,22 @@ const GeminiChatbot = () => {
     setIsTyping(true);
 
     try {
-      // Get userId from localStorage if logged in
+      // Get userId and token from localStorage if logged in
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const userId = user.userId || null;
+      const token = localStorage.getItem('token');
+
+      // Prepare headers with token if available
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
 
       // Call backend API
       const response = await axios.post('http://localhost:8080/api/chat', {
         message: userMsg,
         userId: userId
-      });
+      }, { headers });
 
       setIsTyping(false);
 

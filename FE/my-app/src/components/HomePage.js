@@ -537,7 +537,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="movies-section">
+      <section className="movies-section now-showing">
         <div className="container">
           <div className="section-header">
             <h2>PHIM ĐANG CHIẾU</h2>
@@ -546,7 +546,9 @@ const HomePage = () => {
             </button>
           </div>
           {loading ? (
-            <div className="loading-spinner">Đang tải...</div>
+            <div className="loading-container">
+              <div className="spinner"></div>
+            </div>
           ) : (
             <div className="movies-grid">
               {nowShowingMovies.length > 0 ? (
@@ -589,7 +591,9 @@ const HomePage = () => {
             </button>
           </div>
           {loading ? (
-            <div className="loading-spinner">Đang tải...</div>
+            <div className="loading-container">
+              <div className="spinner"></div>
+            </div>
           ) : (
             <div className="movies-grid">
               {comingSoonMovies.length > 0 ? (

@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -68,7 +70,7 @@ public class ConcessionItem {
     @Column(name = "is_available")
     private Boolean isAvailable;
 
-    @Lob
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "available_cinemas")
     private String availableCinemas;
 
