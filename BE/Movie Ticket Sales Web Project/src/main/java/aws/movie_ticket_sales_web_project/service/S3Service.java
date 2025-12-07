@@ -99,4 +99,40 @@ public class S3Service {
     public String uploadMovieBackdrop(MultipartFile file) throws IOException {
         return uploadFile(file, "movies/backdrops");
     }
+
+    /**
+     * Upload concession item image
+     */
+    public String uploadConcessionImage(MultipartFile file) throws IOException {
+        return uploadFile(file, "concessions/items");
+    }
+
+    /**
+     * Delete file from S3 with full path extraction
+     */
+    public void deleteFileByUrl(String fileUrl) {
+        try {
+            // Extract file key from full URL
+            // URL format: https://bucket.s3.region.amazonaws.com/folder/filename
+            String baseUrl = String.format("https://%s.s3.%s.amazonaws.com/", bucketName, region);
+            String fileKey = fileUrl.replace(baseUrl, "");
+            
+            if (fileKey.isEmpty() || fileKey.equals(fileUrl)) {
+                log.warn("Could not extract file key from URL: {}", fileUrl);
+                return;
+            }
+
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(fileKey)
+                    .build();
+
+            s3Client.deleteObject(deleteObjectRequest);
+            log.info("File deleted successfully: {}", fileKey);
+
+        } catch (S3Exception e) {
+            log.error("Error deleting file from S3: {}", e.getMessage(), e);
+            // Don't throw exception, just log it
+        }
+    }
 }

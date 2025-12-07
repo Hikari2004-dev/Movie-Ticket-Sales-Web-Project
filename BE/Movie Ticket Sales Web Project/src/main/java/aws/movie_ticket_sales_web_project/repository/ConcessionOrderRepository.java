@@ -15,9 +15,18 @@ import java.util.Optional;
 public interface ConcessionOrderRepository extends JpaRepository<ConcessionOrder, Integer> {
 
     /**
+     * Tìm order theo id với user fetch
+     */
+    @Query("SELECT co FROM ConcessionOrder co " +
+           "LEFT JOIN FETCH co.user " +
+           "WHERE co.id = :id")
+    Optional<ConcessionOrder> findByIdWithUser(@Param("id") Integer id);
+
+    /**
      * Tìm orders theo user
      */
     @Query("SELECT co FROM ConcessionOrder co " +
+           "LEFT JOIN FETCH co.user " +
            "WHERE co.user.id = :userId " +
            "ORDER BY co.createdAt DESC")
     List<ConcessionOrder> findByUserId(@Param("userId") Integer userId);
@@ -26,6 +35,7 @@ public interface ConcessionOrderRepository extends JpaRepository<ConcessionOrder
      * Tìm orders theo cinema
      */
     @Query("SELECT co FROM ConcessionOrder co " +
+           "LEFT JOIN FETCH co.user " +
            "WHERE co.cinema.id = :cinemaId " +
            "ORDER BY co.createdAt DESC")
     List<ConcessionOrder> findByCinemaId(@Param("cinemaId") Integer cinemaId);
@@ -39,6 +49,7 @@ public interface ConcessionOrderRepository extends JpaRepository<ConcessionOrder
      * Tìm orders theo cinema và status
      */
     @Query("SELECT co FROM ConcessionOrder co " +
+           "LEFT JOIN FETCH co.user " +
            "WHERE co.cinema.id = :cinemaId " +
            "AND co.status = :status " +
            "ORDER BY co.createdAt DESC")
@@ -50,12 +61,17 @@ public interface ConcessionOrderRepository extends JpaRepository<ConcessionOrder
     /**
      * Tìm order theo order number
      */
-    Optional<ConcessionOrder> findByOrderNumber(String orderNumber);
+    @Query("SELECT co FROM ConcessionOrder co " +
+           "LEFT JOIN FETCH co.user " +
+           "WHERE co.orderNumber = :orderNumber")
+    Optional<ConcessionOrder> findByOrderNumber(@Param("orderNumber") String orderNumber);
 
     /**
      * Tìm order theo booking
      */
-    @Query("SELECT co FROM ConcessionOrder co WHERE co.booking.id = :bookingId")
+    @Query("SELECT co FROM ConcessionOrder co " +
+           "LEFT JOIN FETCH co.user " +
+           "WHERE co.booking.id = :bookingId")
     Optional<ConcessionOrder> findByBookingId(@Param("bookingId") Integer bookingId);
 
     /**

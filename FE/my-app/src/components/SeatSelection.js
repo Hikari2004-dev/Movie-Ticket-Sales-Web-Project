@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { FaCouch, FaTv, FaArrowLeft, FaClock } from 'react-icons/fa';
@@ -20,6 +20,28 @@ const SeatSelection = () => {
   const [timeLeft, setTimeLeft] = useState(300); // 5 phút
   const [holdTimer, setHoldTimer] = useState(null);
   const [userEmail, setUserEmail] = useState(null);
+  
+  // Ref để lưu giá trị mới nhất cho cleanup
+  const selectedSeatsRef = useRef([]);
+  const sessionIdRef = useRef(sessionId);
+
+  // Cập nhật ref khi selectedSeats thay đổi
+  useEffect(() => {
+    selectedSeatsRef.current = selectedSeats;
+  }, [selectedSeats]);
+
+  // Release seats function sử dụng ref
+  const releaseSeatsOnCleanup = useCallback(async () => {
+    const seatsToRelease = selectedSeatsRef.current;
+    if (seatsToRelease.length > 0) {
+      try {
+        const seatIds = seatsToRelease.map(s => s.seatId);
+        await seatService.releaseSeats(sessionIdRef.current, parseInt(showtimeId), seatIds);
+      } catch (error) {
+        // Silent fail on cleanup
+      }
+    }
+  }, [showtimeId]);
 
   useEffect(() => {
     // Lấy email user nếu đã đăng nhập
@@ -30,21 +52,32 @@ const SeatSelection = () => {
         setUserEmail(user.email || null);
       }
     } catch (e) {
-      console.error('Error getting user email:', e);
+      // Silent fail
     }
 
     fetchShowtimeAndSeats();
+
+    // Handle beforeunload event (đóng tab, refresh trang)
+    const handleBeforeUnload = (e) => {
+      if (selectedSeatsRef.current.length > 0) {
+        // Sử dụng sendBeacon để đảm bảo request được gửi
+        const seatIds = selectedSeatsRef.current.map(s => s.seatId);
+        const url = `http://localhost:8080/api/seats/release?sessionId=${sessionIdRef.current}&showtimeId=${showtimeId}&seatIds=${seatIds.join(',')}`;
+        navigator.sendBeacon(url);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
     
     return () => {
-      // Cleanup: release seats khi rời trang
-      if (selectedSeats.length > 0) {
-        releaseAllSeats();
-      }
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Cleanup: release seats khi rời trang (navigate)
+      releaseSeatsOnCleanup();
       if (holdTimer) {
         clearInterval(holdTimer);
       }
     };
-  }, [showtimeId]);
+  }, [showtimeId, releaseSeatsOnCleanup]);
 
   // Countdown timer
   useEffect(() => {
@@ -82,21 +115,17 @@ const SeatSelection = () => {
         const hallResponse = await cinemaHallService.getHallById(showtimeResponse.data.hallId);
         if (hallResponse.success) {
           setHallInfo(hallResponse.data);
-          console.log('Hall info:', hallResponse.data);
         }
       }
 
       // Lấy sơ đồ ghế
       const seatsResponse = await seatService.getSeatAvailability(showtimeId, sessionId);
-      console.log('Seats response:', seatsResponse);
       if (seatsResponse && seatsResponse.seats) {
         setSeats(seatsResponse.seats);
-        console.log('Loaded seats:', seatsResponse.seats.length);
       } else {
         toast.warning('Không có ghế nào trong phòng chiếu này');
       }
     } catch (error) {
-      console.error('Error fetching seats:', error);
       toast.error('Không thể tải sơ đồ ghế');
     } finally {
       setLoading(false);
@@ -104,13 +133,6 @@ const SeatSelection = () => {
   };
 
   const handleSeatClick = async (seat) => {
-    console.log('=== Seat Clicked ===');
-    console.log('Seat Object:', seat);
-    console.log('Seat ID:', seat.seatId);
-    console.log('Seat Position:', `${seat.seatRow}${seat.seatNumber}`);
-    console.log('Seat Type:', seat.seatType);
-    console.log('Seat Status:', seat.status);
-    
     // Không cho chọn ghế đã bán hoặc đang giữ bởi người khác
     if (seat.status === 'SOLD' || seat.status === 'BOOKED') {
       toast.warning('Ghế này đã được đặt');
@@ -133,7 +155,6 @@ const SeatSelection = () => {
     if (isSelected) {
       // Bỏ chọn ghế
       try {
-        console.log('🔓 Releasing seat:', seat.seatId);
         await seatService.releaseSeats(sessionId, parseInt(showtimeId), [seat.seatId]);
         setSelectedSeats(selectedSeats.filter(s => s.seatId !== seat.seatId));
         
@@ -144,7 +165,6 @@ const SeatSelection = () => {
         
         toast.success(`Đã bỏ chọn ghế ${seat.seatRow}${seat.seatNumber}`);
       } catch (error) {
-        console.error('❌ Error releasing seat:', error);
         toast.error('Không thể bỏ chọn ghế');
       }
     } else {
@@ -160,13 +180,7 @@ const SeatSelection = () => {
           customerEmail: userEmail
         };
         
-        console.log('🔒 === HOLD ALL SEATS REQUEST ===');
-        console.log('Request Body:', JSON.stringify(holdRequest, null, 2));
-        console.log(`Holding ${allSeatIds.length} seat(s) including new: ${seat.seatRow}${seat.seatNumber}`);
-        
-        const holdResponse = await seatService.holdSeats(holdRequest);
-        
-        console.log('✅ Hold Response:', holdResponse);
+        await seatService.holdSeats(holdRequest);
         toast.success(`Đã chọn ghế ${seat.seatRow}${seat.seatNumber}`);
 
         setSelectedSeats(newSelectedSeats);
@@ -181,8 +195,6 @@ const SeatSelection = () => {
           setTimeLeft(300);
         }
       } catch (error) {
-        console.error('❌ Error holding seats:', error);
-        console.error('Error details:', error.response?.data || error.message);
         toast.error(`Không thể giữ ghế ${seat.seatRow}${seat.seatNumber}: ${error.response?.data?.message || error.message}`);
       }
     }
@@ -195,7 +207,7 @@ const SeatSelection = () => {
         await seatService.extendHold(sessionId, parseInt(showtimeId), seatIds, 5);
         setTimeLeft(300); // Reset về 5 phút
       } catch (error) {
-        console.error('Error extending hold:', error);
+        // Silent fail - don't show error to user
       }
     }
   };
@@ -206,7 +218,7 @@ const SeatSelection = () => {
         const seatIds = selectedSeats.map(s => s.seatId);
         await seatService.releaseSeats(sessionId, parseInt(showtimeId), seatIds);
       } catch (error) {
-        console.error('Error releasing seats:', error);
+        // Silent fail on cleanup
       }
     }
   };
@@ -330,7 +342,22 @@ const SeatSelection = () => {
     
     navigator.clipboard.writeText(JSON.stringify(requestBody, null, 2));
     toast.success('Đã copy request body vào clipboard!');
-    console.log('📋 Request Body Copied:', requestBody);
+  };
+
+  // Xử lý quay lại - release ghế trước khi navigate
+  const handleGoBack = async () => {
+    if (selectedSeats.length > 0) {
+      try {
+        const seatIds = selectedSeats.map(s => s.seatId);
+        await seatService.releaseSeats(sessionId, parseInt(showtimeId), seatIds);
+        // Clear selectedSeats để tránh release lần nữa trong cleanup
+        selectedSeatsRef.current = [];
+        setSelectedSeats([]);
+      } catch (error) {
+        // Silent fail
+      }
+    }
+    navigate(-1);
   };
 
   const handleContinue = () => {
@@ -339,12 +366,9 @@ const SeatSelection = () => {
       return;
     }
 
-    console.log('🎬 Navigating to booking confirmation with data:', {
-      selectedSeats: selectedSeats.map(s => ({ seatId: s.seatId, row: s.seatRow, number: s.seatNumber })),
-      totalPrice: getTotalPrice(),
-      sessionId,
-      showtime
-    });
+    // KHÔNG release ghế khi chuyển sang trang confirmation
+    // Clear ref để tránh cleanup release
+    selectedSeatsRef.current = [];
 
     // Chuyển sang trang xác nhận booking
     navigate(`/booking-confirmation`, {
@@ -383,7 +407,7 @@ const SeatSelection = () => {
   return (
     <div className="seat-selection-page">
       <div className="seat-selection-header">
-        <button className="btn-back" onClick={() => navigate(-1)}>
+        <button className="btn-back" onClick={handleGoBack}>
           <FaArrowLeft /> Quay lại
         </button>
         <div className="showtime-info">
@@ -523,34 +547,6 @@ const SeatSelection = () => {
             <p>• Vui lòng chọn ghế và tiến hành thanh toán trong vòng 5 phút</p>
             <p>• Ghế sẽ tự động được giải phóng nếu hết thời gian</p>
             <p>• Tối đa 10 ghế cho mỗi lần đặt</p>
-            <div className="debug-info">
-              <p className="session-debug">🔐 Session: {sessionId.substring(0, 25)}...</p>
-              {selectedSeats.length > 0 && (
-                <div className="selected-ids-debug">
-                  <p style={{fontWeight: 600, marginBottom: 4}}>Seat IDs đã chọn:</p>
-                  <p style={{fontFamily: 'monospace', fontSize: 11}}>
-                    [{selectedSeats.map(s => s.seatId).join(', ')}]
-                  </p>
-                  <button 
-                    onClick={copyRequestToClipboard}
-                    style={{ 
-                      marginTop: '8px', 
-                      padding: '6px 12px', 
-                      background: '#4CAF50', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      fontWeight: 500
-                    }}
-                    type="button"
-                  >
-                    📋 Copy Request JSON
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </div>

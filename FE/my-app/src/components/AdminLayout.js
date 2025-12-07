@@ -17,7 +17,10 @@ import {
   FaBell,
   FaClipboardList,
   FaCog,
-  FaBuilding
+  FaBuilding,
+  FaUtensils,
+  FaBoxes,
+  FaShoppingCart
 } from 'react-icons/fa';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
@@ -97,6 +100,38 @@ const AdminLayout = () => {
       description: 'Mã giảm giá & ưu đãi',
       disabled: true,
       section: 'sales'
+    },
+    
+    // Concession Management
+    {
+      title: 'Danh mục bắp nước',
+      icon: <FaBoxes />,
+      path: '/admin/concession-categories',
+      description: 'Quản lý danh mục sản phẩm',
+      section: 'concession',
+      adminOnly: true
+    },
+    {
+      title: 'Sản phẩm bắp nước',
+      icon: <FaUtensils />,
+      path: '/admin/concession-items',
+      description: 'Quản lý sản phẩm combo, bắp rang, nước',
+      section: 'concession',
+      adminOnly: true
+    },
+    {
+      title: 'Bắp nước rạp',
+      icon: <FaShoppingCart />,
+      path: '/admin/cinema-concessions',
+      description: 'Quản lý bắp nước theo rạp',
+      section: 'concession'
+    },
+    {
+      title: 'Đơn hàng bắp nước',
+      icon: <FaClipboardList />,
+      path: '/admin/concession-orders',
+      description: 'Quản lý đơn hàng bắp nước',
+      section: 'concession'
     },
     
     // User Management
@@ -204,6 +239,35 @@ const AdminLayout = () => {
           {menuItems.filter(item => item.section === 'sales').map((item, index) => (
             <Link
               key={`sales-${index}`}
+              to={item.disabled ? '#' : item.path}
+              className={`nav-item ${isActive(item.path) ? 'active' : ''} ${item.disabled ? 'disabled' : ''}`}
+              title={item.disabled ? 'Chức năng đang phát triển' : item.description}
+              onClick={(e) => {
+                if (item.disabled) {
+                  e.preventDefault();
+                  toast.info('Chức năng đang được phát triển');
+                }
+              }}
+            >
+              <span className="nav-icon">{item.icon}</span>
+              {sidebarOpen && (
+                <div className="nav-content">
+                  <span className="nav-title">{item.title}</span>
+                  {item.disabled && <span className="coming-soon">Soon</span>}
+                </div>
+              )}
+            </Link>
+          ))}
+
+          {/* Concession Section */}
+          {sidebarOpen && <div className="nav-section-title">BẮP NƯỚC</div>}
+          {menuItems.filter(item => item.section === 'concession').filter(item => {
+            // Filter out admin-only items for non-admins
+            if (item.adminOnly && !isSystemAdmin) return false;
+            return true;
+          }).map((item, index) => (
+            <Link
+              key={`concession-${index}`}
               to={item.disabled ? '#' : item.path}
               className={`nav-item ${isActive(item.path) ? 'active' : ''} ${item.disabled ? 'disabled' : ''}`}
               title={item.disabled ? 'Chức năng đang phát triển' : item.description}

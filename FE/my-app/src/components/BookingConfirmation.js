@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import bookingService from '../services/bookingService';
 import paymentService from '../services/paymentService';
+import seatService from '../services/seatService';
 import { calculateBookingPrice, formatPrice as formatCurrency, SERVICE_FEE_PER_TICKET } from '../utils/priceCalculation';
 import ConcessionSelection from './ConcessionSelection';
 import './BookingConfirmation.css';
@@ -23,6 +24,9 @@ const BookingConfirmation = () => {
   const [bookingCode, setBookingCode] = useState(null);
   const [concessionData, setConcessionData] = useState({ items: [], total: 0 });
   const [showConcessionStep, setShowConcessionStep] = useState(true);
+  
+  // Track if booking was completed to avoid releasing seats
+  const bookingCompletedRef = useRef(false);
 
   // Tính toán giá tiền sử dụng utility (đồng bộ với backend)
   const priceDetails = calculateBookingPrice(
@@ -41,7 +45,6 @@ const BookingConfirmation = () => {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
       } catch (error) {
-        console.error('Error parsing user data:', error);
         toast.error('Vui lòng đăng nhập lại');
         navigate('/login');
       }
@@ -56,10 +59,34 @@ const BookingConfirmation = () => {
       navigate('/');
     }
 
-    // Debug: Log showtime data to check cinemaId
-    console.log('🎬 Showtime data in BookingConfirmation:', showtime);
-    console.log('🏢 Cinema ID:', showtime?.cinemaId);
+    // Handle beforeunload event (đóng tab, refresh trang) - release seats
+    const handleBeforeUnload = () => {
+      if (!bookingCompletedRef.current && selectedSeats && selectedSeats.length > 0) {
+        const seatIds = selectedSeats.map(s => s.seatId);
+        const url = `http://localhost:8080/api/seats/release?sessionId=${sessionId}&showtimeId=${showtime.showtimeId}&seatIds=${seatIds.join(',')}`;
+        navigator.sendBeacon(url);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, [navigate, selectedSeats, sessionId, showtime]);
+
+  // Xử lý quay lại - release ghế
+  const handleGoBack = async () => {
+    if (selectedSeats && selectedSeats.length > 0) {
+      try {
+        const seatIds = selectedSeats.map(s => s.seatId);
+        await seatService.releaseSeats(sessionId, showtime.showtimeId, seatIds);
+      } catch (error) {
+        // Silent fail
+      }
+    }
+    navigate(-1);
+  };
 
   const formatDateTime = (dateString) => {
     if (!dateString) return '';
@@ -76,7 +103,6 @@ const BookingConfirmation = () => {
 
   const handleConcessionChange = useCallback((data) => {
     setConcessionData(data);
-    console.log('🍿 Concession updated:', data);
   }, []);
 
   const handleContinueToPayment = () => {
@@ -102,18 +128,6 @@ const BookingConfirmation = () => {
     
     setQrCodeUrl(qrUrl);
     setShowQRCode(true);
-    
-    console.log('💰 === PRICE CALCULATION ===');
-    console.log('Base Price:', showtime.basePrice);
-    console.log('Number of Seats:', selectedSeats.length);
-    console.log('Subtotal:', priceDetails.subtotal);
-    console.log('Service Fee:', priceDetails.serviceFee);
-    console.log('Tax (10%):', priceDetails.tax);
-    console.log('Ticket Total:', priceDetails.total);
-    console.log('Concession Total:', concessionData.total);
-    console.log('Grand Total:', grandTotal);
-    console.log('🏦 Payment Reference:', paymentReference);
-    console.log('🏦 VietQR Generated:', qrUrl);
   };
 
   const handleConfirmBooking = async () => {
@@ -143,36 +157,28 @@ const BookingConfirmation = () => {
       })) : null
     };
 
-    console.log('🎫 === BOOKING REQUEST ===');
-    console.log('Request Body:', JSON.stringify(bookingData, null, 2));
-    console.log('Endpoint: POST /api/bookings');
-
-    // IMPORTANT: Re-verify seats are still held before booking
+    // Verify seats are still held before booking
     try {
       const verifyUrl = `http://localhost:8080/api/seats/verify-hold?showtimeId=${bookingData.showtimeId}&sessionId=${sessionId}&seatIds=${bookingData.seatIds.join(',')}`;
-      console.log('🔍 Verifying seat holds:', verifyUrl);
       
       const verifyResponse = await fetch(verifyUrl);
       const verifyData = await verifyResponse.json();
       
-      console.log('✅ Verification result:', verifyData);
-      
       if (!verifyData.allSeatsHeld) {
-        console.error('❌ Not all seats are held:', verifyData);
         toast.error('Một số ghế không còn được giữ. Vui lòng chọn lại ghế!');
         setIsProcessing(false);
         navigate(`/showtime/${bookingData.showtimeId}`);
         return;
       }
     } catch (verifyError) {
-      console.warn('⚠️ Could not verify seat holds:', verifyError);
       // Continue anyway - backend will validate
     }
 
     try {
       const response = await bookingService.createBooking(bookingData);
       
-      console.log('✅ Booking Success:', response);
+      // Đánh dấu booking đã hoàn thành - không release ghế nữa
+      bookingCompletedRef.current = true;
       
       // Lưu bookingId và bookingCode
       setBookingId(response.bookingId);
@@ -185,8 +191,6 @@ const BookingConfirmation = () => {
       toast.success('Đặt vé thành công! Vui lòng quét mã QR để thanh toán 🎉');
 
     } catch (error) {
-      console.error('❌ Booking Failed:', error);
-      
       const errorMessage = error.response?.data?.message 
         || error.response?.data?.error
         || 'Đặt vé thất bại. Vui lòng thử lại!';
@@ -206,10 +210,7 @@ const BookingConfirmation = () => {
 
     setIsProcessing(true);
     try {
-      console.log('💳 Confirming payment for booking:', bookingId);
       const response = await paymentService.processPayment(bookingId);
-      
-      console.log('✅ Payment confirmed:', response);
       
       if (response.success) {
         toast.success('Xác nhận thanh toán thành công! 🎉');
@@ -222,7 +223,6 @@ const BookingConfirmation = () => {
         toast.error(response.message || 'Xác nhận thanh toán thất bại');
       }
     } catch (error) {
-      console.error('❌ Payment confirmation failed:', error);
       const errorMessage = error.response?.data?.message 
         || error.response?.data?.error
         || 'Xác nhận thanh toán thất bại. Vui lòng thử lại!';
@@ -474,27 +474,13 @@ const BookingConfirmation = () => {
                 </div>
               </div>
 
-              {/* Debug Info */}
-              {process.env.NODE_ENV === 'development' && (
-                <div className="debug-card">
-                  <div className="debug-header">🔍 Debug Info</div>
-                  <div className="debug-body">
-                    <p><strong>User ID:</strong> {user.userId}</p>
-                    <p><strong>Showtime ID:</strong> {showtime.showtimeId}</p>
-                    <p><strong>Seat IDs:</strong> [{selectedSeats.map(s => s.seatId).join(', ')}]</p>
-                    <p><strong>Session ID:</strong> {sessionId.substring(0, 30)}...</p>
-                    <p><strong>Payment:</strong> {paymentMethod}</p>
-                  </div>
-                </div>
-              )}
-
               {/* Action buttons */}
               <div className="booking-actions">
                 {!showQRCode ? (
                   <>
                     <button
                       className="btn-back"
-                      onClick={() => navigate(-1)}
+                      onClick={handleGoBack}
                       disabled={isProcessing}
                     >
                       ← Quay lại

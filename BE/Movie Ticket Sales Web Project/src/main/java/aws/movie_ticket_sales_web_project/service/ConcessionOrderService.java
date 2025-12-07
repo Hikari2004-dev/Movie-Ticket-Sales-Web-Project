@@ -111,7 +111,7 @@ public class ConcessionOrderService {
      */
     @Transactional(readOnly = true)
     public ConcessionOrderDTO getOrderById(Integer orderId) {
-        ConcessionOrder order = orderRepository.findById(orderId)
+        ConcessionOrder order = orderRepository.findByIdWithUser(orderId)
                 .orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại"));
         return convertToDTO(order);
     }
@@ -168,7 +168,7 @@ public class ConcessionOrderService {
      */
     @Transactional
     public ConcessionOrderDTO updateOrderStatus(Integer orderId, ConcessionOrderStatus newStatus) {
-        ConcessionOrder order = orderRepository.findById(orderId)
+        ConcessionOrder order = orderRepository.findByIdWithUser(orderId)
                 .orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại"));
         
         order.setStatus(newStatus);
@@ -189,7 +189,7 @@ public class ConcessionOrderService {
      */
     @Transactional
     public ConcessionOrderDTO cancelOrder(Integer orderId, String reason) {
-        ConcessionOrder order = orderRepository.findById(orderId)
+        ConcessionOrder order = orderRepository.findByIdWithUser(orderId)
                 .orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại"));
         
         if (order.getStatus() == ConcessionOrderStatus.COMPLETED) {

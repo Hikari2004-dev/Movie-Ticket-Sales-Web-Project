@@ -38,6 +38,10 @@ import BookingPage from './components/BookingPage';
 import SeatSelection from './components/SeatSelection';
 import BookingConfirmation from './components/BookingConfirmation';
 import ProtectedRoute from './components/ProtectedRoute';
+import ConcessionCategoryManagement from './components/ConcessionCategoryManagement';
+import ConcessionItemManagement from './components/ConcessionItemManagement';
+import CinemaConcessionManagement from './components/CinemaConcessionManagement';
+import ConcessionOrderManagement from './components/ConcessionOrderManagement';
 import { ROLES } from './utils/roleUtils';
 // Import LoadingSpinner.css last to override other loading-spinner styles
 import './components/LoadingSpinner.css';
@@ -131,6 +135,12 @@ function App() {
             <Route path="bookings" element={<BookingManagement />} />
             <Route path="payment-manager" element={<AdminPaymentManager />} />
             <Route path="promotions" element={<ComingSoon feature="Quản Lý Khuyến Mãi" />} />
+            
+            {/* Concession Management */}
+            <Route path="concession-categories" element={<ConcessionCategoryManagement />} />
+            <Route path="concession-items" element={<ConcessionItemManagement />} />
+            <Route path="cinema-concessions" element={<CinemaConcessionManagement />} />
+            <Route path="concession-orders" element={<ConcessionOrderManagement />} />
             
             {/* User Management */}
             <Route path="accounts" element={<AccountManagement />} />
