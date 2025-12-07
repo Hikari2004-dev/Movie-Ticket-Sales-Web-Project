@@ -66,6 +66,23 @@ const Header = () => {
       }
     };
 
+    // Hàm refresh chỉ points (không check lại user)
+    const refreshPoints = async () => {
+      const userData = localStorage.getItem('user');
+      if (userData && userData !== 'undefined') {
+        try {
+          const parsedUser = JSON.parse(userData);
+          if (parsedUser.userId) {
+            const balance = await loyaltyService.getPointsBalance(parsedUser.userId);
+            setLoyaltyPoints(balance.availablePoints || 0);
+            console.log('🔄 Points refreshed:', balance.availablePoints);
+          }
+        } catch (error) {
+          console.error('Error refreshing points:', error);
+        }
+      }
+    };
+
     checkUser();
 
     // Lắng nghe sự kiện storage để cập nhật khi localStorage thay đổi
@@ -73,10 +90,14 @@ const Header = () => {
     
     // Custom event cho việc login/logout
     window.addEventListener('userChanged', checkUser);
+    
+    // Custom event để refresh points khi có thay đổi (booking, sử dụng điểm, etc.)
+    window.addEventListener('pointsChanged', refreshPoints);
 
     return () => {
       window.removeEventListener('storage', checkUser);
       window.removeEventListener('userChanged', checkUser);
+      window.removeEventListener('pointsChanged', refreshPoints);
     };
   }, []);
 
