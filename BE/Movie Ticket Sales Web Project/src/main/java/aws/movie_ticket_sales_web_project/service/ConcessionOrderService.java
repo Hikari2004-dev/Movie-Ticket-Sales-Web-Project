@@ -3,6 +3,7 @@ package aws.movie_ticket_sales_web_project.service;
 import aws.movie_ticket_sales_web_project.dto.*;
 import aws.movie_ticket_sales_web_project.entity.*;
 import aws.movie_ticket_sales_web_project.enums.ConcessionOrderStatus;
+import aws.movie_ticket_sales_web_project.enums.PaymentStatus;
 import aws.movie_ticket_sales_web_project.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,7 @@ public class ConcessionOrderService {
     private final CinemaConcessionItemRepository cinemaConcessionItemRepository;
     private final CinemaRepository cinemaRepository;
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
 
     /**
      * Tạo đơn hàng bắp nước mới
@@ -165,11 +167,34 @@ public class ConcessionOrderService {
 
     /**
      * Cập nhật trạng thái đơn hàng
+     * Yêu cầu: Nếu đơn hàng liên kết với booking, booking phải được thanh toán trước khi xác nhận
      */
     @Transactional
     public ConcessionOrderDTO updateOrderStatus(Integer orderId, ConcessionOrderStatus newStatus) {
         ConcessionOrder order = orderRepository.findByIdWithUser(orderId)
                 .orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại"));
+        
+        // Kiểm tra nếu đơn hàng liên kết với booking, booking phải đã thanh toán
+        if (order.getBooking() != null && newStatus != ConcessionOrderStatus.CANCELLED) {
+            // Fetch booking mới từ database để có thông tin payment status mới nhất
+            Booking booking = bookingRepository.findById(order.getBooking().getId())
+                    .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
+            
+            log.info("📋 Checking booking {} - PaymentStatus: {}", 
+                    booking.getBookingCode(), booking.getPaymentStatus());
+            
+            // Chấp nhận cả PAID và COMPLETED (PaymentService dùng COMPLETED)
+            boolean isPaid = booking.getPaymentStatus() == PaymentStatus.PAID 
+                          || booking.getPaymentStatus() == PaymentStatus.COMPLETED;
+            
+            if (!isPaid) {
+                throw new RuntimeException(
+                    "Không thể xác nhận đơn hàng bắp nước. Vui lòng thanh toán booking #" 
+                    + booking.getBookingCode() + " trước! (Status hiện tại: " + booking.getPaymentStatus() + ")");
+            }
+            log.info("✅ Booking {} đã thanh toán, cho phép cập nhật trạng thái đơn hàng bắp nước", 
+                    booking.getBookingCode());
+        }
         
         order.setStatus(newStatus);
         order.setUpdatedAt(Instant.now());

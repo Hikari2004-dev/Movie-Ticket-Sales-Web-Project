@@ -107,17 +107,32 @@ const ConcessionOrderManagement = () => {
   };
 
   const handleUpdateStatus = async (orderId, newStatus) => {
+    const currentToken = Cookies.get('accessToken');
+    
+    if (!currentToken) {
+      toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      return;
+    }
+    
     try {
       const response = await fetch(`${API_BASE_URL}/concessions/orders/${orderId}/status`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${currentToken}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ status: newStatus })
       });
 
-      if (!response.ok) throw new Error('Không thể cập nhật trạng thái');
+      if (response.status === 401) {
+        toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        return;
+      }
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Không thể cập nhật trạng thái');
+      }
 
       toast.success('Cập nhật trạng thái thành công');
       fetchOrders();
@@ -127,27 +142,42 @@ const ConcessionOrderManagement = () => {
       }
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Không thể cập nhật trạng thái');
+      toast.error(error.message || 'Không thể cập nhật trạng thái');
     }
   };
 
   const handleQuickAction = async (orderId, action) => {
+    const currentToken = Cookies.get('accessToken');
+    
+    if (!currentToken) {
+      toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      return;
+    }
+    
     try {
       const response = await fetch(`${API_BASE_URL}/concessions/orders/${orderId}/${action}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${currentToken}`,
           'Content-Type': 'application/json'
         }
       });
 
-      if (!response.ok) throw new Error('Không thể cập nhật');
+      if (response.status === 401) {
+        toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        return;
+      }
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Không thể cập nhật');
+      }
 
       toast.success('Cập nhật thành công');
       fetchOrders();
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Không thể cập nhật');
+      toast.error(error.message || 'Không thể cập nhật');
     }
   };
 

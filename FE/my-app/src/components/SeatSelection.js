@@ -523,34 +523,6 @@ const SeatSelection = () => {
             <p>• Vui lòng chọn ghế và tiến hành thanh toán trong vòng 5 phút</p>
             <p>• Ghế sẽ tự động được giải phóng nếu hết thời gian</p>
             <p>• Tối đa 10 ghế cho mỗi lần đặt</p>
-            <div className="debug-info">
-              <p className="session-debug">🔐 Session: {sessionId.substring(0, 25)}...</p>
-              {selectedSeats.length > 0 && (
-                <div className="selected-ids-debug">
-                  <p style={{fontWeight: 600, marginBottom: 4}}>Seat IDs đã chọn:</p>
-                  <p style={{fontFamily: 'monospace', fontSize: 11}}>
-                    [{selectedSeats.map(s => s.seatId).join(', ')}]
-                  </p>
-                  <button 
-                    onClick={copyRequestToClipboard}
-                    style={{ 
-                      marginTop: '8px', 
-                      padding: '6px 12px', 
-                      background: '#4CAF50', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      fontWeight: 500
-                    }}
-                    type="button"
-                  >
-                    📋 Copy Request JSON
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </div>
