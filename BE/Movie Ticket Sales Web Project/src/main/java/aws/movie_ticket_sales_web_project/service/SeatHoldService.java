@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -34,8 +36,8 @@ public class SeatHoldService {
     private static final String SEAT_HOLD_KEY_PREFIX = "seat_hold:showtime:";
     private static final String SESSION_HOLDS_KEY_PREFIX = "session_holds:";
     
-    // Default hold duration (2 minutes)
-    private static final long DEFAULT_HOLD_DURATION_MINUTES = 2;
+    // Default hold duration (5 minutes - increased to give users more time)
+    private static final long DEFAULT_HOLD_DURATION_MINUTES = 5;
     
     // Log configuration on startup
     static {
@@ -84,9 +86,6 @@ public class SeatHoldService {
                 throw new RuntimeException("Seats are already held by another user: " + alreadyHeldSeats);
             }
             
-            // Release any previous holds by this session for this showtime
-            releaseSessionHolds(request.getSessionId(), request.getShowtimeId());
-            
             // Create hold information
             long now = Instant.now().toEpochMilli();
             long expiresAt = Instant.now().plusSeconds(DEFAULT_HOLD_DURATION_MINUTES * 60).toEpochMilli();
@@ -100,11 +99,12 @@ public class SeatHoldService {
                     .createdAt(now)
                     .build();
             
-            // Store hold in Redis with TTL
+            // Store/Update hold in Redis with TTL (overwrites existing holds for this session)
             long ttlSeconds = DEFAULT_HOLD_DURATION_MINUTES * 60;
             for (Integer seatId : request.getSeatIds()) {
                 String seatKey = buildSeatHoldKey(request.getShowtimeId(), seatId);
                 redisTemplate.opsForValue().set(seatKey, holdInfo, ttlSeconds, TimeUnit.SECONDS);
+                log.debug("Seat hold created/updated: seatId={}, expiresAt={}", seatId, expiresAt);
             }
             
             // Track holds by session
@@ -283,14 +283,38 @@ public class SeatHoldService {
      * Check if seats are held by a specific session
      */
     public boolean areSeatsHeldBySession(Integer showtimeId, List<Integer> seatIds, String sessionId) {
+        log.info("Checking seat holds - showtimeId={}, seatIds={}, sessionId={}", showtimeId, seatIds, sessionId);
+        
+        long currentTime = Instant.now().toEpochMilli();
+        
         for (Integer seatId : seatIds) {
             String seatKey = buildSeatHoldKey(showtimeId, seatId);
             SeatHoldDto holdInfo = (SeatHoldDto) redisTemplate.opsForValue().get(seatKey);
             
-            if (holdInfo == null || !holdInfo.getSessionId().equals(sessionId)) {
+            if (holdInfo == null) {
+                log.warn("Seat hold not found in Redis - seatId={}, key={} (Hold may have expired)", seatId, seatKey);
                 return false;
             }
+            
+            // Check if hold has expired
+            if (holdInfo.getHoldExpiresAt() != null && currentTime > holdInfo.getHoldExpiresAt()) {
+                log.warn("Seat hold has expired - seatId={}, expiredAt={}, currentTime={}", 
+                        seatId, holdInfo.getHoldExpiresAt(), currentTime);
+                return false;
+            }
+            
+            if (!holdInfo.getSessionId().equals(sessionId)) {
+                log.warn("Session mismatch - seatId={}, expected={}, actual={}", 
+                        seatId, sessionId, holdInfo.getSessionId());
+                return false;
+            }
+            
+            log.debug("Seat hold verified - seatId={}, sessionId={}, expiresAt={}", 
+                    seatId, sessionId, holdInfo.getHoldExpiresAt());
         }
+        
+        log.info("All seats are held by session - showtimeId={}, seatIds={}, sessionId={}", 
+                showtimeId, seatIds, sessionId);
         return true;
     }
     
@@ -309,6 +333,56 @@ public class SeatHoldService {
         } catch (Exception e) {
             log.error("Error confirming booking", e);
         }
+    }
+    
+    /**
+     * Debug method: Verify seats hold status and return detailed information
+     */
+    public Map<String, Object> verifySeatsHeldBySession(Integer showtimeId, List<Integer> seatIds, String sessionId) {
+        Map<String, Object> result = new HashMap<>();
+        List<Map<String, Object>> seatDetails = new ArrayList<>();
+        
+        long currentTime = Instant.now().toEpochMilli();
+        boolean allHeld = true;
+        
+        for (Integer seatId : seatIds) {
+            Map<String, Object> seatInfo = new HashMap<>();
+            seatInfo.put("seatId", seatId);
+            
+            String seatKey = buildSeatHoldKey(showtimeId, seatId);
+            SeatHoldDto holdInfo = (SeatHoldDto) redisTemplate.opsForValue().get(seatKey);
+            
+            if (holdInfo == null) {
+                seatInfo.put("status", "NOT_HELD");
+                seatInfo.put("message", "Seat not found in Redis (may have expired)");
+                allHeld = false;
+            } else {
+                boolean expired = holdInfo.getHoldExpiresAt() != null && currentTime > holdInfo.getHoldExpiresAt();
+                boolean sessionMatch = holdInfo.getSessionId().equals(sessionId);
+                
+                seatInfo.put("status", expired ? "EXPIRED" : (sessionMatch ? "HELD_BY_YOU" : "HELD_BY_OTHER"));
+                seatInfo.put("sessionId", holdInfo.getSessionId());
+                seatInfo.put("expiresAt", holdInfo.getHoldExpiresAt());
+                seatInfo.put("timeRemaining", Math.max(0, holdInfo.getHoldExpiresAt() - currentTime) / 1000 + " seconds");
+                seatInfo.put("sessionMatch", sessionMatch);
+                
+                if (expired || !sessionMatch) {
+                    allHeld = false;
+                }
+            }
+            
+            seatDetails.add(seatInfo);
+        }
+        
+        result.put("allSeatsHeld", allHeld);
+        result.put("showtimeId", showtimeId);
+        result.put("requestSessionId", sessionId);
+        result.put("currentTime", currentTime);
+        result.put("seats", seatDetails);
+        
+        log.info("Seat hold verification - showtimeId={}, sessionId={}, allHeld={}", showtimeId, sessionId, allHeld);
+        
+        return result;
     }
     
     // Helper methods

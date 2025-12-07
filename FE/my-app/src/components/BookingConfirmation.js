@@ -121,6 +121,28 @@ const BookingConfirmation = () => {
     console.log('Request Body:', JSON.stringify(bookingData, null, 2));
     console.log('Endpoint: POST /api/bookings');
 
+    // IMPORTANT: Re-verify seats are still held before booking
+    try {
+      const verifyUrl = `http://localhost:8080/api/seats/verify-hold?showtimeId=${bookingData.showtimeId}&sessionId=${sessionId}&seatIds=${bookingData.seatIds.join(',')}`;
+      console.log('🔍 Verifying seat holds:', verifyUrl);
+      
+      const verifyResponse = await fetch(verifyUrl);
+      const verifyData = await verifyResponse.json();
+      
+      console.log('✅ Verification result:', verifyData);
+      
+      if (!verifyData.allSeatsHeld) {
+        console.error('❌ Not all seats are held:', verifyData);
+        toast.error('Một số ghế không còn được giữ. Vui lòng chọn lại ghế!');
+        setIsProcessing(false);
+        navigate(`/showtime/${bookingData.showtimeId}`);
+        return;
+      }
+    } catch (verifyError) {
+      console.warn('⚠️ Could not verify seat holds:', verifyError);
+      // Continue anyway - backend will validate
+    }
+
     try {
       const response = await bookingService.createBooking(bookingData);
       

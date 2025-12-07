@@ -106,6 +106,25 @@ public class SeatHoldController {
     }
     
     /**
+     * Debug endpoint: Verify if seats are held by session
+     * GET /api/seats/verify-hold?showtimeId=X&sessionId=xxx&seatIds=1,2,3
+     */
+    @GetMapping("/verify-hold")
+    public ResponseEntity<?> verifyHold(
+            @RequestParam Integer showtimeId,
+            @RequestParam String sessionId,
+            @RequestParam List<Integer> seatIds) {
+        try {
+            Map<String, Object> result = seatHoldService.verifySeatsHeldBySession(showtimeId, seatIds, sessionId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("Error verifying hold", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse("Failed to verify hold"));
+        }
+    }
+    
+    /**
      * Helper methods
      */
     private Map<String, Object> createErrorResponse(String message) {

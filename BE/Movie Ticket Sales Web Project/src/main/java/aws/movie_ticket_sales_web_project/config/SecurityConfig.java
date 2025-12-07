@@ -167,6 +167,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/seats/release").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/seats/extend-hold").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/seats/availability/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/seats/verify-hold").permitAll()
 
                         // AI Chatbot endpoints - public access
                         .requestMatchers("/api/chat/**").permitAll()

@@ -148,29 +148,32 @@ const SeatSelection = () => {
         toast.error('Không thể bỏ chọn ghế');
       }
     } else {
-      // Chọn ghế
+      // Chọn ghế - Hold TẤT CẢ ghế (đã chọn + ghế mới)
       try {
+        const newSelectedSeats = [...selectedSeats, seat];
+        const allSeatIds = newSelectedSeats.map(s => s.seatId);
+        
         const holdRequest = {
           showtimeId: parseInt(showtimeId),
-          seatIds: [seat.seatId],
+          seatIds: allSeatIds, // Hold ALL seats at once
           sessionId: sessionId,
           customerEmail: userEmail
         };
         
-        console.log('🔒 === HOLD SEAT REQUEST ===');
+        console.log('🔒 === HOLD ALL SEATS REQUEST ===');
         console.log('Request Body:', JSON.stringify(holdRequest, null, 2));
-        console.log('Seat Info: ', `${seat.seatRow}${seat.seatNumber} (ID: ${seat.seatId})`);
+        console.log(`Holding ${allSeatIds.length} seat(s) including new: ${seat.seatRow}${seat.seatNumber}`);
         
         const holdResponse = await seatService.holdSeats(holdRequest);
         
         console.log('✅ Hold Response:', holdResponse);
         toast.success(`Đã chọn ghế ${seat.seatRow}${seat.seatNumber}`);
 
-        setSelectedSeats([...selectedSeats, seat]);
+        setSelectedSeats(newSelectedSeats);
         
-        // Cập nhật trạng thái ghế
+        // Cập nhật trạng thái tất cả ghế
         setSeats(seats.map(s => 
-          s.seatId === seat.seatId ? { ...s, status: 'HELD', sessionId } : s
+          allSeatIds.includes(s.seatId) ? { ...s, status: 'HELD', sessionId } : s
         ));
 
         // Reset timer
@@ -178,9 +181,9 @@ const SeatSelection = () => {
           setTimeLeft(300);
         }
       } catch (error) {
-        console.error('❌ Error holding seat:', error);
+        console.error('❌ Error holding seats:', error);
         console.error('Error details:', error.response?.data || error.message);
-        toast.error(`Không thể giữ ghế ${seat.seatRow}${seat.seatNumber}`);
+        toast.error(`Không thể giữ ghế ${seat.seatRow}${seat.seatNumber}: ${error.response?.data?.message || error.message}`);
       }
     }
   };

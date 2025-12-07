@@ -152,6 +152,9 @@ public class BookingController {
     @PostMapping
     public ResponseEntity<?> createBooking(@Valid @RequestBody CreateBookingRequest request) {
         try {
+            log.info("Creating booking - showtimeId={}, seatIds={}, sessionId={}, userId={}", 
+                    request.getShowtimeId(), request.getSeatIds(), request.getSessionId(), request.getUserId());
+            
             BookingDto booking = bookingService.createBooking(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(booking);
         } catch (RuntimeException e) {

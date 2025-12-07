@@ -110,8 +110,20 @@ public class BookingService {
                     .orElseThrow(() -> new RuntimeException("Showtime not found"));
             
             // Verify seats are held by this session (Redis check)
-            if (!seatHoldService.areSeatsHeldBySession(request.getShowtimeId(), request.getSeatIds(), request.getSessionId())) {
+            boolean seatsHeld = seatHoldService.areSeatsHeldBySession(request.getShowtimeId(), request.getSeatIds(), request.getSessionId());
+            
+            if (!seatsHeld) {
+                log.warn("Booking failed - seats not held: showtimeId={}, seatIds={}, sessionId={}", 
+                        request.getShowtimeId(), request.getSeatIds(), request.getSessionId());
                 throw new RuntimeException("Seats are not held by your session. Please select seats again.");
+            }
+            
+            // Extend hold by 2 more minutes to ensure booking completes
+            try {
+                seatHoldService.extendHold(request.getSessionId(), request.getShowtimeId(), request.getSeatIds(), 2);
+                log.info("Extended seat hold during booking creation");
+            } catch (Exception e) {
+                log.warn("Failed to extend hold, but continuing with booking", e);
             }
             
             // Validate seats
