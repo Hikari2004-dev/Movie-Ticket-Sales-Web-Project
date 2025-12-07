@@ -247,6 +247,11 @@ const BookingConfirmation = () => {
       generateVietQR(paymentReference);
       
       toast.success('Đặt vé thành công! Vui lòng quét mã QR để thanh toán 🎉');
+      
+      // Nếu có dùng điểm, dispatch event để Header cập nhật
+      if (pointsToUse > 0) {
+        window.dispatchEvent(new Event('pointsChanged'));
+      }
 
     } catch (error) {
       console.error('❌ Booking Failed:', error);
@@ -298,6 +303,8 @@ const BookingConfirmation = () => {
 
   const handlePaymentConfirmed = () => {
     toast.success('Cảm ơn bạn đã thanh toán!');
+    // Dispatch event để Header cập nhật điểm tích lũy
+    window.dispatchEvent(new Event('pointsChanged'));
     navigate('/bookings'); // Chuyển đến trang lịch sử booking
   };
 
