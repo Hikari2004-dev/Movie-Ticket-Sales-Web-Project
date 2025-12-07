@@ -37,7 +37,7 @@ public class BookingController {
                 log.info("Getting bookings with status: {}, page: {}, size: {}", status, page, size);
                 response = bookingService.getBookingsByStatus(status, page, size);
             } else {
-                response = bookingService.getAllBookings(page, size);   
+                response = bookingService.getAllBookings(page, size);
             }
             return ResponseEntity.ok(response);
         } catch (Exception e) {
