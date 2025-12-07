@@ -4,7 +4,7 @@ import { FaSearch, FaUser, FaSignOutAlt, FaTachometerAlt, FaCoins, FaHistory } f
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { getDashboardPath, getRoleDisplayName, getHighestRole, isStaffMember } from '../utils/roleUtils';
-import QuickBooking from './QuickBooking';
+import QuickBookingMini from './QuickBookingMini';
 import { loyaltyService } from '../services/loyaltyService';
 import './Header.css';
 
@@ -131,7 +131,7 @@ const Header = () => {
 
         {/* Quick Booking - Chỉ hiển thị ở trang chủ */}
         {isHomePage && !isAdminPage && (
-          <QuickBooking />
+          <QuickBookingMini />
         )}
 
         {/* Search Bar */}

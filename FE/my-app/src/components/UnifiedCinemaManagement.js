@@ -658,9 +658,9 @@ const UnifiedCinemaManagement = () => {
 
       {/* Content */}
       {loading ? (
-        <div className="loading-spinner">
-          <FaSpinner className="spinner" />
-          <p>Đang tải dữ liệu...</p>
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <span className="loading-text-animated">Đang tải dữ liệu</span>
         </div>
       ) : (
         <>

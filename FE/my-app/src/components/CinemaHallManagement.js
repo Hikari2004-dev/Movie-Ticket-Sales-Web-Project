@@ -1162,16 +1162,6 @@ const CinemaHallManagement = () => {
                 </div>
               )}
             </div>
-
-            <div className="modal-actions">
-              <button 
-                type="button" 
-                className="btn-secondary"
-                onClick={() => setShowSeatMapModal(false)}
-              >
-                <FaTimes /> Đóng
-              </button>
-            </div>
           </div>
         </div>
       )}

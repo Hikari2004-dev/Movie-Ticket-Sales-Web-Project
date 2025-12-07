@@ -122,14 +122,57 @@ const MovieDetail = () => {
   };
 
   const getAvailableDates = () => {
-    const dates = [...new Set(showtimes.map(s => s.showDate))];
-    return dates.sort();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Chỉ lấy các suất chiếu có status SELLING
+    const sellingShowtimes = showtimes.filter(s => s.status === 'SELLING');
+    const dates = [...new Set(sellingShowtimes.map(s => s.showDate))];
+    // Chỉ hiển thị các ngày từ hôm nay trở đi
+    const validDates = dates.filter(date => {
+      const showDate = new Date(date + 'T00:00:00');
+      return showDate >= today;
+    });
+    return validDates.sort();
+  };
+
+  const isShowtimeBookable = (showtime) => {
+    const now = new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Kiểm tra ngày chiếu
+    const showDate = new Date(showtime.showDate + 'T00:00:00');
+    
+    // Nếu ngày chiếu trước hôm nay -> không được đặt
+    if (showDate < today) {
+      return false;
+    }
+    
+    // Nếu là ngày hôm nay, kiểm tra giờ chiếu
+    if (showDate.getTime() === today.getTime()) {
+      const [hours, minutes] = showtime.startTime.split(':').map(Number);
+      const showtimeDateTime = new Date();
+      showtimeDateTime.setHours(hours, minutes, 0, 0);
+      
+      // Nếu giờ chiếu đã qua -> không được đặt
+      if (showtimeDateTime <= now) {
+        return false;
+      }
+    }
+    
+    // Kiểm tra còn chỗ
+    return showtime.availableSeats > 0;
   };
 
   const getShowtimesByDateAndCinema = () => {
     if (!selectedDate) return {};
     
-    const filtered = showtimes.filter(s => s.showDate === selectedDate);
+    // Lọc suất chiếu theo ngày đã chọn và status SELLING
+    const filtered = showtimes.filter(s => 
+      s.showDate === selectedDate && 
+      s.status === 'SELLING'
+    );
     const grouped = {};
     
     filtered.forEach(showtime => {
@@ -175,7 +218,10 @@ const MovieDetail = () => {
   if (loading) {
     return (
       <div className='movie-detail-loading'>
-        <div className='spinner'>Đang tải...</div>
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <span className="loading-text-animated">Đang tải</span>
+        </div>
       </div>
     );
   }
@@ -285,7 +331,10 @@ const MovieDetail = () => {
         <section className='movie-schedule'>
           <h2>Lịch chiếu</h2>
           {showtimesLoading ? (
-            <div className='schedule-loading'>Đang tải lịch chiếu...</div>
+            <div className='schedule-loading'>
+              <div className="spinner spinner-small"></div>
+              <span>Đang tải lịch chiếu...</span>
+            </div>
           ) : showtimes.length === 0 ? (
             <div className='schedule-placeholder'>
               <p>Hiện tại chưa có lịch chiếu cho phim này.</p>
@@ -311,7 +360,9 @@ const MovieDetail = () => {
                   <div key={cinemaId} className='cinema-group'>
                     <h3 className='cinema-name'>{data.cinemaName}</h3>
                     <div className='showtimes-grid'>
-                      {data.showtimes.map(showtime => (
+                      {data.showtimes.map(showtime => {
+                        const isBookable = isShowtimeBookable(showtime);
+                        return (
                         <div key={showtime.showtimeId} className='showtime-card'>
                           <div className='showtime-time'>{formatTime(showtime.startTime)}</div>
                           <div className='showtime-hall'>{showtime.hallName}</div>
@@ -329,13 +380,14 @@ const MovieDetail = () => {
                           </div>
                           <button 
                             className='btn-book-showtime'
-                            disabled={showtime.availableSeats === 0}
+                            disabled={!isBookable}
                             onClick={() => navigate(`/booking/${showtime.showtimeId}`)}
                           >
-                            {showtime.availableSeats > 0 ? 'Đặt vé' : 'Hết chỗ'}
+                            {!isBookable ? (showtime.availableSeats === 0 ? 'Hết chỗ' : 'Đã qua giờ') : 'Đặt vé'}
                           </button>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 ))}

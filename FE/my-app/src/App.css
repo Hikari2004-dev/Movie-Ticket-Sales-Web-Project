@@ -1,3 +1,5 @@
+/* Note: LoadingSpinner.css is imported in App.js to ensure it loads last for proper CSS override */
+
 .App {
   text-align: center;
 }

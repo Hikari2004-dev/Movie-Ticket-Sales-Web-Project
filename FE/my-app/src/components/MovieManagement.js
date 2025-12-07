@@ -239,7 +239,10 @@ const MovieManagement = () => {
 
       {/* Movies Table */}
       {loading ? (
-        <div className="loading-spinner">Đang tải...</div>
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <span className="loading-text-animated">Đang tải</span>
+        </div>
       ) : (
         <>
           {filteredMovies.length === 0 ? (
