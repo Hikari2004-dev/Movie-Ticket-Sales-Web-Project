@@ -18,6 +18,7 @@ import MyCinemaManagement from './components/MyCinemaManagement';
 import UnifiedCinemaManagement from './components/UnifiedCinemaManagement';
 import CinemaHallManagement from './components/CinemaHallManagement';
 import ShowtimeManagement from './components/ShowtimeManagement';
+import ManagerShowtimeManagement from './components/ManagerShowtimeManagement';
 import BookingManagement from './components/BookingManagement';
 import AdminLayout from './components/AdminLayout';
 import SystemAdminLayout from './components/SystemAdminLayout';
@@ -27,6 +28,7 @@ import StaffDashboard from './components/StaffDashboard';
 import TicketCheckIn from './components/TicketCheckIn';
 import StaffPayment from './components/StaffPayment';
 import StaffPaymentManager from './components/StaffPaymentManager';
+import AdminPaymentManager from './components/AdminPaymentManager';
 import ComingSoon from './components/ComingSoon';
 import NowShowingPage from './components/NowShowingPage';
 import ComingSoonPage from './components/ComingSoonPage';
@@ -105,10 +107,16 @@ function App() {
             <Route path="cinema-management" element={<CinemaChainManagement />} />
             <Route path="cinemas" element={<CinemaManagement />} />
             <Route path="cinemas/:cinemaId" element={<CinemaHallManagement />} />
+            
+            {/* Showtimes - Admin only */}
             <Route path="showtimes" element={<ShowtimeManagement />} />
+            
+            {/* Manager Showtimes - Cinema Manager only */}
+            <Route path="manager-showtimes" element={<ManagerShowtimeManagement />} />
             
             {/* Sales */}
             <Route path="bookings" element={<BookingManagement />} />
+            <Route path="payment-manager" element={<AdminPaymentManager />} />
             <Route path="promotions" element={<ComingSoon feature="Quản Lý Khuyến Mãi" />} />
             
             {/* User Management */}

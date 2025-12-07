@@ -209,4 +209,44 @@ public class ShowtimeController {
                             .build());
         }
     }
+
+    /**
+     * Get showtimes for cinema manager's cinemas
+     * GET /api/showtimes/manager/my-showtimes
+     */
+    @GetMapping("/manager/my-showtimes")
+    public ResponseEntity<ApiResponse<PagedShowtimeResponse>> getMyShowtimes(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) Integer cinemaId,
+            @RequestHeader("Authorization") String token) {
+
+        log.info("Getting showtimes for cinema manager - page: {}, size: {}, cinemaId: {}", page, size, cinemaId);
+
+        try {
+            Integer userId = getUserIdFromToken(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.<PagedShowtimeResponse>builder()
+                                .success(false)
+                                .message("Token không hợp lệ hoặc đã hết hạn")
+                                .build());
+            }
+
+            ApiResponse<PagedShowtimeResponse> response = showtimeService.getShowtimesForManager(userId, cinemaId, page, size);
+
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+        } catch (Exception e) {
+            log.error("Error getting manager showtimes", e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.<PagedShowtimeResponse>builder()
+                            .success(false)
+                            .message("Token không hợp lệ hoặc đã hết hạn")
+                            .build());
+        }
+    }
 }

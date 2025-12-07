@@ -139,8 +139,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/cinema-halls/admin/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/cinema-halls/cinema/{cinemaId}/admin").authenticated()
 
+                        // Manager cinema hall endpoints (authenticated - must be before public)
+                        .requestMatchers(HttpMethod.GET, "/api/cinema-halls/manager/**").authenticated()
+
                         // Public cinema hall endpoints (GET only)
                         .requestMatchers(HttpMethod.GET, "/api/cinema-halls/**").permitAll()
+
+                        // Manager showtime endpoints (authenticated - must be before public showtimes)
+                        .requestMatchers(HttpMethod.GET, "/api/showtimes/manager/**").authenticated()
 
                         // Admin-only showtime endpoints
                         .requestMatchers(HttpMethod.POST, "/api/showtimes/admin/**").authenticated()
@@ -222,10 +228,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasAnyRole("SYSTEM_ADMIN", "ADMIN")
 
                         // Staff ticket endpoints (staff, manager, admin)
-                        .requestMatchers("/api/tickets/staff/**").hasAnyRole("CINEMA_STAFF", "CINEMA_MANAGER", "SYSTEM_ADMIN")
+                        .requestMatchers("/api/tickets/staff/**").hasAnyRole("CINEMA_STAFF", "CINEMA_MANAGER", "SYSTEM_ADMIN", "ADMIN")
                         
                         // Check-in endpoints (staff only)
-                        .requestMatchers("/api/tickets/check-in").hasAnyRole("CINEMA_STAFF", "CINEMA_MANAGER", "SYSTEM_ADMIN")
+                        .requestMatchers("/api/tickets/check-in").hasAnyRole("CINEMA_STAFF", "CINEMA_MANAGER", "SYSTEM_ADMIN", "ADMIN")
 
                         // Refund endpoints (manager/admin only)
                         .requestMatchers("/api/refunds/**").hasAnyRole("CINEMA_MANAGER", "SYSTEM_ADMIN")

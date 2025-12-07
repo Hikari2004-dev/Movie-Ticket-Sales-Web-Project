@@ -7,7 +7,8 @@ export const ROLES = {
   CUSTOMER: 'CUSTOMER',
   CINEMA_STAFF: 'CINEMA_STAFF',
   CINEMA_MANAGER: 'CINEMA_MANAGER',
-  SYSTEM_ADMIN: 'SYSTEM_ADMIN'
+  SYSTEM_ADMIN: 'SYSTEM_ADMIN',
+  ADMIN: 'ADMIN'
 };
 
 // Dashboard paths for each role
@@ -15,12 +16,13 @@ export const DASHBOARD_PATHS = {
   [ROLES.CUSTOMER]: '/',
   [ROLES.CINEMA_STAFF]: '/staff/dashboard',
   [ROLES.CINEMA_MANAGER]: '/admin/dashboard',
-  [ROLES.SYSTEM_ADMIN]: '/admin/dashboard' // Unified with CINEMA_MANAGER
+  [ROLES.SYSTEM_ADMIN]: '/admin/dashboard', // Unified with CINEMA_MANAGER
+  [ROLES.ADMIN]: '/admin/dashboard'
 };
 
 /**
  * Get the appropriate dashboard path for a user based on their roles
- * Priority: SYSTEM_ADMIN > CINEMA_MANAGER > CINEMA_STAFF > CUSTOMER
+ * Priority: SYSTEM_ADMIN > ADMIN > CINEMA_MANAGER > CINEMA_STAFF > CUSTOMER
  * @param {Array<string>} roles - Array of user roles
  * @returns {string} Dashboard path
  */
@@ -32,6 +34,10 @@ export const getDashboardPath = (roles) => {
   // Check roles in priority order
   if (roles.includes(ROLES.SYSTEM_ADMIN)) {
     return DASHBOARD_PATHS[ROLES.SYSTEM_ADMIN];
+  }
+  
+  if (roles.includes(ROLES.ADMIN)) {
+    return DASHBOARD_PATHS[ROLES.ADMIN];
   }
   
   if (roles.includes(ROLES.CINEMA_MANAGER)) {

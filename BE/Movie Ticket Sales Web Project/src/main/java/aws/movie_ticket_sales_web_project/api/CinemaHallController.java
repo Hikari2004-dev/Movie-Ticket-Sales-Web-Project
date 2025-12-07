@@ -113,6 +113,47 @@ public class CinemaHallController {
     }
 
     /**
+     * Get halls for manager's cinemas
+     * GET /api/cinema-halls/manager/my-halls
+     */
+    @GetMapping("/manager/my-halls")
+    public ResponseEntity<ApiResponse<PagedCinemaHallResponse>> getMyHalls(
+            @RequestParam Integer cinemaId,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String search,
+            @RequestHeader("Authorization") String token) {
+
+        log.info("Manager getting halls for cinema: {} - page: {}, size: {}, search: {}", cinemaId, page, size, search);
+
+        try {
+            Integer userId = getUserIdFromToken(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.<PagedCinemaHallResponse>builder()
+                                .success(false)
+                                .message("Token không hợp lệ hoặc đã hết hạn")
+                                .build());
+            }
+
+            ApiResponse<PagedCinemaHallResponse> response = cinemaHallService.getHallsForManager(userId, cinemaId, page, size, search);
+
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+        } catch (Exception e) {
+            log.error("Error getting halls for manager", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.<PagedCinemaHallResponse>builder()
+                            .success(false)
+                            .message("Lỗi khi lấy danh sách phòng chiếu")
+                            .build());
+        }
+    }
+
+    /**
      * Create cinema hall (admin only)
      * POST /api/cinema-halls/admin
      */

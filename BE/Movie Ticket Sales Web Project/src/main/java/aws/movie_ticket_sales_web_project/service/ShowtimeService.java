@@ -1,6 +1,7 @@
 package aws.movie_ticket_sales_web_project.service;
 
 import aws.movie_ticket_sales_web_project.dto.*;
+import aws.movie_ticket_sales_web_project.entity.Cinema;
 import aws.movie_ticket_sales_web_project.entity.CinemaHall;
 import aws.movie_ticket_sales_web_project.entity.Movie;
 import aws.movie_ticket_sales_web_project.entity.Showtime;
@@ -30,6 +31,7 @@ public class ShowtimeService {
     private final ShowtimeRepository showtimeRepository;
     private final MovieRepository movieRepository;
     private final CinemaHallRepository cinemaHallRepository;
+    private final CinemaRepository cinemaRepository;
     private final SeatRepository seatRepository;
     private final UserRoleRepository userRoleRepository;
 
@@ -49,12 +51,12 @@ public class ShowtimeService {
      * Check if user is manager of the cinema
      */
     private boolean isCinemaManager(Integer userId, Integer cinemaId) {
-        Optional<CinemaHall> hall = cinemaHallRepository.findById(cinemaId);
-        if (hall.isEmpty()) {
+        Optional<Cinema> cinema = cinemaRepository.findById(cinemaId);
+        if (cinema.isEmpty()) {
             return false;
         }
-        return hall.get().getCinema().getManager() != null &&
-                hall.get().getCinema().getManager().getId().equals(userId);
+        return cinema.get().getManager() != null &&
+                cinema.get().getManager().getId().equals(userId);
     }
 
     /**
@@ -466,5 +468,90 @@ public class ShowtimeService {
                 .createdAt(showtime.getCreatedAt())
                 .updatedAt(showtime.getUpdatedAt())
                 .build();
+    }
+
+    /**
+     * Get showtimes for cinema manager's cinemas
+     */
+    public ApiResponse<PagedShowtimeResponse> getShowtimesForManager(Integer managerId, Integer cinemaId, Integer page, Integer size) {
+        log.info("Getting showtimes for manager: {}, cinemaId: {}, page: {}, size: {}", managerId, cinemaId, page, size);
+
+        try {
+            // Check if user is CINEMA_MANAGER
+            List<UserRole> userRoles = userRoleRepository.findByUserId(managerId);
+            boolean isCinemaManager = userRoles.stream()
+                    .anyMatch(userRole -> "CINEMA_MANAGER".equals(userRole.getRole().getRoleName()));
+
+            if (!isCinemaManager && !isSystemAdmin(managerId)) {
+                return ApiResponse.<PagedShowtimeResponse>builder()
+                        .success(false)
+                        .message("Bạn không có quyền truy cập chức năng này")
+                        .build();
+            }
+
+            page = (page != null) ? page : 0;
+            size = (size != null) ? size : 10;
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "showDate", "startTime"));
+
+            Page<Showtime> showtimePage;
+
+            if (cinemaId != null) {
+                // Get showtimes for specific cinema
+                showtimePage = showtimeRepository.findByHallCinemaId(cinemaId, pageable);
+                
+                // Verify manager owns this cinema
+                if (isCinemaManager && !isSystemAdmin(managerId)) {
+                    Optional<Showtime> firstShowtime = showtimePage.getContent().stream().findFirst();
+                    if (firstShowtime.isPresent()) {
+                        Integer ownerId = firstShowtime.get().getHall().getCinema().getManager() != null 
+                                ? firstShowtime.get().getHall().getCinema().getManager().getId() 
+                                : null;
+                        if (ownerId == null || !ownerId.equals(managerId)) {
+                            return ApiResponse.<PagedShowtimeResponse>builder()
+                                    .success(false)
+                                    .message("Bạn không có quyền quản lý rạp này")
+                                    .build();
+                        }
+                    }
+                }
+            } else {
+                // Get showtimes for all cinemas managed by this manager
+                if (isSystemAdmin(managerId)) {
+                    // SYSTEM_ADMIN sees all
+                    showtimePage = showtimeRepository.findAll(pageable);
+                } else {
+                    // CINEMA_MANAGER sees only their cinemas
+                    showtimePage = showtimeRepository.findByHallCinemaManagerId(managerId, pageable);
+                }
+            }
+
+            List<ShowtimeDto> showtimeDtos = showtimePage.getContent()
+                    .stream()
+                    .map(this::convertToDto)
+                    .collect(Collectors.toList());
+
+            PagedShowtimeResponse response = PagedShowtimeResponse.builder()
+                    .totalElements(showtimePage.getTotalElements())
+                    .totalPages(showtimePage.getTotalPages())
+                    .currentPage(showtimePage.getNumber())
+                    .pageSize(showtimePage.getSize())
+                    .hasNext(showtimePage.hasNext())
+                    .hasPrevious(showtimePage.hasPrevious())
+                    .data(showtimeDtos)
+                    .build();
+
+            return ApiResponse.<PagedShowtimeResponse>builder()
+                    .success(true)
+                    .message("Lấy danh sách suất chiếu thành công")
+                    .data(response)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Error getting showtimes for manager", e);
+            return ApiResponse.<PagedShowtimeResponse>builder()
+                    .success(false)
+                    .message("Lỗi khi lấy danh sách suất chiếu: " + e.getMessage())
+                    .build();
+        }
     }
 }

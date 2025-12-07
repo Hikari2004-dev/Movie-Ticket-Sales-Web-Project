@@ -233,6 +233,74 @@ public class CinemaHallService {
     }
 
     /**
+     * Get halls for manager's cinemas
+     */
+    public ApiResponse<PagedCinemaHallResponse> getHallsForManager(Integer managerId, Integer cinemaId, Integer page, Integer size, String search) {
+        log.info("Manager {} getting halls for cinema: {}, page: {}, size: {}, search: {}", managerId, cinemaId, page, size, search);
+
+        page = (page != null) ? page : 0;
+        size = (size != null) ? size : 10;
+
+        try {
+            // Check if user is CINEMA_MANAGER
+            boolean isCinemaManager = isCinemaManager(managerId, cinemaId);
+            boolean isSystemAdmin = isSystemAdmin(managerId);
+
+            if (!isCinemaManager && !isSystemAdmin) {
+                return ApiResponse.<PagedCinemaHallResponse>builder()
+                        .success(false)
+                        .message("Bạn không có quyền truy cập phòng chiếu của rạp này")
+                        .build();
+            }
+
+            // Verify cinema exists
+            if (!cinemaRepository.existsById(cinemaId)) {
+                return ApiResponse.<PagedCinemaHallResponse>builder()
+                        .success(false)
+                        .message("Rạp không tồn tại")
+                        .build();
+            }
+
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "hallName"));
+            Page<CinemaHall> hallPage;
+
+            if (search != null && !search.isEmpty()) {
+                hallPage = cinemaHallRepository.searchByNameInCinema(cinemaId, search, pageable);
+            } else {
+                hallPage = cinemaHallRepository.findByCinemaId(cinemaId, pageable);
+            }
+
+            List<CinemaHallDto> hallDtos = hallPage.getContent()
+                    .stream()
+                    .map(this::convertToCinemaHallDto)
+                    .collect(Collectors.toList());
+
+            PagedCinemaHallResponse response = PagedCinemaHallResponse.builder()
+                    .totalElements(hallPage.getTotalElements())
+                    .totalPages(hallPage.getTotalPages())
+                    .currentPage(page)
+                    .pageSize(size)
+                    .hasNext(hallPage.hasNext())
+                    .hasPrevious(hallPage.hasPrevious())
+                    .data(hallDtos)
+                    .build();
+
+            return ApiResponse.<PagedCinemaHallResponse>builder()
+                    .success(true)
+                    .message("Lấy danh sách phòng chiếu thành công")
+                    .data(response)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Error getting halls for manager", e);
+            return ApiResponse.<PagedCinemaHallResponse>builder()
+                    .success(false)
+                    .message("Lỗi khi lấy danh sách phòng chiếu: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
      * Create cinema hall
      */
     @Transactional

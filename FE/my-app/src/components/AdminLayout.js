@@ -28,15 +28,18 @@ const AdminLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isSystemAdmin, setIsSystemAdmin] = useState(false);
+  const [isCinemaManager, setIsCinemaManager] = useState(false);
 
-  // Check if user is SYSTEM_ADMIN
+  // Check user roles
   React.useEffect(() => {
     const user = localStorage.getItem('user');
     if (user && user !== 'undefined') {
       try {
         const userData = JSON.parse(user);
         const hasSystemAdminRole = userData.roles && userData.roles.includes('SYSTEM_ADMIN');
+        const hasCinemaManagerRole = userData.roles && userData.roles.includes('CINEMA_MANAGER');
         setIsSystemAdmin(hasSystemAdminRole);
+        setIsCinemaManager(hasCinemaManagerRole);
       } catch (e) {
         console.error('Error parsing user data:', e);
         localStorage.removeItem('user');
@@ -74,17 +77,17 @@ const AdminLayout = () => {
     {
       title: 'Quản lý suất chiếu',
       icon: <FaClock />,
-      path: '/admin/showtimes',
-      description: 'Lịch chiếu phim',
+      path: isCinemaManager ? '/admin/manager-showtimes' : '/admin/showtimes',
+      description: isCinemaManager ? 'Quản lý suất chiếu rạp của bạn' : 'Lịch chiếu phim',
       section: 'core'
     },
     
     // Booking & Sales
     {
-      title: 'Quản lý vé',
+      title: 'Quản lý thanh toán',
       icon: <FaTicketAlt />,
-      path: '/admin/bookings',
-      description: 'Đặt vé & hóa đơn',
+      path: '/admin/payment-manager',
+      description: 'Quản lý thanh toán',
       section: 'sales'
     },
     {
