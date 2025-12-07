@@ -79,7 +79,10 @@ const BookingHistory = () => {
         toast.error('Không thể tải lịch sử đặt vé');
       }
     } finally {
-      setIsLoading(false);
+      // Minimum loading time 500ms for better UX
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 500);
     }
   };
 
@@ -223,15 +226,6 @@ const BookingHistory = () => {
     return true;
   });
 
-  if (isLoading) {
-    return (
-      <div className="booking-loading">
-        <div className="loading-spinner"></div>
-        <p>Đang tải lịch sử đặt vé...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="booking-history-page">
       <div className="booking-container">
@@ -243,6 +237,12 @@ const BookingHistory = () => {
               <p className="header-subtitle">Quản lý tất cả các vé đã đặt</p>
             </div>
           </div>
+          {isLoading && (
+            <div className="header-loading">
+              <span className="mini-spinner"></span>
+              <span>Đang tải...</span>
+            </div>
+          )}
         </div>
 
         {/* Filters */}

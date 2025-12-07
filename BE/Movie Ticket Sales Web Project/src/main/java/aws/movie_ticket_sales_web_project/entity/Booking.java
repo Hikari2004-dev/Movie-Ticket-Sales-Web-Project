@@ -97,6 +97,10 @@ public class Booking {
 
     @Column(name = "invoice_issued_at")
     private Instant invoiceIssuedAt;
+    
+    @ColumnDefault("0")
+    @Column(name = "points_used")
+    private Integer pointsUsed;
 
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at")

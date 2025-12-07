@@ -39,9 +39,12 @@ public class BookingService {
     private final ConcessionOrderRepository concessionOrderRepository;
     private final ConcessionOrderItemRepository concessionOrderItemRepository;
     private final CinemaConcessionItemRepository cinemaConcessionItemRepository;
+    private final LoyaltyPointsService loyaltyPointsService;
+    private final MembershipRepository membershipRepository;
     
     private static final BigDecimal TAX_RATE = new BigDecimal("0.10"); // 10% tax
     private static final BigDecimal SERVICE_FEE = new BigDecimal("5000"); // 5000 VND service fee per ticket
+    private static final BigDecimal POINTS_TO_VND_RATE = new BigDecimal("1000"); // 1 point = 1000 VND
     
     /**
      * Get all bookings with pagination (excluding CANCELLED)
@@ -181,7 +184,46 @@ public class BookingService {
             BigDecimal subtotal = showtime.getBasePrice().multiply(new BigDecimal(seats.size()));
             BigDecimal serviceFeeTotal = SERVICE_FEE.multiply(new BigDecimal(seats.size()));
             BigDecimal taxAmount = subtotal.multiply(TAX_RATE);
-            BigDecimal totalAmount = subtotal.add(serviceFeeTotal).add(taxAmount);
+            BigDecimal totalBeforeDiscount = subtotal.add(serviceFeeTotal).add(taxAmount);
+            
+            // Apply points discount if requested
+            BigDecimal discountAmount = BigDecimal.ZERO;
+            Integer pointsUsed = 0;
+            
+            if (request.getPointsToUse() != null && request.getPointsToUse() > 0 && user != null) {
+                // Validate user has enough points
+                Membership membership = membershipRepository.findByUserId(user.getId()).orElse(null);
+                if (membership != null) {
+                    Integer availablePoints = membership.getAvailablePoints() != null ? membership.getAvailablePoints() : 0;
+                    
+                    // Calculate max points that can be used (can't exceed total amount)
+                    BigDecimal maxDiscountFromPoints = new BigDecimal(request.getPointsToUse()).multiply(POINTS_TO_VND_RATE);
+                    
+                    // Limit discount to 50% of total amount
+                    BigDecimal maxAllowedDiscount = totalBeforeDiscount.multiply(new BigDecimal("0.5"));
+                    
+                    if (maxDiscountFromPoints.compareTo(maxAllowedDiscount) > 0) {
+                        maxDiscountFromPoints = maxAllowedDiscount;
+                    }
+                    
+                    // Calculate actual points needed
+                    pointsUsed = maxDiscountFromPoints.divide(POINTS_TO_VND_RATE, 0, java.math.RoundingMode.DOWN).intValue();
+                    
+                    if (pointsUsed > availablePoints) {
+                        pointsUsed = availablePoints;
+                    }
+                    
+                    if (pointsUsed > 0) {
+                        discountAmount = new BigDecimal(pointsUsed).multiply(POINTS_TO_VND_RATE);
+                        log.info("💰 Applying {} points = {} VND discount for user {}", pointsUsed, discountAmount, user.getId());
+                    } else {
+                        log.warn("User {} has insufficient points. Available: {}, Requested: {}", 
+                                user.getId(), availablePoints, request.getPointsToUse());
+                    }
+                }
+            }
+            
+            BigDecimal totalAmount = totalBeforeDiscount.subtract(discountAmount);
             
             // Create booking
             Booking booking = new Booking();
@@ -194,10 +236,11 @@ public class BookingService {
             booking.setBookingDate(Instant.now());
             booking.setTotalSeats(seats.size());
             booking.setSubtotal(subtotal);
-            booking.setDiscountAmount(BigDecimal.ZERO);
+            booking.setDiscountAmount(discountAmount);
             booking.setTaxAmount(taxAmount);
             booking.setServiceFee(serviceFeeTotal);
             booking.setTotalAmount(totalAmount);
+            booking.setPointsUsed(pointsUsed);
             booking.setStatus(StatusBooking.PENDING);
             booking.setPaymentStatus(PaymentStatus.PENDING);
             booking.setPaymentMethod(request.getPaymentMethod());
@@ -293,6 +336,27 @@ public class BookingService {
                 bookingRepository.save(savedBooking);
                 
                 log.info("Concession order created with total: {}", concessionTotal);
+            }
+            
+            // Deduct points from user's membership if points were used
+            if (pointsUsed > 0 && user != null) {
+                boolean pointsDeducted = loyaltyPointsService.redeemPoints(
+                        user.getId(), 
+                        pointsUsed, 
+                        "Sử dụng điểm giảm giá booking " + savedBooking.getBookingCode()
+                );
+                if (pointsDeducted) {
+                    log.info("✅ Successfully deducted {} points from user {} for booking {}", 
+                            pointsUsed, user.getId(), savedBooking.getBookingCode());
+                } else {
+                    log.warn("⚠️ Failed to deduct points for booking {}. Points will not be applied.", 
+                            savedBooking.getBookingCode());
+                    // Rollback discount if points deduction failed
+                    savedBooking.setDiscountAmount(BigDecimal.ZERO);
+                    savedBooking.setPointsUsed(0);
+                    savedBooking.setTotalAmount(totalBeforeDiscount);
+                    bookingRepository.save(savedBooking);
+                }
             }
             
             // Update available seats in showtime
@@ -472,6 +536,10 @@ public class BookingService {
                 .taxAmount(booking.getTaxAmount())
                 .serviceFee(booking.getServiceFee())
                 .totalAmount(booking.getTotalAmount())
+                .pointsUsed(booking.getPointsUsed() != null ? booking.getPointsUsed() : 0)
+                .pointsDiscount(booking.getPointsUsed() != null && booking.getPointsUsed() > 0 
+                        ? POINTS_TO_VND_RATE.multiply(new BigDecimal(booking.getPointsUsed())) 
+                        : BigDecimal.ZERO)
                 .status(booking.getStatus())
                 .paymentStatus(booking.getPaymentStatus())
                 .paymentMethod(booking.getPaymentMethod())

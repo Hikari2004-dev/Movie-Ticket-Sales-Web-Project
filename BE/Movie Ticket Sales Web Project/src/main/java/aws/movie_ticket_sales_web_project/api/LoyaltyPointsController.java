@@ -111,7 +111,8 @@ public class LoyaltyPointsController {
                         "userId", userId,
                         "availablePoints", availablePoints,
                         "totalEarned", totalEarned,
-                        "totalRedeemed", totalRedeemed
+                        "totalRedeemed", totalRedeemed,
+                        "pointsToVndRate", 1000 // 1 point = 1000 VND
                     ))
                     .build());
                     
@@ -120,6 +121,71 @@ public class LoyaltyPointsController {
             return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
                     .success(false)
                     .message("Không thể lấy số dư điểm: " + e.getMessage())
+                    .build());
+        }
+    }
+    
+    /**
+     * Preview points discount calculation
+     * GET /api/loyalty/points/preview?userId={userId}&pointsToUse={points}&totalAmount={amount}
+     */
+    @GetMapping("/points/preview")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> previewPointsDiscount(
+            @RequestParam Integer userId,
+            @RequestParam Integer pointsToUse,
+            @RequestParam java.math.BigDecimal totalAmount) {
+        
+        try {
+            Membership membership = membershipRepository.findByUserId(userId).orElse(null);
+            
+            if (membership == null) {
+                return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
+                        .success(false)
+                        .message("Không tìm thấy thông tin thành viên")
+                        .build());
+            }
+            
+            Integer availablePoints = membership.getAvailablePoints() != null 
+                    ? membership.getAvailablePoints() 
+                    : 0;
+            
+            // Calculate discount
+            java.math.BigDecimal pointsToVndRate = new java.math.BigDecimal("1000");
+            java.math.BigDecimal maxDiscountFromPoints = new java.math.BigDecimal(pointsToUse).multiply(pointsToVndRate);
+            
+            // Limit to 50% of total
+            java.math.BigDecimal maxAllowedDiscount = totalAmount.multiply(new java.math.BigDecimal("0.5"));
+            
+            java.math.BigDecimal actualDiscount = maxDiscountFromPoints.min(maxAllowedDiscount);
+            Integer actualPointsUsed = actualDiscount.divide(pointsToVndRate, 0, java.math.RoundingMode.DOWN).intValue();
+            
+            // Check if user has enough points
+            if (actualPointsUsed > availablePoints) {
+                actualPointsUsed = availablePoints;
+                actualDiscount = new java.math.BigDecimal(actualPointsUsed).multiply(pointsToVndRate);
+            }
+            
+            java.math.BigDecimal finalAmount = totalAmount.subtract(actualDiscount);
+            
+            return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
+                    .success(true)
+                    .message("Preview giảm giá điểm")
+                    .data(Map.of(
+                        "availablePoints", availablePoints,
+                        "requestedPoints", pointsToUse,
+                        "actualPointsUsed", actualPointsUsed,
+                        "discountAmount", actualDiscount,
+                        "originalAmount", totalAmount,
+                        "finalAmount", finalAmount,
+                        "maxDiscountPercentage", 50
+                    ))
+                    .build());
+                    
+        } catch (Exception e) {
+            log.error("Error previewing points discount", e);
+            return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
+                    .success(false)
+                    .message("Lỗi: " + e.getMessage())
                     .build());
         }
     }
