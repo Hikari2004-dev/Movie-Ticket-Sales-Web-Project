@@ -2,7 +2,7 @@
 .seat-selection-page {
   background: #0a0a0f;
   min-height: 100vh;
-  padding: 100px 20px 40px;
+  padding: 80px 20px 30px;
   color: white;
 }
 
@@ -75,29 +75,29 @@
 /* Header */
 .seat-selection-header {
   max-width: 1400px;
-  margin: 0 auto 30px;
+  margin: 0 auto 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 20px;
-  padding: 20px;
+  gap: 15px;
+  padding: 12px 20px;
   background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .btn-back {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
+  gap: 6px;
+  padding: 8px 16px;
   background: rgba(255, 255, 255, 0.1);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   transition: all 0.3s ease;
 }
 
@@ -112,24 +112,25 @@
 }
 
 .showtime-info h2 {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   color: #e50914;
 }
 
 .showtime-info p {
-  font-size: 14px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.7);
-  margin: 4px 0;
+  margin: 6px 0;
+  line-height: 1.5;
 }
 
 .hall-specs {
-  font-size: 13px !important;
+  font-size: 12px !important;
   color: rgba(255, 193, 7, 0.9) !important;
-  margin-top: 8px !important;
+  margin-top: 10px !important;
   display: flex;
-  gap: 8px;
+  gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -143,31 +144,12 @@
 .user-session {
   font-size: 12px !important;
   color: rgba(76, 175, 80, 0.9) !important;
-  margin-top: 6px !important;
+  margin-top: 10px !important;
   font-weight: 500;
 }
 
 .timer-box {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: rgba(229, 9, 20, 0.2);
-  border: 2px solid #e50914;
-  border-radius: 8px;
-  font-size: 16px;
-  color: #ff4444;
-  animation: pulse 2s infinite;
-}
-
-.timer-box strong {
-  color: #fff;
-  font-size: 18px;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.8; }
+  display: none;
 }
 
 /* Container */

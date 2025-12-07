@@ -142,32 +142,37 @@
 
 .cinema-management .search-container {
   position: relative;
-  max-width: 600px;
+  max-width: 450px;
 }
 
 .cinema-management .search-icon {
   position: absolute;
-  left: 20px;
+  left: 16px;
   top: 50%;
   transform: translateY(-50%);
-  color: #718096;
-  font-size: 20px;
+  color: #9ca3af;
+  font-size: 18px;
 }
 
 .cinema-management .search-input {
   width: 100%;
-  padding: 14px 20px 14px 56px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 16px;
+  padding: 14px 20px 14px 48px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 15px;
   transition: all 0.3s ease;
-  background: white;
+  background: #ffffff;
+  color: #1f2937;
+}
+
+.cinema-management .search-input::placeholder {
+  color: #9ca3af;
 }
 
 .cinema-management .search-input:focus {
   outline: none;
   border-color: #667eea;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
 }
 
 /* Loading State */
