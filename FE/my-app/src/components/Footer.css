@@ -19,6 +19,7 @@
 /* Footer Brand Section */
 .footer-brand {
   padding-right: 30px;
+  text-align: center;
 }
 
 .footer-logo {
@@ -26,6 +27,7 @@
   font-weight: 800;
   margin-bottom: 20px;
   letter-spacing: 3px;
+  text-align: center;
 }
 
 .logo-n {
@@ -45,14 +47,14 @@
   font-size: 14px;
   line-height: 1.8;
   margin-bottom: 28px;
-  text-align: left;
+  text-align: center;
 }
 
 /* Social Links */
 .footer-social {
   display: flex;
   gap: 14px;
-  justify-content: flex-start;
+  justify-content: center;
 }
 
 .social-link {

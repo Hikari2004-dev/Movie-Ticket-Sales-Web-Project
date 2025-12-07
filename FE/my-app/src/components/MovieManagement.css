@@ -60,77 +60,97 @@
 /* Controls Section */
 .movie-management-controls {
   display: flex;
-  gap: 7rem;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
   margin-bottom: 2rem;
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   flex-wrap: wrap;
-  align-items: center;
 }
 
 .search-box {
   position: relative;
-  width: 280px;
+  width: 350px;
   flex-shrink: 0;
-  margin-right: 2rem;
 }
 
+.movie-management .search-box input,
 .search-box input {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 3rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 1rem;
+  padding: 0.75rem 1rem 0.75rem 2.75rem !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  font-size: 0.95rem !important;
+  background: #f9fafb !important;
+  color: #1f2937 !important;
   transition: all 0.3s ease;
 }
 
-.search-box input:focus {
-  outline: none;
-  border-color: #e50914;
-  box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.1);
+.movie-management .search-box input::placeholder,
+.search-box input::placeholder {
+  color: #9ca3af !important;
 }
 
+.movie-management .search-box input:focus,
+.search-box input:focus {
+  outline: none;
+  border-color: #667eea !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12) !important;
+}
+
+.search-box .search-icon,
 .search-icon {
   position: absolute;
-  left: 1rem;
+  left: 0.9rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #999;
+  color: #9ca3af;
+  font-size: 1rem;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .filter-section {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
   align-items: center;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 .filter-icon {
-  color: #666;
-  font-size: 1.2rem;
-  flex-shrink: 0;
+  display: none;
 }
 
 .filter-select {
-  padding: 0.75rem 1rem;
-  border: 2px solid #e0e0e0;
+  padding: 0.75rem 2rem 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  font-size: 0.95rem;
-  background: white;
+  font-size: 0.9rem;
+  background: #f9fafb;
+  color: #374151;
   cursor: pointer;
   transition: all 0.3s ease;
-  min-width: 150px;
+  min-width: 140px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
 }
 
 .filter-select:focus {
   outline: none;
-  border-color: #e50914;
+  border-color: #667eea;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
 }
 
 .filter-select:hover {
-  border-color: #bbb;
+  border-color: #d1d5db;
+  background-color: #ffffff;
 }
 
 /* Movies List View */

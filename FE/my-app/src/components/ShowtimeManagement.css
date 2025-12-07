@@ -40,32 +40,38 @@
 
 .showtime-management .search-box {
   position: relative;
-  max-width: 500px;
+  max-width: 450px;
 }
 
 .showtime-management .search-icon {
   position: absolute;
-  left: 20px;
+  left: 16px;
   top: 50%;
   transform: translateY(-50%);
-  color: #a0aec0;
+  color: #6b7280;
   font-size: 18px;
 }
 
 .showtime-management .search-box input {
   width: 100%;
-  padding: 16px 20px 16px 52px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
+  padding: 14px 20px 14px 48px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
   font-size: 15px;
   transition: all 0.3s ease;
-  background: white;
+  background: #f9fafb;
+  color: #1f2937;
+}
+
+.showtime-management .search-box input::placeholder {
+  color: #6b7280;
 }
 
 .showtime-management .search-box input:focus {
   outline: none;
   border-color: #667eea;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
 }
 
 /* Loading & Empty States */
