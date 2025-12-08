@@ -9,9 +9,9 @@ const Footer = () => {
         {/* Logo & Description */}
         <div className="footer-section footer-brand">
           <h2 className="footer-logo">
-            <span className="logo-n">Q</span>
-            <span className="logo-h">2</span>
-            <span className="logo-s">K</span>
+            <span className="logo-q">Q</span>
+            <span className="logo-2">2</span>
+            <span className="logo-k">K</span>
           </h2>
           <p className="footer-desc">
             Hệ thống đặt vé xem phim trực tuyến hàng đầu Việt Nam. 
