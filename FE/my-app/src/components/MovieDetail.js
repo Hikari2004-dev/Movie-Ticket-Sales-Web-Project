@@ -269,47 +269,47 @@ const MovieDetail = () => {
                   </div>
                 </div>
                 <div className='movie-info-grid'>
-                  <div className='info-row'>
-                    <span className='info-label'>Thể loại:</span>
-                    <span className='info-value'>{getGenres(movie.genres)}</span>
+                  <div className='md-info-row'>
+                    <span className='md-info-label'>Thể loại:</span>
+                    <span className='md-info-value'>{getGenres(movie.genres)}</span>
                   </div>
                   {movie.director && (
-                    <div className='info-row'>
-                      <span className='info-label'>Đạo diễn:</span>
-                      <span className='info-value'>{movie.director}</span>
+                    <div className='md-info-row'>
+                      <span className='md-info-label'>Đạo diễn:</span>
+                      <span className='md-info-value'>{movie.director}</span>
                     </div>
                   )}
                   {movie.cast && (
-                    <div className='info-row'>
-                      <span className='info-label'>Diễn viên:</span>
-                      <span className='info-value'>{movie.cast}</span>
+                    <div className='md-info-row'>
+                      <span className='md-info-label'>Diễn viên:</span>
+                      <span className='md-info-value'>{movie.cast}</span>
                     </div>
                   )}
                   {movie.language && (
-                    <div className='info-row'>
-                      <span className='info-label'>Ngôn ngữ:</span>
-                      <span className='info-value'>
+                    <div className='md-info-row'>
+                      <span className='md-info-label'>Ngôn ngữ:</span>
+                      <span className='md-info-value'>
                         {movie.language}
                         {movie.subtitleLanguage && ` - Phụ đề ${movie.subtitleLanguage}`}
                       </span>
                     </div>
                   )}
                   {movie.country && (
-                    <div className='info-row'>
-                      <span className='info-label'>Quốc gia:</span>
-                      <span className='info-value'>{movie.country}</span>
+                    <div className='md-info-row'>
+                      <span className='md-info-label'>Quốc gia:</span>
+                      <span className='md-info-value'>{movie.country}</span>
                     </div>
                   )}
                   {movie.ageRating && (
-                    <div className='info-row'>
-                      <span className='info-label'>Rated:</span>
-                      <span className='info-value rated'>{getAgeRatingLabel(movie.ageRating)}</span>
+                    <div className='md-info-row'>
+                      <span className='md-info-label'>Rated:</span>
+                      <span className='md-info-value rated'>{getAgeRatingLabel(movie.ageRating)}</span>
                     </div>
                   )}
                   {movie.availableFormats && movie.availableFormats.length > 0 && (
-                    <div className='info-row'>
-                      <span className='info-label'>Định dạng:</span>
-                      <span className='info-value'>{movie.availableFormats.join(', ')}</span>
+                    <div className='md-info-row'>
+                      <span className='md-info-label'>Định dạng:</span>
+                      <span className='md-info-value'>{movie.availableFormats.join(', ')}</span>
                     </div>
                   )}
                 </div>

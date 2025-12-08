@@ -59,10 +59,10 @@ const NowShowingPage = () => {
 
   return (
     <div className="now-showing-page">
-      <div className="container">
-        <div className="page-header">
+      <div className="now-showing-container">
+        <div className="nsp-page-header">
           <h1>PHIM ĐANG CHIẾU</h1>
-          <p className="page-subtitle">Tất cả phim hiện đang chiếu tại rạp</p>
+          <p className="nsp-page-subtitle">Tất cả phim hiện đang chiếu tại rạp</p>
         </div>
 
         <div className="controls-section">

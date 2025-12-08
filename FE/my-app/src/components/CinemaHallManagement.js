@@ -629,13 +629,13 @@ const CinemaHallManagement = () => {
               </div>
 
               <div className="hall-card-body">
-                <div className="info-row">
+                <div className="chm-info-row">
                   <span className="label">Loại:</span>
                   <span className="value">{hall.hallType}</span>
                 </div>
 
-                <div className="info-row">
-                  <FaChair className="info-icon" />
+                <div className="chm-info-row">
+                  <FaChair className="chm-info-icon" />
                   <span className="value">
                     {hall.totalSeats} ghế
                     {hall.rowsCount && hall.seatsPerRow
@@ -645,20 +645,20 @@ const CinemaHallManagement = () => {
                 </div>
 
                 {hall.screenType && (
-                  <div className="info-row">
-                    <FaFilm className="info-icon" />
+                  <div className="chm-info-row">
+                    <FaFilm className="chm-info-icon" />
                     <span className="value">{hall.screenType}</span>
                   </div>
                 )}
 
                 {hall.soundSystem && (
-                  <div className="info-row">
-                    <FaVolumeUp className="info-icon" />
+                  <div className="chm-info-row">
+                    <FaVolumeUp className="chm-info-icon" />
                     <span className="value">{hall.soundSystem}</span>
                   </div>
                 )}
 
-                <div className="info-row">
+                <div className="chm-info-row">
                   <span className="label">Trạng thái:</span>
                   <span className={`status-badge ${hall.isActive ? 'active' : 'inactive'}`}>
                     {hall.isActive ? '✓ Hoạt động' : '✗ Vô hiệu'}

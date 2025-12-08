@@ -469,7 +469,7 @@ const ProfilePage = () => {
 
           {/* Profile Details */}
           <div className="profile-details-card">
-            <div className="card-header">
+            <div className="pp-card-header">
               <h2>Thông Tin Chi Tiết</h2>
               {!isEditing ? (
                 <button className="edit-btn" onClick={handleEditClick}>

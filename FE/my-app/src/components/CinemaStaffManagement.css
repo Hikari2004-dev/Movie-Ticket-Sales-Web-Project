@@ -4,14 +4,14 @@
   margin: 0 auto;
 }
 
-.page-header {
+.cinema-staff-management .csm-page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
 }
 
-.page-header h1 {
+.cinema-staff-management .csm-page-header h1 {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -323,7 +323,7 @@
     padding: 16px;
   }
 
-  .page-header {
+  .cinema-staff-management .csm-page-header {
     flex-direction: column;
     gap: 16px;
     align-items: flex-start;

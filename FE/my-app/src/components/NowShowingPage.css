@@ -5,18 +5,18 @@
   padding: 120px 0 60px 0;
 }
 
-.container {
+.now-showing-container {
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 60px;
 }
 
-.page-header {
+.nsp-page-header {
   text-align: center;
   margin-bottom: 40px;
 }
 
-.page-header h1 {
+.nsp-page-header h1 {
   color: #ffc107;
   font-size: 42px;
   font-weight: 700;
@@ -24,7 +24,7 @@
   letter-spacing: 2px;
 }
 
-.page-subtitle {
+.nsp-page-subtitle {
   color: rgba(255, 255, 255, 0.6);
   font-size: 18px;
 }
@@ -391,11 +391,11 @@
     gap: 15px;
   }
 
-  .page-header h1 {
+  .nsp-page-header h1 {
     font-size: 32px;
   }
 
-  .container {
+  .now-showing-container {
     padding: 0 20px;
   }
 
@@ -415,7 +415,7 @@
     grid-template-columns: 1fr;
   }
 
-  .page-header h1 {
+  .nsp-page-header h1 {
     font-size: 24px;
   }
 

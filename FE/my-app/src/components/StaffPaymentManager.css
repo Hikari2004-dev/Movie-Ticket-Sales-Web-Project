@@ -10,7 +10,7 @@
 }
 
 /* Header */
-.page-header {
+.staff-payment-manager-page .spm-page-header {
   background: white;
   border-radius: 8px;
   padding: 24px;
@@ -21,25 +21,25 @@
   align-items: center;
 }
 
-.header-content h1 {
+.spm-header-content h1 {
   font-size: 24px;
   font-weight: 600;
   color: #2c3e50;
   margin: 0 0 8px 0;
 }
 
-.header-subtitle {
+.spm-header-subtitle {
   color: #6c757d;
   font-size: 14px;
   margin: 0;
 }
 
-.header-stats {
+.spm-header-stats {
   display: flex;
   gap: 16px;
 }
 
-.stat-card {
+.spm-stat-card {
   background: #667eea;
   color: white;
   padding: 12px 20px;
@@ -50,13 +50,13 @@
   min-width: 120px;
 }
 
-.stat-label {
+.spm-stat-label {
   font-size: 12px;
   opacity: 0.9;
   margin-bottom: 4px;
 }
 
-.stat-value {
+.spm-stat-value {
   font-size: 28px;
   font-weight: 700;
 }
@@ -374,7 +374,7 @@
     padding: 20px 12px;
   }
 
-  .page-header {
+  .staff-payment-manager-page .spm-page-header {
     flex-direction: column;
     gap: 16px;
   }
