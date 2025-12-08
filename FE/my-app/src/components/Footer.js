@@ -68,7 +68,7 @@ const Footer = () => {
               <div className="contact-multi">
                 <span>0877 999 484</span>
                 <span>0915 232 119</span>
-                <span>1234567890</span>
+                <span>0836 237 476</span>
               </div>
             </li>
             <li>
