@@ -17,12 +17,14 @@ import {
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import './CinemaHallManagement.css';
 
 const CinemaHallManagement = () => {
   const { cinemaId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const cinemaInfo = location.state || {};
   
   const [halls, setHalls] = useState([]);
   const [cinemaName, setCinemaName] = useState('');
@@ -553,7 +555,12 @@ const CinemaHallManagement = () => {
       <div className="hall-management-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button 
-            onClick={() => navigate('/admin/cinemas')}
+            onClick={() => navigate('/admin/cinemas', { 
+              state: { 
+                chainId: cinemaInfo.chainId, 
+                chainName: cinemaInfo.chainName 
+              } 
+            })}
             style={{
               background: 'none',
               border: 'none',

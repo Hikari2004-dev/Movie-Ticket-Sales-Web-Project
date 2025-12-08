@@ -140,7 +140,9 @@ const ShowtimeManagement = () => {
 
       const result = await response.json();
       if (result.success && result.data) {
-        setCinemas(result.data.data || []);
+        // Chỉ lấy các rạp có isActive = true
+        const activeCinemas = (result.data.data || []).filter(cinema => cinema.isActive === true);
+        setCinemas(activeCinemas);
       }
     } catch (error) {
       console.error('Error fetching cinemas:', error);
@@ -160,7 +162,9 @@ const ShowtimeManagement = () => {
 
       const result = await response.json();
       if (result.success && result.data) {
-        setHalls(result.data.data || []);
+        // Chỉ lấy các phòng chiếu có isActive = true
+        const activeHalls = (result.data.data || []).filter(hall => hall.isActive === true);
+        setHalls(activeHalls);
       }
     } catch (error) {
       console.error('Error fetching halls:', error);

@@ -228,7 +228,11 @@ const AdminPaymentManager = () => {
                     </td>
                     <td>
                       <div className="showtime-info">
-                        <div className="showtime-date">{formatDateTime(booking.showtimeStart)}</div>
+                        <div className="showtime-date">
+                          {booking.showDate && booking.startTime 
+                            ? `${new Date(booking.showDate).toLocaleDateString('vi-VN')} - ${booking.startTime}`
+                            : 'N/A'}
+                        </div>
                         <div className="booking-date">Đặt: {formatDateTime(booking.bookingDate)}</div>
                       </div>
                     </td>
