@@ -5,14 +5,19 @@ import aws.movie_ticket_sales_web_project.dto.UpdateProfileRequest;
 import aws.movie_ticket_sales_web_project.dto.UserProfileDto;
 import aws.movie_ticket_sales_web_project.entity.User;
 import aws.movie_ticket_sales_web_project.entity.UserRole;
+import aws.movie_ticket_sales_web_project.entity.Membership;
+import aws.movie_ticket_sales_web_project.entity.MembershipTier;
 import aws.movie_ticket_sales_web_project.repository.UserRepository;
 import aws.movie_ticket_sales_web_project.repository.UserRoleRepository;
+import aws.movie_ticket_sales_web_project.repository.MembershipRepository;
+import aws.movie_ticket_sales_web_project.repository.MembershipTierRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +29,8 @@ public class UserProfileService {
 
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
+    private final MembershipRepository membershipRepository;
+    private final MembershipTierRepository membershipTierRepository;
     private final PasswordEncoder passwordEncoder;
 
     /**
@@ -168,8 +175,58 @@ public class UserProfileService {
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .roles(roles)
-                .loyaltyPoints(0) // TODO: Implement loyalty points from separate table
-                .membershipTier("STANDARD") // TODO: Implement membership tier logic
+                .membership(getMembershipInfo(user.getId()))
                 .build();
+    }
+
+    /**
+     * Fetch membership info from database
+     */
+    private UserProfileDto.MembershipInfo getMembershipInfo(Integer userId) {
+        try {
+            return membershipRepository.findByUserId(userId)
+                    .map(membership -> {
+                        MembershipTier tier = membership.getTier();
+                        
+                        // Tính chi tiêu tối thiểu để lên hạng tiếp
+                        BigDecimal minSpendingForNextTier = null;
+                        String nextTierName = null;
+                        
+                        if (tier != null) {
+                            // Tìm tier tiếp theo (tier level cao hơn, cùng loại)
+                            List<MembershipTier> allTiers = membershipTierRepository.findAll();
+                            MembershipTier nextTier = allTiers.stream()
+                                    .filter(t -> t.getTierLevel() > tier.getTierLevel())
+                                    .min((t1, t2) -> t1.getTierLevel().compareTo(t2.getTierLevel()))
+                                    .orElse(null);
+                            
+                            if (nextTier != null) {
+                                minSpendingForNextTier = nextTier.getMinAnnualSpending();
+                                nextTierName = nextTier.getTierNameDisplay();
+                            }
+                        }
+                        
+                        return UserProfileDto.MembershipInfo.builder()
+                                .membershipNumber(membership.getMembershipNumber())
+                                .tierName(tier != null ? tier.getTierName() : "BRONZE")
+                                .tierNameDisplay(tier != null ? tier.getTierNameDisplay() : "Thành viên Đồng")
+                                .tierLevel(tier != null ? tier.getTierLevel() : 1)
+                                .totalPoints(membership.getTotalPoints())
+                                .availablePoints(membership.getAvailablePoints())
+                                .lifetimeSpending(membership.getLifetimeSpending())
+                                .annualSpending(membership.getAnnualSpending())
+                                .pointsEarnRate(tier != null ? tier.getPointsEarnRate() : BigDecimal.ONE)
+                                .freeTicketsPerYear(tier != null ? tier.getFreeTicketsPerYear() : 0)
+                                .birthdayGift(tier != null ? tier.getBirthdayGiftDescription() : null)
+                                .minSpendingForNextTier(minSpendingForNextTier)
+                                .nextTierName(nextTierName)
+                                .status(membership.getStatus() != null ? membership.getStatus().toString() : "ACTIVE")
+                                .build();
+                    })
+                    .orElse(null);
+        } catch (Exception e) {
+            log.warn("Error fetching membership info for user {}: {}", userId, e.getMessage());
+            return null;
+        }
     }
 }
