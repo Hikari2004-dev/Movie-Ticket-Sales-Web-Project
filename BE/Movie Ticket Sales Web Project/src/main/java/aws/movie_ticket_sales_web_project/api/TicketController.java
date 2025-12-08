@@ -7,6 +7,7 @@ import aws.movie_ticket_sales_web_project.entity.CinemaStaff;
 import aws.movie_ticket_sales_web_project.repository.CinemaRepository;
 import aws.movie_ticket_sales_web_project.repository.CinemaStaffRepository;
 import aws.movie_ticket_sales_web_project.service.TicketCheckInService;
+import aws.movie_ticket_sales_web_project.service.TicketService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,12 +27,9 @@ import java.util.Optional;
 public class TicketController {
     
     private final TicketCheckInService ticketCheckInService;
-<<<<<<< HEAD
-=======
     private final TicketService ticketService;
     private final CinemaStaffRepository cinemaStaffRepository;
     private final CinemaRepository cinemaRepository;
->>>>>>> 13100bc96cbecf8f1c6c598f0a698f17cdfcc54b
     
     /**
      * Check-in ticket at cinema
@@ -43,8 +41,6 @@ public class TicketController {
         ApiResponse<String> response = ticketCheckInService.checkIn(request);
         return ResponseEntity.ok(response);
     }
-<<<<<<< HEAD
-=======
     
     /**
      * Get booking details for staff check-in
@@ -70,7 +66,7 @@ public class TicketController {
                 Map<String, Object> showtime = (Map<String, Object>) details.get("showtime");
                 if (showtime.get("hall") != null) {
                     @SuppressWarnings("unchecked")
-                    Map<String, Object> hall = (Map<String, Object>) showtime.get("hall");
+Map<String, Object> hall = (Map<String, Object>) showtime.get("hall");
                     if (hall.get("cinema") != null) {
                         @SuppressWarnings("unchecked")
                         Map<String, Object> cinema = (Map<String, Object>) hall.get("cinema");
@@ -136,8 +132,7 @@ public class TicketController {
     @PreAuthorize("hasAnyRole('CINEMA_STAFF', 'CINEMA_MANAGER', 'SYSTEM_ADMIN')")
     public ResponseEntity<?> getStaffCinema(@RequestParam Integer staffId) {
         log.info("Getting cinema info for user: {}", staffId);
-        
-        // Check 1: Staff in cinema_staffs table
+// Check 1: Staff in cinema_staffs table
         Optional<CinemaStaff> cinemaStaffOpt = cinemaStaffRepository.findByUserId(staffId);
         
         if (cinemaStaffOpt.isPresent()) {
@@ -177,5 +172,4 @@ public class TicketController {
                 "message", "Bạn chưa được gán vào rạp nào. Vui lòng liên hệ quản lý."
         ));
     }
->>>>>>> 13100bc96cbecf8f1c6c598f0a698f17cdfcc54b
 }
