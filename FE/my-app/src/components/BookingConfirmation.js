@@ -311,7 +311,7 @@ const BookingConfirmation = () => {
   if (!user || !selectedSeats || !showtime) {
     return (
       <div className="booking-confirmation-page">
-        <div className="loading">Đang tải thông tin...</div>
+        <div className="bc-loading">Đang tải thông tin...</div>
       </div>
     );
   }
@@ -322,36 +322,36 @@ const BookingConfirmation = () => {
         <h1 className="booking-confirmation-title">🎬 Xác nhận đặt vé</h1>
 
         {/* Progress Steps */}
-        <div className="booking-progress">
-          <div className={`progress-step ${!showConcessionStep ? 'completed' : 'active'}`}>
-            <div className="step-number">1</div>
-            <div className="step-label">Chọn đồ ăn</div>
+        <div className="bc-booking-progress">
+          <div className={`bc-progress-step ${!showConcessionStep ? 'completed' : 'active'}`}>
+            <div className="bc-step-number">1</div>
+            <div className="bc-step-label">Chọn đồ ăn</div>
           </div>
-          <div className="progress-line"></div>
-          <div className={`progress-step ${!showConcessionStep ? 'active' : ''}`}>
-            <div className="step-number">2</div>
-            <div className="step-label">Thanh toán</div>
+          <div className="bc-progress-line"></div>
+          <div className={`bc-progress-step ${!showConcessionStep ? 'active' : ''}`}>
+            <div className="bc-step-number">2</div>
+            <div className="bc-step-label">Thanh toán</div>
           </div>
         </div>
 
         <div className="booking-confirmation-content">
           {/* Concession Selection Step */}
           {showConcessionStep && (
-            <div className="concession-step">
+            <div className="bc-concession-step">
               <ConcessionSelection 
                 cinemaId={showtime?.cinemaId} 
                 onConcessionChange={handleConcessionChange}
               />
               
-              <div className="concession-step-actions">
+              <div className="bc-concession-step-actions">
                 <button
-                  className="btn-skip-concession"
+                  className="bc-btn-skip-concession"
                   onClick={handleContinueToPayment}
                 >
                   Bỏ qua
                 </button>
                 <button
-                  className="btn-continue-payment"
+                  className="bc-btn-continue-payment"
                   onClick={handleContinueToPayment}
                 >
                   Tiếp tục thanh toán →
@@ -364,59 +364,59 @@ const BookingConfirmation = () => {
           {!showConcessionStep && (
             <>
           {/* Layout 2 cột */}
-          <div className="booking-layout">
+          <div className="bc-booking-layout">
             {/* Cột trái - Thông tin */}
-            <div className="booking-left">
+            <div className="bc-booking-left">
               {/* Thông tin phim */}
-              <div className="booking-card movie-card">
-                <div className="card-header">
+              <div className="bc-booking-card bc-movie-card">
+                <div className="bc-card-header">
                   <h2>🎥 Thông tin suất chiếu</h2>
                 </div>
-                <div className="card-body">
-                  <div className="info-row">
-                    <span className="info-icon">🎬</span>
-                    <div className="info-content">
-                      <span className="info-label">Phim</span>
-                      <span className="info-value">{showtime.movieTitle}</span>
+                <div className="bc-card-body">
+                  <div className="bc-info-row">
+                    <span className="bc-info-icon">🎬</span>
+                    <div className="bc-info-content">
+                      <span className="bc-info-label">Phim</span>
+                      <span className="bc-info-value">{showtime.movieTitle}</span>
                     </div>
                   </div>
-                  <div className="info-row">
-                    <span className="info-icon">🏢</span>
-                    <div className="info-content">
-                      <span className="info-label">Rạp</span>
-                      <span className="info-value">{showtime.cinemaName}</span>
+                  <div className="bc-info-row">
+                    <span className="bc-info-icon">🏢</span>
+                    <div className="bc-info-content">
+                      <span className="bc-info-label">Rạp</span>
+                      <span className="bc-info-value">{showtime.cinemaName}</span>
                     </div>
                   </div>
-                  <div className="info-row">
-                    <span className="info-icon">🚪</span>
-                    <div className="info-content">
-                      <span className="info-label">Phòng chiếu</span>
-                      <span className="info-value">{showtime.hallName}</span>
+                  <div className="bc-info-row">
+                    <span className="bc-info-icon">🚪</span>
+                    <div className="bc-info-content">
+                      <span className="bc-info-label">Phòng chiếu</span>
+                      <span className="bc-info-value">{showtime.hallName}</span>
                     </div>
                   </div>
-                  <div className="info-row">
-                    <span className="info-icon">📅</span>
-                    <div className="info-content">
-                      <span className="info-label">Suất chiếu</span>
-                      <span className="info-value">{formatDateTime(showtime.showDate)}</span>
+                  <div className="bc-info-row">
+                    <span className="bc-info-icon">📅</span>
+                    <div className="bc-info-content">
+                      <span className="bc-info-label">Suất chiếu</span>
+                      <span className="bc-info-value">{formatDateTime(showtime.showDate)}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Ghế đã chọn */}
-              <div className="booking-card seats-card">
-                <div className="card-header">
+              <div className="bc-booking-card bc-seats-card">
+                <div className="bc-card-header">
                   <h2>🪑 Ghế đã chọn</h2>
-                  <span className="seat-count">{selectedSeats.length} ghế</span>
+                  <span className="bc-seat-count">{selectedSeats.length} ghế</span>
                 </div>
-                <div className="card-body">
-                  <div className="seats-grid">
+                <div className="bc-card-body">
+                  <div className="bc-seats-grid">
                     {selectedSeats.map((seat) => (
-                      <div key={seat.seatId} className="seat-badge">
-                        <div className="seat-badge-header">
-                          <span className="seat-badge-label">{seat.seatRow}{seat.seatNumber}</span>
-                          <span className={`seat-badge-type ${seat.seatType.toLowerCase()}`}>
+                      <div key={seat.seatId} className="bc-seat-badge">
+                        <div className="bc-seat-badge-header">
+                          <span className="bc-seat-badge-label">{seat.seatRow}{seat.seatNumber}</span>
+                          <span className={`bc-seat-badge-type ${seat.seatType.toLowerCase()}`}>
                             {seat.seatType}
                           </span>
                         </div>
@@ -428,38 +428,38 @@ const BookingConfirmation = () => {
 
               {/* Voucher */}
               {/* Phương thức thanh toán */}
-              <div className="booking-card payment-card">
-                <div className="card-header">
+              <div className="bc-booking-card bc-payment-card">
+                <div className="bc-card-header">
                   <h2>🏦 Phương thức thanh toán</h2>
                 </div>
-                <div className="card-body">
-                  <div className="payment-info-box">
-                    <div className="payment-method-display">
-                      <span className="payment-icon">🏦</span>
-                      <div className="payment-info">
-                        <span className="payment-name">Chuyển khoản ngân hàng</span>
-                        <span className="payment-desc">Quét mã QR để thanh toán nhanh</span>
+                <div className="bc-card-body">
+                  <div className="bc-payment-info-box">
+                    <div className="bc-payment-method-display">
+                      <span className="bc-payment-icon">🏦</span>
+                      <div className="bc-payment-info">
+                        <span className="bc-payment-name">Chuyển khoản ngân hàng</span>
+                        <span className="bc-payment-desc">Quét mã QR để thanh toán nhanh</span>
                       </div>
                     </div>
                   </div>
 
                   {showQRCode && qrCodeUrl && (
-                    <div className="qr-code-section">
-                      <div className="qr-code-header">
-                        <span className="qr-icon">📱</span>
+                    <div className="bc-qr-code-section">
+                      <div className="bc-qr-code-header">
+                        <span className="bc-qr-icon">📱</span>
                         <h3>Quét mã QR để thanh toán</h3>
                       </div>
-                      <div className="qr-code-container">
-                        <img src={qrCodeUrl} alt="VietQR Payment" className="qr-code-image" />
+                      <div className="bc-qr-code-container">
+                        <img src={qrCodeUrl} alt="VietQR Payment" className="bc-qr-code-image" />
                       </div>
-                      <div className="qr-instructions">
+                      <div className="bc-qr-instructions">
                         <p>1. Mở ứng dụng ngân hàng của bạn</p>
                         <p>2. Quét mã QR phía trên</p>
                         <p>3. Kiểm tra thông tin và xác nhận thanh toán</p>
-                        <p className="qr-note">⚠️ Vui lòng không thay đổi nội dung chuyển khoản</p>
+                        <p className="bc-qr-note">⚠️ Vui lòng không thay đổi nội dung chuyển khoản</p>
                       </div>
                       <button 
-                        className="btn-payment-confirmed"
+                        className="bc-btn-payment-confirmed"
                         onClick={handlePaymentConfirmed}
                       >
                         ✓ Tôi đã thanh toán
@@ -471,24 +471,24 @@ const BookingConfirmation = () => {
 
               {/* Đồ ăn đã chọn */}
               {concessionData.items.length > 0 && (
-                <div className="booking-card concession-summary-card">
-                  <div className="card-header">
+                <div className="bc-booking-card bc-concession-summary-card">
+                  <div className="bc-card-header">
                     <h2>🍿 Đồ ăn & Nước uống</h2>
                     <button 
-                      className="btn-edit-concession"
+                      className="bc-btn-edit-concession"
                       onClick={() => setShowConcessionStep(true)}
                     >
                       ✏️ Sửa
                     </button>
                   </div>
-                  <div className="card-body">
+                  <div className="bc-card-body">
                     {concessionData.items.map((item, index) => (
-                      <div key={index} className="concession-item-row">
-                        <div className="concession-item-info">
-                          <span className="concession-item-name">{item.itemName}</span>
-                          <span className="concession-item-qty">x{item.quantity}</span>
+                      <div key={index} className="bc-concession-item-row">
+                        <div className="bc-concession-item-info">
+                          <span className="bc-concession-item-name">{item.itemName}</span>
+                          <span className="bc-concession-item-qty">x{item.quantity}</span>
                         </div>
-                        <span className="concession-item-price">{formatCurrency(item.total)}</span>
+                        <span className="bc-concession-item-price">{formatCurrency(item.total)}</span>
                       </div>
                     ))}
                   </div>
@@ -496,68 +496,68 @@ const BookingConfirmation = () => {
               )}
 
               {/* Tổng tiền */}
-              <div className="booking-card summary-card">
-                <div className="card-header">
+              <div className="bc-booking-card bc-summary-card">
+                <div className="bc-card-header">
                   <h2>💰 Chi tiết thanh toán</h2>
                 </div>
-                <div className="card-body">
-                  <div className="summary-section">
-                    <div className="summary-section-title">🎫 Vé xem phim</div>
-                    <div className="summary-row">
-                      <span className="summary-label">Giá vé ({selectedSeats.length} ghế × {formatCurrency(showtime.basePrice || 0)})</span>
-                      <span className="summary-value">{formatCurrency(priceDetails.subtotal)}</span>
+                <div className="bc-card-body">
+                  <div className="bc-summary-section">
+                    <div className="bc-summary-section-title">🎫 Vé xem phim</div>
+                    <div className="bc-summary-row">
+                      <span className="bc-summary-label">Giá vé ({selectedSeats.length} ghế × {formatCurrency(showtime.basePrice || 0)})</span>
+                      <span className="bc-summary-value">{formatCurrency(priceDetails.subtotal)}</span>
                     </div>
-                    <div className="summary-row">
-                      <span className="summary-label">Phí dịch vụ ({selectedSeats.length} × {formatCurrency(SERVICE_FEE_PER_TICKET)})</span>
-                      <span className="summary-value">{formatCurrency(priceDetails.serviceFee)}</span>
+                    <div className="bc-summary-row">
+                      <span className="bc-summary-label">Phí dịch vụ ({selectedSeats.length} × {formatCurrency(SERVICE_FEE_PER_TICKET)})</span>
+                      <span className="bc-summary-value">{formatCurrency(priceDetails.serviceFee)}</span>
                     </div>
-                    <div className="summary-row">
-                      <span className="summary-label">Thuế VAT (10%)</span>
-                      <span className="summary-value">{formatCurrency(priceDetails.tax)}</span>
+                    <div className="bc-summary-row">
+                      <span className="bc-summary-label">Thuế VAT (10%)</span>
+                      <span className="bc-summary-value">{formatCurrency(priceDetails.tax)}</span>
                     </div>
-                    <div className="summary-row subtotal-row">
-                      <span className="summary-label">Tạm tính vé</span>
-                      <span className="summary-value">{formatCurrency(priceDetails.total)}</span>
+                    <div className="bc-summary-row bc-subtotal-row">
+                      <span className="bc-summary-label">Tạm tính vé</span>
+                      <span className="bc-summary-value">{formatCurrency(priceDetails.total)}</span>
                     </div>
                   </div>
 
                   {concessionData.total > 0 && (
-                    <div className="summary-section">
-                      <div className="summary-section-title">🍿 Đồ ăn & Nước</div>
-                      <div className="summary-row">
-                        <span className="summary-label">{concessionData.items.length} món</span>
-                        <span className="summary-value">{formatCurrency(concessionData.total)}</span>
+                    <div className="bc-summary-section">
+                      <div className="bc-summary-section-title">🍿 Đồ ăn & Nước</div>
+                      <div className="bc-summary-row">
+                        <span className="bc-summary-label">{concessionData.items.length} món</span>
+                        <span className="bc-summary-value">{formatCurrency(concessionData.total)}</span>
                       </div>
                     </div>
                   )}
 
                   {/* Points Redemption Section */}
                   {pointsBalance && pointsBalance.availablePoints > 0 && !showQRCode && (
-                    <div className="summary-section points-section">
-                      <div className="summary-section-title">🎁 Sử dụng điểm thưởng</div>
-                      <div className="points-info-box">
-                        <div className="points-balance">
-                          <span className="points-label">Điểm hiện có:</span>
-                          <span className="points-value">{pointsBalance.availablePoints.toLocaleString()} điểm</span>
+                    <div className="bc-summary-section bc-points-section">
+                      <div className="bc-summary-section-title">🎁 Sử dụng điểm thưởng</div>
+                      <div className="bc-points-info-box">
+                        <div className="bc-points-balance">
+                          <span className="bc-points-label">Điểm hiện có:</span>
+                          <span className="bc-points-value">{pointsBalance.availablePoints.toLocaleString()} điểm</span>
                         </div>
-                        <div className="points-rate">
-                          <span className="points-hint">💡 1 điểm = 1,000 VND (Tối đa giảm 50%)</span>
+                        <div className="bc-points-rate">
+                          <span className="bc-points-hint">💡 1 điểm = 1,000 VND (Tối đa giảm 50%)</span>
                         </div>
                       </div>
-                      <div className="points-input-group">
+                      <div className="bc-points-input-group">
                         <input
                           type="number"
-                          className="points-input"
+                          className="bc-points-input"
                           value={pointsToUse}
                           onChange={handlePointsChange}
                           min="0"
                           max={pointsBalance.availablePoints}
                           placeholder="Nhập số điểm muốn dùng"
                         />
-                        <div className="points-buttons">
+                        <div className="bc-points-buttons">
                           <button 
                             type="button" 
-                            className="btn-use-all-points"
+                            className="bc-btn-use-all-points"
                             onClick={handleUseAllPoints}
                           >
                             Dùng tối đa
@@ -565,7 +565,7 @@ const BookingConfirmation = () => {
                           {pointsToUse > 0 && (
                             <button 
                               type="button" 
-                              className="btn-clear-points"
+                              className="bc-btn-clear-points"
                               onClick={handleClearPoints}
                             >
                               Xóa
@@ -574,7 +574,7 @@ const BookingConfirmation = () => {
                         </div>
                       </div>
                       {pointsToUse > 0 && (
-                        <div className="points-discount-preview">
+                        <div className="bc-points-discount-preview">
                           <span className="discount-label">Giảm giá từ điểm:</span>
                           <span className="discount-amount">- {formatCurrency(pointsDiscount)}</span>
                         </div>
@@ -583,20 +583,20 @@ const BookingConfirmation = () => {
                   )}
 
                   {pointsDiscount > 0 && (
-                    <div className="summary-row points-discount-row">
-                      <span className="summary-label">🎁 Giảm giá điểm ({pointsToUse} điểm)</span>
-                      <span className="summary-value discount">- {formatCurrency(pointsDiscount)}</span>
+                    <div className="bc-summary-row bc-points-discount-row">
+                      <span className="bc-summary-label">🎁 Giảm giá điểm ({pointsToUse} điểm)</span>
+                      <span className="bc-summary-value discount">- {formatCurrency(pointsDiscount)}</span>
                     </div>
                   )}
 
                   {priceDetails.discount > 0 && (
-                    <div className="summary-row">
-                      <span className="summary-label">Giảm giá</span>
-                      <span className="summary-value discount">- {formatCurrency(priceDetails.discount)}</span>
+                    <div className="bc-summary-row">
+                      <span className="bc-summary-label">Giảm giá</span>
+                      <span className="bc-summary-value discount">- {formatCurrency(priceDetails.discount)}</span>
                     </div>
                   )}
-                  <div className="summary-divider"></div>
-                  <div className="summary-total">
+                  <div className="bc-summary-divider"></div>
+                  <div className="bc-summary-total">
                     <span className="total-label">Tổng thanh toán</span>
                     <span className="total-amount">{formatCurrency(grandTotal)}</span>
                   </div>
@@ -604,24 +604,24 @@ const BookingConfirmation = () => {
               </div>
 
               {/* Action buttons */}
-              <div className="booking-actions">
+              <div className="bc-booking-actions">
                 {!showQRCode ? (
                   <>
                     <button
-                      className="btn-back"
+                      className="bc-btn-back"
                       onClick={() => navigate(-1)}
                       disabled={isProcessing}
                     >
                       ← Quay lại
                     </button>
                     <button
-                      className="btn-confirm"
+                      className="bc-btn-confirm"
                       onClick={handleConfirmBooking}
                       disabled={isProcessing || selectedSeats.length === 0}
                     >
                       {isProcessing ? (
                         <>
-                          <span className="spinner"></span>
+                          <span className="bc-spinner"></span>
                           Đang xử lý...
                         </>
                       ) : (
@@ -634,7 +634,7 @@ const BookingConfirmation = () => {
                   </>
                 ) : (
                   <button
-                    className="btn-confirm btn-center"
+                    className="bc-btn-confirm btn-center"
                     onClick={() => navigate('/bookings')}
                   >
                     📋 Xem lịch sử đặt vé

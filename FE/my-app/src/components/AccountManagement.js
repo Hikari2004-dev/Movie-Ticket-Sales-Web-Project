@@ -265,31 +265,31 @@ const AccountManagement = () => {
 
   return (
     <div className="account-management">
-      <div className="page-header">
-        <div className="header-left">
-          <FaUsers className="page-icon" />
+      <div className="am-page-header">
+        <div className="am-header-left">
+          <FaUsers className="am-page-icon" />
           <div>
             <h1>Quản lý tài khoản</h1>
-            <p className="page-description">Quản lý người dùng và phân quyền hệ thống</p>
+            <p className="am-page-description">Quản lý người dùng và phân quyền hệ thống</p>
           </div>
         </div>
-        <div className="header-stats">
-          <div className="stat-card">
-            <div className="stat-value">{users.length}</div>
-            <div className="stat-label">Tổng người dùng</div>
+        <div className="am-header-stats">
+          <div className="am-stat-card">
+            <div className="am-stat-value">{users.length}</div>
+            <div className="am-stat-label">Tổng người dùng</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-value">{users.filter(u => u.roles.includes('SYSTEM_ADMIN')).length}</div>
-            <div className="stat-label">Quản trị viên</div>
+          <div className="am-stat-card">
+            <div className="am-stat-value">{users.filter(u => u.roles.includes('SYSTEM_ADMIN')).length}</div>
+            <div className="am-stat-label">Quản trị viên</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-value">{users.filter(u => u.roles.includes('CUSTOMER')).length}</div>
-            <div className="stat-label">Khách hàng</div>
+          <div className="am-stat-card">
+            <div className="am-stat-value">{users.filter(u => u.roles.includes('CUSTOMER')).length}</div>
+            <div className="am-stat-label">Khách hàng</div>
           </div>
         </div>
       </div>
 
-      <div className="filters-section">
+      <div className="am-filters-section">
         <div className="search-box">
           <FaSearch className="search-icon" />
           <input

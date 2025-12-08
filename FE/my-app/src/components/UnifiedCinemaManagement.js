@@ -614,9 +614,9 @@ const UnifiedCinemaManagement = () => {
   return (
     <div className="unified-cinema-management">
       {/* Page Header */}
-      <div className="page-header">
-        <div className="page-title-section">
-          <FaBuilding className="page-icon" />
+      <div className="ucm-page-header">
+        <div className="ucm-page-title-section">
+          <FaBuilding className="ucm-page-icon" />
           <h1>Quản lý rạp chiếu phim</h1>
         </div>
         {userRole === 'SYSTEM_ADMIN' && (

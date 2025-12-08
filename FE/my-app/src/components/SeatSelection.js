@@ -384,8 +384,8 @@ const SeatSelection = () => {
     <div className="seat-selection-page">
       <div className="seat-selection-header">
         {/* Cột trái: Nút quay lại + Rạp + Ngày giờ */}
-        <div className="header-left">
-          <button className="btn-back" onClick={() => navigate(-1)}>
+        <div className="ss-header-left">
+          <button className="ss-btn-back" onClick={() => navigate(-1)}>
             <FaArrowLeft /> Quay lại
           </button>
           <div className="location-time">

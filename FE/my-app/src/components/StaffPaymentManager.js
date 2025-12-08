@@ -155,15 +155,15 @@ const StaffPaymentManager = () => {
     <div className="staff-payment-manager-page">
       <div className="staff-payment-manager-container">
         {/* Header */}
-        <div className="page-header">
-          <div className="header-content">
+        <div className="spm-page-header">
+          <div className="spm-header-content">
             <h1>💳 Quản Lý Thanh Toán</h1>
-            <p className="header-subtitle">Xác nhận thanh toán cho các booking chờ xử lý</p>
+            <p className="spm-header-subtitle">Xác nhận thanh toán cho các booking chờ xử lý</p>
           </div>
-          <div className="header-stats">
-            <div className="stat-card">
-              <span className="stat-label">Tổng chờ xử lý</span>
-              <span className="stat-value">{totalElements}</span>
+          <div className="spm-header-stats">
+            <div className="spm-stat-card">
+              <span className="spm-stat-label">Tổng chờ xử lý</span>
+              <span className="spm-stat-value">{totalElements}</span>
             </div>
           </div>
         </div>

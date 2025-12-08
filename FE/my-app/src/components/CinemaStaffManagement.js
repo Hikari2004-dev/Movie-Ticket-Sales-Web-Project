@@ -237,7 +237,7 @@ const CinemaStaffManagement = () => {
 
   return (
     <div className="cinema-staff-management">
-      <div className="page-header">
+      <div className="csm-page-header">
         <h1><FaUserTie /> Quản lý nhân viên rạp</h1>
         <button 
           className="btn-primary"
