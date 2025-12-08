@@ -4,8 +4,8 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { API_BASE_URL } from '../config/api';
-import { AiOutlineEdit, AiOutlineSave, AiOutlineClose } from 'react-icons/ai';
-import { FaUser, FaEnvelope, FaPhone, FaBirthdayCake, FaVenusMars, FaCrown, FaTicketAlt } from 'react-icons/fa';
+import { AiOutlineEdit, AiOutlineSave, AiOutlineClose, AiOutlineLock, AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
+import { FaUser, FaEnvelope, FaPhone, FaBirthdayCake, FaVenusMars, FaCrown, FaTicketAlt, FaKey } from 'react-icons/fa';
 import './ProfilePage.css';
 
 const ProfilePage = () => {
@@ -19,6 +19,20 @@ const ProfilePage = () => {
     dateOfBirth: '',
     gender: ''
   });
+  
+  // State cho đổi mật khẩu
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   useEffect(() => {
     fetchUserProfile();
@@ -30,13 +44,16 @@ const ProfilePage = () => {
       const storedUser = localStorage.getItem('user');
       console.log('Stored user from localStorage:', storedUser);
       
+      let userId = null;
       if (storedUser && storedUser !== 'undefined') {
         const userData = JSON.parse(storedUser);
-        console.log('Parsed user data:', userData);
+        // Support both 'id' and 'userId' fields
+        userId = userData.id || userData.userId;
+        console.log('Parsed user data:', userData, 'userId:', userId);
         setUser(userData);
         setEditForm({
           fullName: userData.fullName || '',
-          phoneNumber: userData.phoneNumber || '',
+          phoneNumber: userData.phoneNumber || userData.phone || '',
           dateOfBirth: userData.dateOfBirth || '',
           gender: userData.gender || ''
         });
@@ -47,7 +64,7 @@ const ProfilePage = () => {
       
       if (!token) {
         // Nếu không có token nhưng có user trong localStorage
-        if (storedUser) {
+        if (storedUser && storedUser !== 'undefined') {
           setIsLoading(false);
           toast.info('Hiển thị thông tin từ bộ nhớ cache');
           return;
@@ -58,9 +75,15 @@ const ProfilePage = () => {
       }
 
       // Thử call API để lấy thông tin mới nhất
+      if (!userId) {
+        toast.error('Không tìm thấy thông tin người dùng');
+        navigate('/login');
+        return;
+      }
+      
       try {
         console.log('Fetching profile from API...');
-        const response = await axios.get(`${API_BASE_URL}/users/profile`, {
+        const response = await axios.get(`${API_BASE_URL}/users/${userId}/profile`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -70,16 +93,25 @@ const ProfilePage = () => {
 
         if (response.data.success) {
           const userData = response.data.data;
-          setUser(userData);
+          // Map userId to id for consistency with localStorage
+          const userDataWithId = {
+            ...userData,
+            id: userData.userId || userData.id
+          };
+          setUser(userDataWithId);
           setEditForm({
-            fullName: userData.fullName || '',
-            phoneNumber: userData.phoneNumber || '',
-            dateOfBirth: userData.dateOfBirth || '',
-            gender: userData.gender || ''
+            fullName: userDataWithId.fullName || '',
+            phoneNumber: userDataWithId.phoneNumber || '',
+            dateOfBirth: userDataWithId.dateOfBirth || '',
+            gender: userDataWithId.gender || ''
           });
           
-          // Update localStorage
-          localStorage.setItem('user', JSON.stringify(userData));
+          // Update localStorage - merge với data cũ để giữ lại id
+          const existingUser = JSON.parse(localStorage.getItem('user') || '{}');
+          localStorage.setItem('user', JSON.stringify({
+            ...existingUser,
+            ...userDataWithId
+          }));
           toast.success('Thông tin đã được cập nhật');
         }
       } catch (apiError) {
@@ -132,8 +164,11 @@ const ProfilePage = () => {
   const handleSaveProfile = async () => {
     try {
       const token = Cookies.get('accessToken');
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const userId = storedUser.id || storedUser.userId;
+      
       const response = await axios.put(
-        `${API_BASE_URL}/users/profile`,
+        `${API_BASE_URL}/users/${userId}/profile`,
         editForm,
         {
           headers: {
@@ -144,14 +179,18 @@ const ProfilePage = () => {
 
       if (response.data.success) {
         toast.success('Cập nhật thông tin thành công!');
-        setUser(response.data.data);
+        // Map userId to id for consistency
+        const updatedData = {
+          ...response.data.data,
+          id: response.data.data.userId || response.data.data.id || userId
+        };
+        setUser(updatedData);
         setIsEditing(false);
         
         // Update localStorage
-        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
         localStorage.setItem('user', JSON.stringify({
           ...storedUser,
-          ...response.data.data
+          ...updatedData
         }));
         
         // Dispatch event to update header
@@ -176,6 +215,90 @@ const ProfilePage = () => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('vi-VN');
+  };
+
+  // Hàm xử lý đổi mật khẩu
+  const handlePasswordInputChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
+
+  const handleOpenPasswordModal = () => {
+    setShowPasswordModal(true);
+    setPasswordForm({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+  };
+
+  const handleClosePasswordModal = () => {
+    setShowPasswordModal(false);
+    setPasswordForm({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+  };
+
+  const handleChangePassword = async () => {
+    // Validate
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      toast.error('Vui lòng điền đầy đủ thông tin');
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      toast.error('Mật khẩu mới phải có ít nhất 6 ký tự');
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error('Mật khẩu xác nhận không khớp');
+      return;
+    }
+
+    try {
+      setIsChangingPassword(true);
+      const token = Cookies.get('accessToken');
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const userId = storedUser.id || storedUser.userId;
+      
+      const response = await axios.put(
+        `${API_BASE_URL}/users/${userId}/password`,
+        {
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+          confirmPassword: passwordForm.confirmPassword
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data.success) {
+        toast.success('Đổi mật khẩu thành công!');
+        handleClosePasswordModal();
+      }
+    } catch (error) {
+      console.error('Error changing password:', error);
+      const errorMessage = error.response?.data?.message || 'Không thể đổi mật khẩu';
+      toast.error(errorMessage);
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   if (isLoading) {
@@ -346,9 +469,106 @@ const ProfilePage = () => {
               <FaTicketAlt />
               <span>Lịch Sử Đặt Vé</span>
             </button>
+            <button className="action-btn change-password-btn" onClick={handleOpenPasswordModal}>
+              <FaKey />
+              <span>Đổi Mật Khẩu</span>
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Password Change Modal */}
+      {showPasswordModal && (
+        <div className="password-modal-overlay" onClick={handleClosePasswordModal}>
+          <div className="password-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="password-modal-header">
+              <h2><AiOutlineLock /> Đổi Mật Khẩu</h2>
+              <button className="close-modal-btn" onClick={handleClosePasswordModal}>
+                <AiOutlineClose />
+              </button>
+            </div>
+            
+            <div className="password-modal-body">
+              <div className="password-field">
+                <label>Mật khẩu hiện tại</label>
+                <div className="password-input-wrapper">
+                  <input
+                    type={showPasswords.current ? 'text' : 'password'}
+                    name="currentPassword"
+                    value={passwordForm.currentPassword}
+                    onChange={handlePasswordInputChange}
+                    placeholder="Nhập mật khẩu hiện tại"
+                  />
+                  <button 
+                    type="button" 
+                    className="toggle-password-btn"
+                    onClick={() => togglePasswordVisibility('current')}
+                  >
+                    {showPasswords.current ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="password-field">
+                <label>Mật khẩu mới</label>
+                <div className="password-input-wrapper">
+                  <input
+                    type={showPasswords.new ? 'text' : 'password'}
+                    name="newPassword"
+                    value={passwordForm.newPassword}
+                    onChange={handlePasswordInputChange}
+                    placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)"
+                  />
+                  <button 
+                    type="button" 
+                    className="toggle-password-btn"
+                    onClick={() => togglePasswordVisibility('new')}
+                  >
+                    {showPasswords.new ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="password-field">
+                <label>Xác nhận mật khẩu mới</label>
+                <div className="password-input-wrapper">
+                  <input
+                    type={showPasswords.confirm ? 'text' : 'password'}
+                    name="confirmPassword"
+                    value={passwordForm.confirmPassword}
+                    onChange={handlePasswordInputChange}
+                    placeholder="Nhập lại mật khẩu mới"
+                  />
+                  <button 
+                    type="button" 
+                    className="toggle-password-btn"
+                    onClick={() => togglePasswordVisibility('confirm')}
+                  >
+                    {showPasswords.confirm ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="password-modal-footer">
+              <button 
+                className="cancel-password-btn" 
+                onClick={handleClosePasswordModal}
+                disabled={isChangingPassword}
+              >
+                Hủy
+              </button>
+              <button 
+                className="save-password-btn" 
+                onClick={handleChangePassword}
+                disabled={isChangingPassword}
+              >
+                {isChangingPassword ? 'Đang xử lý...' : 'Đổi Mật Khẩu'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

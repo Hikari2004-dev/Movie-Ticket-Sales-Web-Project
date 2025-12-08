@@ -20,7 +20,8 @@ import {
   FaBuilding,
   FaUtensils,
   FaBoxes,
-  FaShoppingCart
+  FaShoppingCart,
+  FaUserTie
 } from 'react-icons/fa';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
@@ -131,6 +132,14 @@ const AdminLayout = () => {
       description: 'Quản lý tài khoản người dùng',
       section: 'users',
       hidden: isCinemaManager
+    },
+    // Quản lý nhân viên rạp - cho Manager và Admin
+    {
+      title: 'Quản lý nhân viên',
+      icon: <FaUserTie />,
+      path: '/admin/cinema-staffs',
+      description: 'Gán nhân viên vào rạp',
+      section: 'users'
     }
   ];
 

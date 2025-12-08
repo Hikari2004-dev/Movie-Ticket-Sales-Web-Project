@@ -345,4 +345,93 @@ public class EmailService {
             log.error("Error sending refund email for booking: {}", booking.getBookingCode(), e);
         }
     }
+    
+    /**
+     * Gửi email reset password với mã xác nhận
+     */
+    @Async
+    public void sendPasswordResetEmail(String toEmail, String resetCode, String fullName) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("🎬 CineTicket - Mã Xác Nhận Đặt Lại Mật Khẩu");
+            
+            String htmlContent = buildPasswordResetEmailTemplate(resetCode, fullName);
+            helper.setText(htmlContent, true);
+            
+            mailSender.send(message);
+            log.info("Password reset email sent successfully to: {}", toEmail);
+            
+        } catch (Exception e) {
+            log.error("Failed to send password reset email to: {}", toEmail, e);
+            throw new RuntimeException("Không thể gửi email. Vui lòng thử lại sau.");
+        }
+    }
+    
+    /**
+     * Template HTML cho email reset password
+     */
+    private String buildPasswordResetEmailTemplate(String resetCode, String fullName) {
+        String name = (fullName != null && !fullName.isBlank()) ? fullName : "Quý khách";
+        
+        return String.format("""
+            <!DOCTYPE html>
+            <html lang="vi">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Đặt Lại Mật Khẩu</title>
+            </head>
+            <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <div style="background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); border-radius: 20px 20px 0 0; padding: 40px 30px; text-align: center;">
+                        <h1 style="color: white; margin: 0; font-size: 28px;">🎬 CineTicket</h1>
+                        <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Hệ Thống Đặt Vé Xem Phim Trực Tuyến</p>
+                    </div>
+                    
+                    <div style="background: white; padding: 40px 30px; border-radius: 0 0 20px 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+                        <h2 style="color: #333; margin: 0 0 20px 0; font-size: 22px;">Xin chào %s,</h2>
+                        
+                        <p style="color: #666; line-height: 1.6; margin-bottom: 25px;">
+                            Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. 
+                            Vui lòng sử dụng mã xác nhận bên dưới để hoàn tất quá trình:
+                        </p>
+                        
+                        <div style="background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); border-radius: 15px; padding: 30px; text-align: center; margin: 30px 0;">
+                            <p style="color: rgba(255,255,255,0.9); margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Mã Xác Nhận</p>
+                            <p style="color: white; font-size: 36px; font-weight: bold; margin: 0; letter-spacing: 8px; font-family: 'Courier New', monospace;">%s</p>
+                        </div>
+                        
+                        <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px 20px; border-radius: 8px; margin: 25px 0;">
+                            <p style="color: #856404; margin: 0; font-size: 14px;">
+                                ⏰ <strong>Lưu ý:</strong> Mã xác nhận này có hiệu lực trong <strong>15 phút</strong>.
+                            </p>
+                        </div>
+                        
+                        <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                            Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này. 
+                            Tài khoản của bạn vẫn an toàn.
+                        </p>
+                        
+                        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+                        
+                        <p style="color: #999; font-size: 12px; text-align: center; margin: 0;">
+                            Email này được gửi tự động từ hệ thống CineTicket.<br>
+                            Vui lòng không trả lời email này.
+                        </p>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 20px;">
+                        <p style="color: #999; font-size: 12px; margin: 0;">
+                            © 2024 CineTicket. All rights reserved.
+                        </p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """, name, resetCode);
+    }
 }

@@ -152,6 +152,9 @@
 
 .checkbox-group {
   margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .checkbox-label {
@@ -172,6 +175,18 @@
 
 .checkbox-label span {
   user-select: none;
+}
+
+.forgot-password-link {
+  color: #0099ff;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.forgot-password-link:hover {
+  color: #0077cc;
+  text-decoration: underline;
 }
 
 .privacy-link {

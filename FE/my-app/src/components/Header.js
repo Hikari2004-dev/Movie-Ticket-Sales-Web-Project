@@ -39,12 +39,14 @@ const Header = () => {
     // Kiểm tra user trong localStorage khi component mount
     const checkUser = async () => {
       const userData = localStorage.getItem('user');
-      if (userData && userData !== 'undefined') {
+      const token = Cookies.get('accessToken');
+      
+      if (userData && userData !== 'undefined' && token) {
         try {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
           
-          // Fetch loyalty points
+          // Fetch loyalty points - only if token exists
           if (parsedUser.userId) {
             try {
               const balance = await loyaltyService.getPointsBalance(parsedUser.userId);
@@ -69,7 +71,9 @@ const Header = () => {
     // Hàm refresh chỉ points (không check lại user)
     const refreshPoints = async () => {
       const userData = localStorage.getItem('user');
-      if (userData && userData !== 'undefined') {
+      const token = Cookies.get('accessToken');
+      
+      if (userData && userData !== 'undefined' && token) {
         try {
           const parsedUser = JSON.parse(userData);
           if (parsedUser.userId) {

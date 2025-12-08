@@ -107,6 +107,7 @@ public class SecurityConfig {
 
                         // Public authentication endpoints
                         .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/password/**").permitAll() // Password reset endpoints
                         .requestMatchers(HttpMethod.GET, "/api/auth/check-admin").authenticated()
 
                         // Admin-only movie endpoints (must come BEFORE the permitAll GET)
@@ -214,19 +215,21 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/concessions/orders/booking/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/concessions/orders/user/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/concessions/orders/cinema/**").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
-                        .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/status").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/api/concessions/orders/staff/**").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER", "CINEMA_STAFF")
+                        .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/status").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER", "CINEMA_STAFF")
                         .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/confirm").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/prepare").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER", "CINEMA_STAFF")
+                        .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/ready").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER", "CINEMA_STAFF")
+                        .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/complete").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER", "CINEMA_STAFF")
+                        .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/cancel").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER", "CINEMA_STAFF")
+                        .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/notes").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER", "CINEMA_STAFF")
+                        .requestMatchers(HttpMethod.GET, "/api/concessions/orders/**").authenticated()
                         
                         // Loyalty points (public balance check for booking, authenticated for history)
                         .requestMatchers(HttpMethod.GET, "/api/loyalty/points/balance/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/loyalty/points/preview").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/loyalty/points/history/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/loyalty/points/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/prepare").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
-                        .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/ready").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
-                        .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/complete").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN", "CINEMA_MANAGER")
-                        .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/cancel").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/concessions/orders/**").authenticated()
 
                         // ==================== PAYMENT ENDPOINTS ====================
                         // PRODUCTION: Require authentication for all payment operations
