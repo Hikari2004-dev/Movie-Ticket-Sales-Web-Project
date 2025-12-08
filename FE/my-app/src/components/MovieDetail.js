@@ -67,10 +67,21 @@ const MovieDetail = () => {
       
       if (response.success && response.data) {
         setShowtimes(response.data);
-        // Set first available date as selected
+        // Set first valid date as selected (from today onwards)
         if (response.data.length > 0) {
-          const dates = [...new Set(response.data.map(s => s.showDate))];
-          setSelectedDate(dates[0]);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          
+          const sellingShowtimes = response.data.filter(s => s.status === 'SELLING');
+          const dates = [...new Set(sellingShowtimes.map(s => s.showDate))];
+          const validDates = dates.filter(date => {
+            const showDate = new Date(date + 'T00:00:00');
+            return showDate >= today;
+          }).sort();
+          
+          if (validDates.length > 0) {
+            setSelectedDate(validDates[0]);
+          }
         }
       }
     } catch (error) {
