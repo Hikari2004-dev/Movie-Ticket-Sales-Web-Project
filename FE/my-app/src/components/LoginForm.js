@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -226,6 +226,9 @@ const LoginForm = () => {
                 <input type="checkbox" {...register('rememberMe')} />
                 <span>Lưu mật khẩu đăng nhập</span>
               </label>
+              <Link to="/forgot-password" className="forgot-password-link">
+                Quên mật khẩu?
+              </Link>
             </div>
 
             <button type="submit" className="submit-button" disabled={isLoading}>

@@ -15,10 +15,11 @@ import java.util.Optional;
 public interface ConcessionOrderRepository extends JpaRepository<ConcessionOrder, Integer> {
 
     /**
-     * Tìm order theo id với user fetch
+     * Tìm order theo id với user và cinema fetch
      */
     @Query("SELECT co FROM ConcessionOrder co " +
            "LEFT JOIN FETCH co.user " +
+           "LEFT JOIN FETCH co.cinema " +
            "WHERE co.id = :id")
     Optional<ConcessionOrder> findByIdWithUser(@Param("id") Integer id);
 
@@ -56,6 +57,19 @@ public interface ConcessionOrderRepository extends JpaRepository<ConcessionOrder
     List<ConcessionOrder> findByCinemaIdAndStatus(
             @Param("cinemaId") Integer cinemaId,
             @Param("status") ConcessionOrderStatus status
+    );
+
+    /**
+     * Tìm orders theo cinema, loại trừ một status cụ thể (dành cho staff)
+     */
+    @Query("SELECT co FROM ConcessionOrder co " +
+           "LEFT JOIN FETCH co.user " +
+           "WHERE co.cinema.id = :cinemaId " +
+           "AND co.status != :excludeStatus " +
+           "ORDER BY co.createdAt DESC")
+    List<ConcessionOrder> findByCinemaIdExcludingStatus(
+            @Param("cinemaId") Integer cinemaId,
+            @Param("excludeStatus") ConcessionOrderStatus excludeStatus
     );
 
     /**

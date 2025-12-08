@@ -1,10 +1,13 @@
 package aws.movie_ticket_sales_web_project.service;
 
 import aws.movie_ticket_sales_web_project.entity.Booking;
+import aws.movie_ticket_sales_web_project.entity.Cinema;
 import aws.movie_ticket_sales_web_project.entity.Ticket;
 import aws.movie_ticket_sales_web_project.entity.User;
 import aws.movie_ticket_sales_web_project.enums.TicketStatus;
 import aws.movie_ticket_sales_web_project.repository.BookingRepository;
+import aws.movie_ticket_sales_web_project.repository.CinemaRepository;
+import aws.movie_ticket_sales_web_project.repository.CinemaStaffRepository;
 import aws.movie_ticket_sales_web_project.repository.TicketRepository;
 import aws.movie_ticket_sales_web_project.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +19,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,9 +30,12 @@ public class TicketService {
     private final BookingRepository bookingRepository;
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
+    private final CinemaStaffRepository cinemaStaffRepository;
+    private final CinemaRepository cinemaRepository;
 
     /**
      * Get booking details for check-in (staff use)
+     * Staff có thể xem tất cả booking details nhưng chỉ check-in được của rạp mình
      */
     @Transactional(readOnly = true)
     public Map<String, Object> getBookingDetailsForCheckIn(String bookingCode) {
@@ -118,6 +125,7 @@ public class TicketService {
 
     /**
      * Check-in by booking code (staff use)
+     * Staff chỉ được check-in vé của rạp mình
      */
     @Transactional
     public Map<String, Object> checkInByBookingCode(String bookingCode, Integer staffId) {
@@ -125,6 +133,28 @@ public class TicketService {
         
         Booking booking = bookingRepository.findByBookingCode(bookingCode)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy booking với mã: " + bookingCode));
+
+        // Validate staff/manager belongs to booking's cinema
+        Cinema bookingCinema = booking.getShowtime().getHall().getCinema();
+        Integer bookingCinemaId = bookingCinema.getId();
+        
+        // Check 1: Staff in cinema_staffs table
+        Optional<Integer> staffCinemaId = cinemaStaffRepository.getCinemaIdByStaffUserId(staffId);
+        boolean isStaffOfCinema = staffCinemaId.isPresent() && staffCinemaId.get().equals(bookingCinemaId);
+        
+        // Check 2: Manager of this cinema (manager_id in cinemas table)
+        boolean isManagerOfCinema = cinemaRepository.findById(bookingCinemaId)
+                .map(cinema -> cinema.getManager() != null && cinema.getManager().getId().equals(staffId))
+                .orElse(false);
+        
+        // If user is neither staff nor manager of this cinema, deny access
+        if (!isStaffOfCinema && !isManagerOfCinema) {
+            if (staffCinemaId.isEmpty() && !isManagerOfCinema) {
+                throw new RuntimeException("Bạn chưa được gán vào rạp nào. Vui lòng liên hệ quản lý.");
+            } else {
+                throw new RuntimeException("Bạn không có quyền check-in vé của rạp " + bookingCinema.getCinemaName());
+            }
+        }
 
         // Verify booking is paid
         if (!"COMPLETED".equals(booking.getPaymentStatus().name())) {
@@ -170,6 +200,7 @@ public class TicketService {
     /**
      * Process staff cash payment for booking
      * Staff collects cash and marks booking as paid
+     * Staff chỉ được thanh toán booking của rạp mình
      */
     @Transactional
     public Map<String, Object> processStaffCashPayment(String bookingCode, Integer staffId) {
@@ -177,6 +208,28 @@ public class TicketService {
         
         Booking booking = bookingRepository.findByBookingCode(bookingCode)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy booking với mã: " + bookingCode));
+
+        // Validate staff/manager belongs to booking's cinema
+        Cinema bookingCinema = booking.getShowtime().getHall().getCinema();
+        Integer bookingCinemaId = bookingCinema.getId();
+        
+        // Check 1: Staff in cinema_staffs table
+        Optional<Integer> staffCinemaId = cinemaStaffRepository.getCinemaIdByStaffUserId(staffId);
+        boolean isStaffOfCinema = staffCinemaId.isPresent() && staffCinemaId.get().equals(bookingCinemaId);
+        
+        // Check 2: Manager of this cinema (manager_id in cinemas table)
+        boolean isManagerOfCinema = cinemaRepository.findById(bookingCinemaId)
+                .map(cinema -> cinema.getManager() != null && cinema.getManager().getId().equals(staffId))
+                .orElse(false);
+        
+        // If user is neither staff nor manager of this cinema, deny access
+        if (!isStaffOfCinema && !isManagerOfCinema) {
+            if (staffCinemaId.isEmpty() && !isManagerOfCinema) {
+                throw new RuntimeException("Bạn chưa được gán vào rạp nào. Vui lòng liên hệ quản lý.");
+            } else {
+                throw new RuntimeException("Bạn không có quyền thanh toán vé của rạp " + bookingCinema.getCinemaName());
+            }
+        }
 
         User staff = userRepository.findById(staffId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên với ID: " + staffId));

@@ -565,6 +565,7 @@ public class BookingService {
                 .customerPhone(booking.getCustomerPhone())
                 .showtimeId(booking.getShowtime().getId())
                 .movieTitle(booking.getShowtime().getMovie().getTitle())
+                .cinemaId(booking.getShowtime().getHall().getCinema().getId())
                 .cinemaName(booking.getShowtime().getHall().getCinema().getCinemaName())
                 .hallName(booking.getShowtime().getHall().getHallName())
                 .showDate(booking.getShowtime().getShowDate().toString())

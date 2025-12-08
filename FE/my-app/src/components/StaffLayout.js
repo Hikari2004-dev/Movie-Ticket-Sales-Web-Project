@@ -11,13 +11,16 @@ import {
   FaTimes,
   FaSignOutAlt,
   FaHome,
-  FaStore
+  FaStore,
+  FaClipboardList,
+  FaTachometerAlt
 } from 'react-icons/fa';
 import './StaffLayout.css';
 import Cookies from 'js-cookie';
 
 const StaffLayout = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [staffCinema, setStaffCinema] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,21 +31,51 @@ const StaffLayout = () => {
     };
 
     window.addEventListener('resize', handleResize);
+    handleResize();
+    
+    // Fetch staff's cinema info
+    fetchStaffCinema();
+    
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  const fetchStaffCinema = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const token = Cookies.get('accessToken');
+      if (!user.userId || !token) return;
+
+      const response = await fetch(
+        `http://localhost:8080/api/tickets/staff/my-cinema?staffId=${user.userId}`,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setStaffCinema(data);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching staff cinema:', error);
+    }
+  };
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
 
   const handleLogout = () => {
+    Cookies.remove('accessToken');
     Cookies.remove('token');
     localStorage.removeItem('user');
     navigate('/login');
   };
 
   const menuItems = [
-    { path: '/staff/check-in', icon: FaCheckCircle, label: 'Xác Nhận Vé', active: true },
+    { path: '/staff/dashboard', icon: FaTachometerAlt, label: 'Dashboard', active: true },
+    { path: '/staff/check-in', icon: FaCheckCircle, label: 'Check-in Vé', active: true },
+    { path: '/staff/concession-orders', icon: FaHamburger, label: 'Đơn Bắp Nước', active: true },
   ];
 
   return (
@@ -58,9 +91,17 @@ const StaffLayout = () => {
           </button>
         </div>
 
+        {/* Hiển thị thông tin rạp của staff */}
+        {!isCollapsed && staffCinema && (
+          <div className="staff-cinema-info">
+            <div className="cinema-name">{staffCinema.cinemaName}</div>
+            <div className="staff-position">{staffCinema.position || 'Nhân viên'}</div>
+          </div>
+        )}
+
         <nav className="staff-sidebar-nav">
           <div className="nav-section">
-            {!isCollapsed && <div className="nav-section-title">NHÂN VIÊN RẠP</div>}
+            {!isCollapsed && <div className="nav-section-title">CHỨC NĂNG</div>}
             {menuItems.filter(item => item.active).map((item) => (
               <NavLink
                 key={item.path}

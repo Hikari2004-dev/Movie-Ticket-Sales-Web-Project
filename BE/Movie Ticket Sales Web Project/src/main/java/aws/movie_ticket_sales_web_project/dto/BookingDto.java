@@ -31,6 +31,7 @@ public class BookingDto {
     // Showtime info
     private Integer showtimeId;
     private String movieTitle;
+    private Integer cinemaId;
     private String cinemaName;
     private String hallName;
     private String showDate;
