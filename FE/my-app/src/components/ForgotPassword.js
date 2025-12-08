@@ -211,7 +211,7 @@ const ForgotPassword = () => {
           <Link to="/login" className="back-link">
             <FaArrowLeft /> Quay lại đăng nhập
           </Link>
-          <h1>🎬 CineTicket</h1>
+          <h1>Quên mật khẩu</h1>
           <p>Đặt lại mật khẩu của bạn</p>
         </div>
 
