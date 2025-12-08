@@ -495,7 +495,12 @@ const CinemaManagement = () => {
                 <div className="cinema-card-header">
                   <div 
                     className="cinema-card-title clickable" 
-                    onClick={() => navigate(`/admin/cinemas/${cinema.cinemaId}`)}
+                    onClick={() => navigate(`/admin/cinemas/${cinema.cinemaId}`, {
+                      state: {
+                        chainId: cinema.chainId,
+                        chainName: cinema.chainName
+                      }
+                    })}
                     title="Xem phòng chiếu"
                   >
                     <FaBuilding className="cinema-card-icon" />
@@ -569,7 +574,12 @@ const CinemaManagement = () => {
                 <div className="cinema-card-footer">
                   <button 
                     className="btn btn-sm btn-primary"
-                    onClick={() => navigate(`/admin/cinemas/${cinema.cinemaId}`)}
+                    onClick={() => navigate(`/admin/cinemas/${cinema.cinemaId}`, {
+                      state: {
+                        chainId: cinema.chainId,
+                        chainName: cinema.chainName
+                      }
+                    })}
                     title="Quản lý phòng chiếu"
                   >
                     <FaChair /> Phòng chiếu
@@ -580,13 +590,6 @@ const CinemaManagement = () => {
                     title="Chỉnh sửa"
                   >
                     <FaEdit /> Chỉnh sửa
-                  </button>
-                  <button 
-                    className="btn btn-sm btn-danger"
-                    onClick={() => handleDeleteCinema(cinema.cinemaId)}
-                    title="Xóa"
-                  >
-                    <FaTrash /> Xóa
                   </button>
                 </div>
               </div>

@@ -92,7 +92,9 @@ const CinemaStaffManagement = () => {
         } else if (data.data && Array.isArray(data.data)) {
           cinemaList = data.data;
         }
-        setCinemas(cinemaList);
+        // Chỉ lấy các rạp có isActive = true
+        const activeCinemas = cinemaList.filter(cinema => cinema.isActive === true);
+        setCinemas(activeCinemas);
       }
     } catch (error) {
       console.error('Error fetching cinemas:', error);
