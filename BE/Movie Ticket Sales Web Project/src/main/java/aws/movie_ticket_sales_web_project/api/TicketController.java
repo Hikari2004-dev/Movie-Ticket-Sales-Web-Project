@@ -14,14 +14,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-<<<<<<< HEAD
-=======
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
->>>>>>> 13100bc96cbecf8f1c6c598f0a698f17cdfcc54b
 @RestController
 @RequestMapping("/api/tickets")
 @RequiredArgsConstructor
