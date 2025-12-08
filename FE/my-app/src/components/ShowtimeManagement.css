@@ -3,6 +3,8 @@
   padding: 24px;
   background: transparent;
   min-height: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
 /* Page Header */
@@ -10,18 +12,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
-  padding: 32px;
-  background: white;
+  margin-bottom: 24px;
+  padding: 24px 28px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.9);
 }
 
 .showtime-management .page-title-section h1 {
-  font-size: 32px;
+  font-size: 26px;
   font-weight: 700;
-  color: #1a202c;
-  margin: 0 0 8px 0;
+  color: #1e293b;
+  margin: 0 0 6px 0;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -29,42 +32,42 @@
 
 .showtime-management .page-title-section p {
   margin: 0;
-  color: #718096;
-  font-size: 16px;
+  color: #64748b;
+  font-size: 14px;
 }
 
 /* Search Section */
 .showtime-management .search-section {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .showtime-management .search-box {
   position: relative;
-  max-width: 450px;
+  max-width: 400px;
 }
 
 .showtime-management .search-icon {
   position: absolute;
-  left: 16px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #6b7280;
-  font-size: 18px;
+  color: #9ca3af;
+  font-size: 16px;
 }
 
 .showtime-management .search-box input {
   width: 100%;
-  padding: 14px 20px 14px 48px;
+  padding: 12px 16px 12px 42px;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  font-size: 15px;
+  font-size: 14px;
   transition: all 0.3s ease;
-  background: #f9fafb;
+  background: white;
   color: #1f2937;
 }
 
 .showtime-management .search-box input::placeholder {
-  color: #6b7280;
+  color: #9ca3af;
 }
 
 .showtime-management .search-box input:focus {
@@ -78,53 +81,55 @@
 .showtime-management .loading-container,
 .showtime-management .empty-state {
   text-align: center;
-  padding: 64px 32px;
+  padding: 48px 24px;
   background: white;
   border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .showtime-management .spinner {
-  font-size: 48px;
+  font-size: 40px;
   color: #667eea;
   animation: spin 1s linear infinite;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .showtime-management .empty-icon {
-  font-size: 64px;
+  font-size: 56px;
   color: #e2e8f0;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 /* Showtimes Grid */
 .showtime-management .showtimes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
-  margin-bottom: 32px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
 }
 
 .showtime-management .showtime-card {
   background: white;
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
+  border: 1px solid #e5e7eb;
 }
 
 .showtime-management .showtime-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+  border-color: #667eea;
 }
 
 /* Movie Poster */
 .showtime-management .showtime-poster {
   position: relative;
   width: 100%;
-  height: 360px;
+  height: 320px;
   overflow: hidden;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
@@ -153,26 +158,26 @@
 
 /* Showtime Info */
 .showtime-management .showtime-info {
-  padding: 12px 14px;
+  padding: 14px 16px;
   flex: 1;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 5px 12px;
+  gap: 6px 12px;
   grid-auto-flow: dense;
   align-content: start;
 }
 
 .showtime-management .movie-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
-  color: #1a202c;
-  margin: 0 0 8px 0;
-  line-height: 1.25;
+  color: #1e293b;
+  margin: 0 0 6px 0;
+  line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  height: 38px;
+  height: 36px;
   grid-column: 1 / -1;
 }
 
@@ -257,25 +262,25 @@
 }
 
 .showtime-management .price {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: #667eea;
 }
 
 /* Showtime Actions */
 .showtime-management .showtime-actions {
-  padding: 8px 14px;
-  background: #f7fafc;
+  padding: 10px 16px;
+  background: #f8fafc;
   display: flex;
   gap: 8px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #e5e7eb;
 }
 
 .showtime-management .showtime-actions .btn {
   flex: 1;
   justify-content: center;
-  padding: 7px 10px;
-  font-size: 12.5px;
+  padding: 8px 12px;
+  font-size: 12px;
 }
 
 /* Pagination */
@@ -283,41 +288,42 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 32px;
+  padding: 16px 24px;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid #e5e7eb;
 }
 
 .showtime-management .pagination-info {
-  color: #718096;
-  font-size: 14px;
+  color: #64748b;
+  font-size: 13px;
 }
 
 .showtime-management .pagination-controls {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .showtime-management .page-indicator {
-  font-size: 14px;
-  color: #4a5568;
+  font-size: 13px;
+  color: #374151;
   font-weight: 600;
 }
 
 /* Buttons */
 .showtime-management .btn {
-  padding: 12px 24px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 10px;
-  font-size: 15px;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .showtime-management .btn-primary {
@@ -331,12 +337,13 @@
 }
 
 .showtime-management .btn-secondary {
-  background: #e2e8f0;
-  color: #4a5568;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
 }
 
 .showtime-management .btn-secondary:hover {
-  background: #cbd5e0;
+  background: #e2e8f0;
 }
 
 .showtime-management .btn-secondary:disabled {
@@ -414,26 +421,26 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.6);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 1000;
-  padding-top: 0px;
-  overflow: hidden;
+  padding: 40px 20px;
+  overflow-y: auto;
 }
 
 .showtime-management .modal-content {
   background: white;
   border-radius: 16px;
-  max-width: 900px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  overflow-x: hidden;
+  max-width: 800px;
+  width: 95%;
+  max-height: none;
+  overflow: visible;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  margin: 0 auto;
 }
 
 .showtime-management .modal-header {
-  padding: 28px 32px;
+  padding: 20px 24px;
   border-bottom: none;
   display: flex;
   justify-content: space-between;
@@ -444,17 +451,17 @@
 }
 
 .showtime-management .modal-header h2 {
-  font-size: 26px;
+  font-size: 20px;
   font-weight: 700;
   margin: 0;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.3px;
 }
 
 .showtime-management .btn-close {
   background: rgba(255,255,255,0.2);
   border: none;
   color: white;
-  font-size: 24px;
+  font-size: 18px;
   cursor: pointer;
   width: 36px;
   height: 36px;
@@ -471,26 +478,27 @@
 }
 
 .showtime-management .modal-form {
-  padding: 32px;
+  padding: 24px;
+  background: white;
 }
 
 .showtime-management .form-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
 .showtime-management .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .showtime-management .form-group label {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
-  color: #1a202c;
+  color: #374151;
 }
 
 .showtime-management .required {
@@ -501,18 +509,20 @@
 .showtime-management .form-group input,
 .showtime-management .form-group select {
   width: 100%;
-  padding: 14px 18px;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 15px;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
   transition: all 0.3s ease;
   background: white;
   box-sizing: border-box;
-  height: 52px;
+  height: 46px;
+  color: #1f2937;
 }
 
-.showtime-management .form-group input[type="time"] {
-  height: 52px;
+.showtime-management .form-group input[type="time"],
+.showtime-management .form-group input[type="date"] {
+  height: 46px;
   line-height: normal;
 }
 
@@ -520,214 +530,268 @@
 .showtime-management .form-group select:focus {
   outline: none;
   border-color: #667eea;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
 }
 
 .showtime-management .form-group select:disabled {
-  background: #f7fafc;
+  background: #f3f4f6;
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 .showtime-management .modal-actions {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   justify-content: flex-end;
-  padding-top: 24px;
-  border-top: 1px solid #e2e8f0;
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 0 0 16px 16px;
 }
 
 .showtime-management .spinner-small {
   animation: spin 1s linear infinite;
 }
 
-/* Detail Modal - Completely Redesigned */
+/* ========================================
+   DETAIL MODAL - Professional Design
+   ======================================== */
+/* Override overlay khi có modal-detail */
+.showtime-management .modal-overlay:has(.modal-detail) {
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
 .showtime-management .modal-detail {
-  max-width: 700px !important;
-  width: 90% !important;
-  max-height: 90vh !important;
-  display: flex !important;
-  flex-direction: column !important;
+  max-width: 500px;
+  width: 95%;
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  margin: auto;
+  max-height: none;
+  overflow-y: visible;
+  /* Căn giữa absolute */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
-.showtime-management .modal-detail .modal-header {
-  flex-shrink: 0;
-  padding: 18px 24px;
-  border-bottom: 2px solid #e2e8f0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.showtime-management .modal-detail .modal-header h2 {
+.showtime-management .detail-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
   color: white;
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.2s;
 }
 
-.showtime-management .modal-detail .btn-close {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+.showtime-management .detail-close:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: scale(1.1);
 }
 
-.showtime-management .modal-detail .btn-close:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.5);
+/* Hero Section */
+.showtime-management .detail-hero {
+  position: relative;
+  padding: 28px 24px;
+  background: #1a1a2e;
+  overflow: hidden;
 }
 
-.showtime-management .detail-content {
-  padding: 0 !important;
-  background: #f8fafc !important;
-  flex: 1 !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
+.showtime-management .detail-hero-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(20px) brightness(0.3);
+  transform: scale(1.2);
 }
 
-.showtime-management .detail-section {
-  margin: 0 !important;
-  padding: 16px 20px !important;
-  background: white !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  flex-shrink: 0 !important;
-}
-
-.showtime-management .detail-section:last-child {
-  border-bottom: none !important;
-}
-
-.showtime-management .detail-section h3 {
-  font-size: 13px !important;
-  font-weight: 700 !important;
-  color: #667eea !important;
-  margin: 0 0 12px 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
-  padding-bottom: 8px !important;
-  border-bottom: 2px solid #f1f5f9 !important;
-}
-
-.showtime-management .detail-section h3 svg {
-  color: #667eea !important;
-  font-size: 15px !important;
-}
-
-.showtime-management .movie-detail-row {
-  display: flex !important;
-  flex-direction: row !important;
-  gap: 16px !important;
-  align-items: flex-start !important;
+.showtime-management .detail-hero-content {
+  position: relative;
+  display: flex;
+  gap: 16px;
+  align-items: center;
 }
 
 .showtime-management .detail-poster {
-  width: 100px !important;
-  height: 150px !important;
-  object-fit: cover !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-  flex-shrink: 0 !important;
+  width: 100px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
 }
 
-.showtime-management .movie-detail-info {
-  flex: 1 !important;
-  min-width: 0 !important;
+.showtime-management .detail-movie-info {
+  flex: 1;
+  min-width: 0;
 }
 
-.showtime-management .movie-detail-info h4 {
-  font-size: 16px !important;
-  font-weight: 700 !important;
-  color: #667eea !important;
-  margin: 0 0 10px 0 !important;
-  line-height: 1.3 !important;
+.showtime-management .detail-title {
+  color: white;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 14px 0;
+  line-height: 1.3;
 }
 
-.showtime-management .detail-grid {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 10px !important;
+.showtime-management .detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
-.showtime-management .detail-item {
-  flex: 1 1 45% !important;
-  min-width: 150px !important;
-  max-width: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 4px !important;
-  padding: 10px 12px !important;
-  background: #f8fafc !important;
-  border-radius: 6px !important;
-  border-left: 3px solid #667eea !important;
-  box-sizing: border-box !important;
+.showtime-management .detail-tag {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
-.showtime-management .detail-item label {
-  font-size: 10px !important;
-  font-weight: 600 !important;
-  color: #718096 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
-  margin: 0 !important;
+.showtime-management .detail-tag.format {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
 }
 
-.showtime-management .detail-item span {
-  font-size: 13px !important;
-  color: #1a202c !important;
-  font-weight: 600 !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-  margin: 0 !important;
+.showtime-management .detail-tag.lang {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.showtime-management .format-badge {
-  display: inline-block !important;
-  padding: 4px 10px !important;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  color: white !important;
-  border-radius: 4px !important;
-  font-size: 12px !important;
-  font-weight: 700 !important;
+/* Info Section */
+.showtime-management .detail-info-section {
+  padding: 24px;
+  background: white;
 }
 
-.showtime-management .price-large {
-  font-size: 18px !important;
-  color: #10b981 !important;
-  font-weight: 800 !important;
+.showtime-management .detail-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
-.showtime-management .seats-available {
-  color: #10b981 !important;
-  font-weight: 700 !important;
+.showtime-management .detail-info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  background: #f8fafc;
+  border-radius: 12px;
+  transition: all 0.2s;
 }
 
-.showtime-management .seats-full {
-  color: #ef4444 !important;
-  font-weight: 700 !important;
+.showtime-management .detail-info-card:hover {
+  background: #f1f5f9;
 }
 
-/* Status badges in detail modal */
-.showtime-management .detail-item .badge {
-  display: inline-block !important;
-  padding: 4px 10px !important;
-  border-radius: 4px !important;
-  font-size: 11px !important;
-  font-weight: 700 !important;
+.showtime-management .detail-info-icon {
+  width: 18px;
+  height: 18px;
+  color: #667eea;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
-/* Modal actions for detail modal */
-.showtime-management .modal-detail .modal-actions {
-  flex-shrink: 0 !important;
-  padding: 14px 20px !important;
-  background: white !important;
-  border-top: 2px solid #e2e8f0 !important;
-  display: flex !important;
-  justify-content: flex-end !important;
+.showtime-management .detail-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.showtime-management .detail-info-label {
+  font-size: 12px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.showtime-management .detail-info-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  word-break: break-word;
+}
+
+/* Bottom Row */
+.showtime-management .detail-bottom-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border-radius: 14px;
+  margin-top: 6px;
+}
+
+.showtime-management .detail-seats {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.showtime-management .detail-seats .seats-number {
+  font-size: 32px;
+  font-weight: 800;
+  color: #059669;
+}
+
+.showtime-management .detail-seats .seats-label {
+  font-size: 14px;
+  color: #065f46;
+}
+
+.showtime-management .detail-price {
+  text-align: right;
+}
+
+.showtime-management .detail-price .price-label {
+  display: block;
+  font-size: 12px;
+  color: #065f46;
+  margin-bottom: 2px;
+}
+
+.showtime-management .detail-price .price-value {
+  font-size: 26px;
+  font-weight: 800;
+  color: #059669;
+}
+
+/* Responsive Detail Modal */
+@media (max-width: 420px) {
+  .showtime-management .modal-detail {
+    max-width: 100%;
+    margin: 10px;
+  }
+  
+  .showtime-management .detail-info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .showtime-management .detail-title {
+    font-size: 16px;
+  }
+  
+  .showtime-management .detail-poster {
+    width: 70px;
+    height: 100px;
+  }
 }
 
 /* Animations */
@@ -743,18 +807,18 @@
 /* Responsive */
 @media (max-width: 768px) {
   .showtime-management {
-    padding: 20px;
+    padding: 16px;
   }
 
   .showtime-management .page-header {
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
     align-items: flex-start;
-    padding: 24px;
+    padding: 20px;
   }
 
   .showtime-management .page-title-section h1 {
-    font-size: 24px;
+    font-size: 20px;
   }
 
   .showtime-management .showtimes-grid {
@@ -763,11 +827,11 @@
 
   .showtime-management .pagination-section {
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
   }
 
-  .showtime-management .modal-content {
-    margin: 50px;
+  .showtime-management .modal-overlay {
+    padding: 20px 16px;
   }
 
   .showtime-management .form-row {
@@ -776,20 +840,25 @@
 
   .showtime-management .movie-detail-row {
     flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
 
   .showtime-management .detail-poster {
-    width: 100%;
-    max-width: 300px;
-    height: auto;
+    width: 120px;
+    height: 180px;
   }
 
   .showtime-management .detail-grid {
     grid-template-columns: 1fr;
   }
 
+  .showtime-management .detail-item {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
   .showtime-management .modal-detail {
-    width: 98%;
-    max-height: 95vh;
+    width: 100%;
   }
 }

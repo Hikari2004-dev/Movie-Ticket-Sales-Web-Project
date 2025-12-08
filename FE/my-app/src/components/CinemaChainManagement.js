@@ -420,13 +420,6 @@ const CinemaChainManagement = () => {
                     <td className="actions-cell">
                       <div className="action-buttons-wrapper">
                         <button
-                          className="btn btn-sm btn-success"
-                          onClick={() => navigate(`/admin/cinema-chains/${chain.chainId}`)}
-                          title="Quản lý rạp của chuỗi này"
-                        >
-                          <FaBuilding />
-                        </button>
-                        <button
                           className="btn btn-sm btn-info"
                           onClick={() => handleOpenEditModal(chain)}
                           title="Chỉnh sửa"

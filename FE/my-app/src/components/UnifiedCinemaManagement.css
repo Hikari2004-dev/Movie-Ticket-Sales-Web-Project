@@ -114,7 +114,7 @@
 }
 
 /* Buttons */
-.btn {
+.unified-cinema-management .btn {
   padding: 0.6rem 1.2rem;
   border: none;
   border-radius: 6px;
@@ -127,32 +127,32 @@
   transition: all 0.3s ease;
 }
 
-.btn:disabled {
+.unified-cinema-management .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.btn-primary {
+.unified-cinema-management .btn-primary {
   background: #1e3a8a;
   color: white;
 }
 
-.btn-primary:hover:not(:disabled) {
+.unified-cinema-management .btn-primary:hover:not(:disabled) {
   background: #1e40af;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(30, 58, 138, 0.2);
 }
 
-.btn-secondary {
+.unified-cinema-management .btn-secondary {
   background: #e5e7eb;
   color: #1f2937;
 }
 
-.btn-secondary:hover:not(:disabled) {
+.unified-cinema-management .btn-secondary:hover:not(:disabled) {
   background: #d1d5db;
 }
 
-.btn-page {
+.unified-cinema-management .btn-page {
   padding: 0.5rem 1rem;
   border: 1px solid #e5e7eb;
   background: white;
@@ -163,18 +163,18 @@
   transition: all 0.2s ease;
 }
 
-.btn-page:hover:not(:disabled) {
+.unified-cinema-management .btn-page:hover:not(:disabled) {
   border-color: #1e3a8a;
   color: #1e3a8a;
 }
 
-.btn-page:disabled {
+.unified-cinema-management .btn-page:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 /* Loading Spinner */
-.loading-spinner {
+.unified-cinema-management .loading-spinner {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -185,19 +185,19 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.spinner {
+.unified-cinema-management .spinner {
   font-size: 2.5rem;
   color: #1e3a8a;
-  animation: spin 1s linear infinite;
+  animation: unifiedSpin 1s linear infinite;
   margin-bottom: 1rem;
 }
 
-.spinner-small {
+.unified-cinema-management .spinner-small {
   font-size: 1rem;
-  animation: spin 1s linear infinite;
+  animation: unifiedSpin 1s linear infinite;
 }
 
-@keyframes spin {
+@keyframes unifiedSpin {
   from {
     transform: rotate(0deg);
   }
@@ -206,7 +206,7 @@
   }
 }
 
-.loading-spinner p {
+.unified-cinema-management .loading-spinner p {
   color: #6b7280;
   font-size: 1rem;
 }

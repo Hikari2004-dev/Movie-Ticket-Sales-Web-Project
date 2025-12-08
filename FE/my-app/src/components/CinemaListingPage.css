@@ -381,7 +381,7 @@
 }
 
 /* Loading State */
-.loading-spinner {
+.cinema-listing-page .loading-spinner {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -390,22 +390,22 @@
   color: white;
 }
 
-.spinner {
+.cinema-listing-page .spinner {
   border: 4px solid rgba(255, 255, 255, 0.3);
   border-top: 4px solid white;
   border-radius: 50%;
   width: 60px;
   height: 60px;
-  animation: spin 1s linear infinite;
+  animation: cinemaListingSpin 1s linear infinite;
   margin-bottom: 20px;
 }
 
-@keyframes spin {
+@keyframes cinemaListingSpin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-.loading-spinner p {
+.cinema-listing-page .loading-spinner p {
   font-size: 1.1rem;
   font-weight: 500;
 }

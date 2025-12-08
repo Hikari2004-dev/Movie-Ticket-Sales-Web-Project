@@ -9,6 +9,7 @@ import {
   FaSave,
   FaSpinner,
   FaCheck,
+  FaCheckCircle,
   FaBuilding,
   FaMapMarkerAlt,
   FaPhone,
@@ -932,141 +933,83 @@ const CinemaManagement = () => {
         <div className="modal-overlay">
           <div className="modal-content modal-detail">
             <div className="modal-header">
-              <h2>Chi Tiết Rạp Sau Khi Cập Nhật</h2>
+              <h2><FaCheckCircle /> Cập Nhật Thành Công!</h2>
               <button className="btn-close" onClick={() => setShowDetailModal(false)}>
                 <FaTimes />
               </button>
             </div>
 
             <div className="detail-content">
-              <div className="detail-section">
-                <h3>Thông Tin Cơ Bản</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <label>ID Rạp:</label>
-                    <span>{detailCinema.cinemaId}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Tên Rạp:</label>
-                    <span>{detailCinema.cinemaName}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Chuỗi Rạp:</label>
-                    <span>{detailCinema.chainName} (ID: {detailCinema.chainId})</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Trạng Thái:</label>
-                    <span className={`badge ${detailCinema.isActive ? 'badge-success' : 'badge-danger'}`}>
-                      {detailCinema.isActive ? 'Hoạt động' : 'Ngưng hoạt động'}
+              {/* Success Message */}
+              <div className="success-banner">
+                <div className="success-icon">
+                  <FaCheck />
+                </div>
+                <div className="success-text">
+                  <strong>Rạp "{detailCinema.cinemaName}" đã được cập nhật!</strong>
+                  <span>Thông tin chi tiết bên dưới</span>
+                </div>
+              </div>
+
+              {/* Info Grid - 2 columns */}
+              <div className="detail-grid">
+                <div className="detail-item">
+                  <div className="detail-label"><FaBuilding /> Tên Rạp</div>
+                  <div className="detail-value">{detailCinema.cinemaName}</div>
+                </div>
+                <div className="detail-item">
+                  <div className="detail-label"><FaBuilding /> Chuỗi Rạp</div>
+                  <div className="detail-value">{detailCinema.chainName}</div>
+                </div>
+                <div className="detail-item">
+                  <div className="detail-label"><FaUser /> Quản Lý</div>
+                  <div className="detail-value">{detailCinema.managerName || 'Chưa phân công'}</div>
+                </div>
+                <div className="detail-item">
+                  <div className="detail-label"><FaEnvelope /> Email Quản Lý</div>
+                  <div className="detail-value">{detailCinema.managerEmail || '—'}</div>
+                </div>
+                <div className="detail-item full-width">
+                  <div className="detail-label"><FaMapMarkerAlt /> Địa Chỉ</div>
+                  <div className="detail-value">{detailCinema.address || '—'}</div>
+                </div>
+                <div className="detail-item">
+                  <div className="detail-label"><FaMapMarkerAlt /> Thành Phố</div>
+                  <div className="detail-value">{detailCinema.city || '—'}</div>
+                </div>
+                <div className="detail-item">
+                  <div className="detail-label"><FaPhone /> Điện Thoại</div>
+                  <div className="detail-value">{detailCinema.phoneNumber || '—'}</div>
+                </div>
+                <div className="detail-item">
+                  <div className="detail-label"><FaEnvelope /> Email Rạp</div>
+                  <div className="detail-value">{detailCinema.email || '—'}</div>
+                </div>
+                <div className="detail-item">
+                  <div className="detail-label">Trạng Thái</div>
+                  <div className="detail-value">
+                    <span className={`status-badge ${detailCinema.isActive ? 'active' : 'inactive'}`}>
+                      {detailCinema.isActive ? '● Hoạt động' : '● Ngưng hoạt động'}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="detail-section">
-                <h3>Quản Lý</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <label>ID Quản Lý:</label>
-                    <span>{detailCinema.managerId || 'N/A'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Tên Quản Lý:</label>
-                    <span>{detailCinema.managerName || 'N/A'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Email Quản Lý:</label>
-                    <span>{detailCinema.managerEmail || 'N/A'}</span>
+              {/* Facilities */}
+              {detailCinema.facilities && Object.values(detailCinema.facilities).some(v => v) && (
+                <div className="facilities-section">
+                  <div className="facilities-label"><FaChair /> Tiện Ích</div>
+                  <div className="facilities-list">
+                    {Object.entries(detailCinema.facilities).map(([key, value]) => 
+                      value && (
+                        <span key={key} className="facility-badge">
+                          <FaCheck /> {key.replace(/_/g, ' ').replace('support', '').trim()}
+                        </span>
+                      )
+                    )}
                   </div>
                 </div>
-              </div>
-
-              <div className="detail-section">
-                <h3>Địa Chỉ & Liên Hệ</h3>
-                <div className="detail-grid">
-                  <div className="detail-item full-width">
-                    <label>Địa Chỉ:</label>
-                    <span>{detailCinema.address}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Thành Phố:</label>
-                    <span>{detailCinema.city}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Quận/Huyện:</label>
-                    <span>{detailCinema.district}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Số Điện Thoại:</label>
-                    <span>{detailCinema.phoneNumber}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Email:</label>
-                    <span>{detailCinema.email}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="detail-section">
-                <h3>Thông Tin Pháp Lý</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <label>Tên Pháp Lý:</label>
-                    <span>{detailCinema.legalName || 'N/A'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Mã Số Thuế:</label>
-                    <span>{detailCinema.taxCode || 'N/A'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Vĩ Độ:</label>
-                    <span>{detailCinema.latitude || 'N/A'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Kinh Độ:</label>
-                    <span>{detailCinema.longitude || 'N/A'}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="detail-section">
-                <h3>Giờ Mở Cửa</h3>
-                <div className="detail-grid">
-                  {detailCinema.openingHours && Object.entries(detailCinema.openingHours).map(([day, hours]) => (
-                    <div key={day} className="detail-item">
-                      <label>{day}:</label>
-                      <span>{hours}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="detail-section">
-                <h3>Tiện Ích</h3>
-                <div className="facilities-badges">
-                  {detailCinema.facilities && Object.entries(detailCinema.facilities).map(([key, value]) => 
-                    value && (
-                      <span key={key} className="facility-badge">
-                        <FaCheck /> {key.replace(/_/g, ' ').replace('support', '').trim()}
-                      </span>
-                    )
-                  )}
-                </div>
-              </div>
-
-              <div className="detail-section">
-                <h3>Thời Gian</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <label>Ngày Tạo:</label>
-                    <span>{new Date(detailCinema.createdAt).toLocaleString('vi-VN')}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Cập Nhật Lần Cuối:</label>
-                    <span>{new Date(detailCinema.updatedAt).toLocaleString('vi-VN')}</span>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
 
             <div className="modal-actions">
@@ -1075,7 +1018,7 @@ const CinemaManagement = () => {
                 className="btn btn-primary"
                 onClick={() => setShowDetailModal(false)}
               >
-                <FaCheck /> Đóng
+                <FaCheck /> Hoàn Tất
               </button>
             </div>
           </div>

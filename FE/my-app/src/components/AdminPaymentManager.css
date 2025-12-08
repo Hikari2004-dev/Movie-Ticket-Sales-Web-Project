@@ -381,7 +381,7 @@
 }
 
 /* Loading State */
-.loading-container {
+.admin-payment-manager .loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -390,16 +390,21 @@
   gap: 1.5rem;
 }
 
-.spinner {
+.admin-payment-manager .spinner {
   width: 60px;
   height: 60px;
   border: 4px solid #f3f4f6;
   border-top-color: #667eea;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: adminPaymentSpin 1s linear infinite;
 }
 
-.loading-container p {
+@keyframes adminPaymentSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.admin-payment-manager .loading-container p {
   color: #6b7280;
   font-size: 1.1rem;
   font-weight: 500;

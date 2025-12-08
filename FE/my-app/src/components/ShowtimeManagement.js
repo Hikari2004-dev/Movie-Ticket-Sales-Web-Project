@@ -12,8 +12,12 @@ import {
   FaFilm,
   FaClock,
   FaCalendar,
+  FaCalendarAlt,
   FaChair,
-  FaMoneyBillWave
+  FaMoneyBillWave,
+  FaBuilding,
+  FaUsers,
+  FaTag
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
@@ -776,124 +780,69 @@ const ShowtimeManagement = () => {
       {showDetailModal && detailShowtime && (
         <div className="modal-overlay">
           <div className="modal-content modal-detail">
-            <div className="modal-header">
-              <h2>Chi Tiết Suất Chiếu</h2>
-              <button className="btn-close" onClick={() => setShowDetailModal(false)}>
-                <FaTimes />
-              </button>
-            </div>
-
-            <div className="detail-content">
-              <div className="detail-section">
-                <h3><FaFilm /> Thông Tin Phim</h3>
-                <div className="movie-detail-row">
-                  {detailShowtime.moviePosterUrl && (
-                    <img src={detailShowtime.moviePosterUrl} alt={detailShowtime.movieTitle} className="detail-poster" />
-                  )}
-                  <div className="movie-detail-info">
-                    <h4>{detailShowtime.movieTitle}</h4>
-                    <div className="detail-grid">
-                      <div className="detail-item">
-                        <label>ID Phim:</label>
-                        <span>{detailShowtime.movieId}</span>
-                      </div>
-                      <div className="detail-item">
-                        <label>Định dạng:</label>
-                        <span className="format-badge">{detailShowtime.formatType.replace('_', '')}</span>
-                      </div>
-                      <div className="detail-item">
-                        <label>Phụ đề:</label>
-                        <span>{detailShowtime.subtitleLanguage}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="detail-section">
-                <h3>Thông Tin Rạp & Phòng</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <label>Rạp Chiếu:</label>
-                    <span>{detailShowtime.cinemaName}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Phòng Chiếu:</label>
-                    <span>{detailShowtime.hallName}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Ghế Trống:</label>
-                    <span className={detailShowtime.availableSeats > 0 ? 'seats-available' : 'seats-full'}>
-                      {detailShowtime.availableSeats} ghế
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="detail-section">
-                <h3><FaClock /> Thời Gian Chiếu</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <label>Ngày Chiếu:</label>
-                    <span>{new Date(detailShowtime.showDate).toLocaleDateString('vi-VN', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
-                    })}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Giờ Bắt Đầu:</label>
-                    <span>{detailShowtime.startTime}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Giờ Kết Thúc:</label>
-                    <span>{detailShowtime.endTime}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Trạng Thái:</label>
+            <button className="detail-close" onClick={() => setShowDetailModal(false)}>
+              <FaTimes />
+            </button>
+            
+            {/* Movie Header with Poster Background */}
+            <div className="detail-hero">
+              <div className="detail-hero-bg" style={{ backgroundImage: `url(${detailShowtime.moviePosterUrl})` }}></div>
+              <div className="detail-hero-content">
+                <img src={detailShowtime.moviePosterUrl} alt={detailShowtime.movieTitle} className="detail-poster" />
+                <div className="detail-movie-info">
+                  <h2 className="detail-title">{detailShowtime.movieTitle}</h2>
+                  <div className="detail-tags">
+                    <span className="detail-tag format">{detailShowtime.formatType?.replace('_', '')}</span>
+                    <span className="detail-tag lang">{detailShowtime.subtitleLanguage}</span>
                     {getStatusBadge(detailShowtime.status)}
                   </div>
                 </div>
               </div>
-
-              <div className="detail-section">
-                <h3><FaMoneyBillWave /> Giá Vé</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <label>Giá Cơ Bản:</label>
-                    <span className="price-large">{formatCurrency(detailShowtime.basePrice)}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="detail-section">
-                <h3>Thông Tin Hệ Thống</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <label>ID Suất Chiếu:</label>
-                    <span>{detailShowtime.showtimeId}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Ngày Tạo:</label>
-                    <span>{new Date(detailShowtime.createdAt).toLocaleString('vi-VN')}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Cập Nhật Lần Cuối:</label>
-                    <span>{new Date(detailShowtime.updatedAt).toLocaleString('vi-VN')}</span>
-                  </div>
-                </div>
-              </div>
             </div>
 
-            <div className="modal-actions">
-              <button 
-                type="button" 
-                className="btn btn-primary"
-                onClick={() => setShowDetailModal(false)}
-              >
-                <FaCheck /> Đóng
-              </button>
+            {/* Info Grid */}
+            <div className="detail-info-section">
+              <div className="detail-info-grid">
+                <div className="detail-info-card">
+                  <FaBuilding className="detail-info-icon" />
+                  <div className="detail-info-text">
+                    <span className="detail-info-label">Rạp chiếu</span>
+                    <span className="detail-info-value">{detailShowtime.cinemaName}</span>
+                  </div>
+                </div>
+                <div className="detail-info-card">
+                  <FaChair className="detail-info-icon" />
+                  <div className="detail-info-text">
+                    <span className="detail-info-label">Phòng chiếu</span>
+                    <span className="detail-info-value">{detailShowtime.hallName}</span>
+                  </div>
+                </div>
+                <div className="detail-info-card">
+                  <FaCalendarAlt className="detail-info-icon" />
+                  <div className="detail-info-text">
+                    <span className="detail-info-label">Ngày chiếu</span>
+                    <span className="detail-info-value">{new Date(detailShowtime.showDate).toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                  </div>
+                </div>
+                <div className="detail-info-card">
+                  <FaClock className="detail-info-icon" />
+                  <div className="detail-info-text">
+                    <span className="detail-info-label">Giờ chiếu</span>
+                    <span className="detail-info-value">{detailShowtime.startTime?.substring(0, 5)} - {detailShowtime.endTime?.substring(0, 5)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="detail-bottom-row">
+                <div className="detail-seats">
+                  <span className="seats-number">{detailShowtime.availableSeats}</span>
+                  <span className="seats-label">ghế trống</span>
+                </div>
+                <div className="detail-price">
+                  <span className="price-label">Giá vé</span>
+                  <span className="price-value">{formatCurrency(detailShowtime.basePrice)}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
