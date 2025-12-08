@@ -23,11 +23,12 @@ export const loyaltyService = {
         }
     },
 
-    // Lấy số dư điểm (public endpoint - không cần auth token)
+    // Lấy số dư điểm
     getPointsBalance: async (userId) => {
         try {
             const response = await axios.get(
-                `${API_BASE_URL}/points/balance/${userId}`
+                `${API_BASE_URL}/points/balance/${userId}`,
+                { headers: getAuthHeader() }
             );
             return response.data.data || response.data;
         } catch (error) {

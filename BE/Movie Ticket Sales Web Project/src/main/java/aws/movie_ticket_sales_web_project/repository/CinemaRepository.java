@@ -87,4 +87,15 @@ public interface CinemaRepository extends JpaRepository<Cinema, Integer> {
      */
     @Query("SELECT c FROM Cinema c WHERE LOWER(c.cinemaName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) ORDER BY c.createdAt DESC")
     Page<Cinema> findByCinemaNameContainingIgnoreCase(@Param("searchTerm") String searchTerm, Pageable pageable);
+
+    /**
+     * Find all active cinemas with pagination
+     */
+    Page<Cinema> findByIsActiveTrue(Pageable pageable);
+
+    /**
+     * Search all active cinemas by name
+     */
+    @Query("SELECT c FROM Cinema c WHERE c.isActive = true AND LOWER(c.cinemaName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) ORDER BY c.createdAt DESC")
+    Page<Cinema> searchActiveByCinemaName(@Param("searchTerm") String searchTerm, Pageable pageable);
 }

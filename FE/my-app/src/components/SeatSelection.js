@@ -383,27 +383,33 @@ const SeatSelection = () => {
   return (
     <div className="seat-selection-page">
       <div className="seat-selection-header">
-        <button className="btn-back" onClick={() => navigate(-1)}>
-          <FaArrowLeft /> Quay lại
-        </button>
-        <div className="showtime-info">
-          <h2>{showtime.movieTitle}</h2>
-          <p>{showtime.cinemaName} - {showtime.hallName}</p>
-          <p>{showtime.showDate} - {showtime.startTime?.substring(0, 5)}</p>
-          {hallInfo && (
-            <p className="hall-specs">
-              {hallInfo.screenType && <span>🎬 {hallInfo.screenType}</span>}
-              {hallInfo.soundSystem && <span> • 🔊 {hallInfo.soundSystem}</span>}
-              {hallInfo.totalSeats && <span> • 💺 {hallInfo.totalSeats} ghế</span>}
-            </p>
-          )}
-          {userEmail && <p className="user-session">👤 {userEmail}</p>}
-        </div>
-        {selectedSeats.length > 0 && (
-          <div className="timer-box">
-            <FaClock /> Thời gian còn lại: <strong>{formatTime(timeLeft)}</strong>
+        {/* Cột trái: Nút quay lại + Rạp + Ngày giờ */}
+        <div className="header-left">
+          <button className="btn-back" onClick={() => navigate(-1)}>
+            <FaArrowLeft /> Quay lại
+          </button>
+          <div className="location-time">
+            <p className="cinema-hall">{showtime.cinemaName} - {showtime.hallName}</p>
+            <p className="show-datetime">{showtime.showDate} - {showtime.startTime?.substring(0, 5)}</p>
           </div>
-        )}
+        </div>
+
+        {/* Cột giữa: Tên phim */}
+        <div className="header-center">
+          <h2 className="movie-title">{showtime.movieTitle}</h2>
+        </div>
+
+        {/* Cột phải: Thông tin phòng + Email */}
+        <div className="header-right">
+          {hallInfo && (
+            <span className="hall-specs">
+              {hallInfo.screenType && <span>🎬 {hallInfo.screenType}</span>}
+              {hallInfo.soundSystem && <span>🔊 {hallInfo.soundSystem}</span>}
+              {hallInfo.totalSeats && <span>💺 {hallInfo.totalSeats}</span>}
+            </span>
+          )}
+          {userEmail && <span className="user-session">👤 {userEmail}</span>}
+        </div>
       </div>
 
       <div className="seat-selection-container">
@@ -480,6 +486,13 @@ const SeatSelection = () => {
         </div>
 
         <div className="booking-summary">
+          {/* Timer countdown - luôn hiển thị */}
+          <div className={`summary-timer ${timeLeft <= 60 ? 'warning' : ''}`}>
+            <FaClock />
+            <span className="timer-label">Thời gian giữ ghế:</span>
+            <strong className="timer-value">{formatTime(timeLeft)}</strong>
+          </div>
+          
           <h3>Thông tin đặt vé</h3>
           
           <div className="summary-section">

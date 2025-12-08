@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import Cookies from 'js-cookie';
@@ -9,6 +9,37 @@ const TicketCheckIn = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [ticketInfo, setTicketInfo] = useState(null);
   const [showScanner, setShowScanner] = useState(false);
+  const [staffCinema, setStaffCinema] = useState(null);
+
+  // Lấy thông tin rạp của staff khi component mount
+  useEffect(() => {
+    const fetchStaffCinema = async () => {
+      try {
+        const token = Cookies.get('accessToken');
+        const userInfo = JSON.parse(localStorage.getItem('user') || '{}');
+        const staffId = userInfo.userId;
+        
+        if (!staffId) return;
+        
+        const response = await fetch(`http://localhost:8080/api/tickets/staff/my-cinema?staffId=${staffId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setStaffCinema(data);
+          console.log('Staff cinema:', data);
+        }
+      } catch (error) {
+        console.error('Error fetching staff cinema:', error);
+      }
+    };
+    
+    fetchStaffCinema();
+  }, []);
 
   const getStatusText = (status) => {
     const statusMap = {
@@ -29,11 +60,17 @@ const TicketCheckIn = () => {
       return;
     }
 
+    // Kiểm tra staff đã được gán rạp chưa
+    if (!staffCinema || !staffCinema.cinemaId) {
+      toast.error('Bạn chưa được gán vào rạp nào. Vui lòng liên hệ quản lý.');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // Call API to get booking details from database
+      // Call API to get booking details with cinema validation
       const token = Cookies.get('accessToken');
-      const response = await fetch(`http://localhost:8080/api/bookings/code/${bookingCode}`, {
+      const response = await fetch(`http://localhost:8080/api/tickets/staff/${staffCinema.cinemaId}/booking-details?bookingCode=${bookingCode}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -41,34 +78,37 @@ const TicketCheckIn = () => {
         }
       });
 
-      if (!response.ok) {
-        if (response.status === 404) {
-          toast.error('Không tìm thấy thông tin vé trong hệ thống');
-        } else {
-          toast.error('Có lỗi xảy ra khi tìm kiếm vé');
-        }
+      const data = await response.json();
+
+      if (!response.ok || data.success === false) {
+        // Hiển thị thông báo lỗi từ backend (vé không thuộc rạp này)
+        toast.error(data.message || 'Có lỗi xảy ra khi tìm kiếm vé');
         setIsLoading(false);
         return;
       }
-
-      const data = await response.json();
       
       console.log('API Response:', data);
       console.log('Tickets:', data.tickets);
       
-      // Log detailed check-in info for each ticket
-      if (data.tickets) {
-        data.tickets.forEach((ticket, index) => {
-          console.log(`Ticket ${index}:`, {
-            seat: `${ticket.seatRow}${ticket.seatNumber}`,
-            checkedInAt: ticket.checkedInAt,
-            checkedInAtType: typeof ticket.checkedInAt,
-            isNull: ticket.checkedInAt === null,
-            isUndefined: ticket.checkedInAt === undefined,
-            isFalsy: !ticket.checkedInAt
-          });
-        });
+      // Extract cinema info from response
+      let cinemaName = staffCinema.cinemaName;
+      let cinemaId = staffCinema.cinemaId;
+      
+      if (data.showtime?.hall?.cinema) {
+        cinemaName = data.showtime.hall.cinema.cinemaName || cinemaName;
+        cinemaId = data.showtime.hall.cinema.cinemaId || cinemaId;
       }
+      
+      // Extract ticket info - API trả về cấu trúc khác
+      const tickets = data.tickets || [];
+      
+      // Log detailed check-in info for each ticket
+      tickets.forEach((ticket, index) => {
+        console.log(`Ticket ${index}:`, {
+          seat: ticket.seat ? `${ticket.seat.seatRow}${ticket.seat.seatNumber}` : 'N/A',
+          checkedInAt: ticket.checkedInAt
+        });
+      });
       
       // Check if booking is already completed (checked in)
       const isCompleted = data.status === 'COMPLETED';
@@ -78,11 +118,7 @@ const TicketCheckIn = () => {
       const isStatusValid = validStatuses.includes(data.status);
       
       // Check if any ticket has already been checked in
-      const hasCheckedInTicket = data.tickets && data.tickets.some(t => {
-        const isCheckedIn = t.checkedInAt !== null && t.checkedInAt !== undefined;
-        console.log(`Checking ticket ${t.seatRow}${t.seatNumber}: checkedInAt =`, t.checkedInAt, 'isCheckedIn =', isCheckedIn);
-        return isCheckedIn;
-      });
+      const hasCheckedInTicket = tickets.some(t => t.checkedInAt !== null && t.checkedInAt !== undefined);
       
       console.log('Status:', data.status);
       console.log('Is Completed:', isCompleted);
@@ -97,24 +133,30 @@ const TicketCheckIn = () => {
       // Valid only if status is valid AND not completed AND not checked in yet
       const isValid = isStatusValid && !isCompleted && !hasCheckedInTicket;
       
-      console.log('Final isValid:', isValid);
-      
       // Extract seat information from tickets
-      const seats = data.tickets ? data.tickets.map(t => `${t.seatRow}${t.seatNumber}`) : [];
+      const seats = tickets.map(t => t.seat ? `${t.seat.seatRow}${t.seat.seatNumber}` : 'N/A');
+      
+      // Extract movie and showtime info
+      const movieTitle = data.showtime?.movie?.title || 'N/A';
+      const showDate = data.showtime?.showDate || 'N/A';
+      const startTime = data.showtime?.startTime || 'N/A';
+      const hallName = data.showtime?.hall?.hallName || 'N/A';
       
       setTicketInfo({
         bookingCode: data.bookingCode,
         customerName: data.customerName || 'N/A',
-        movieTitle: data.movieTitle || 'N/A',
-        showtime: data.startTime || 'N/A',
-        date: data.showDate || 'N/A',
-        hall: data.hallName || 'N/A',
+        movieTitle: movieTitle,
+        showtime: startTime,
+        date: showDate,
+        hall: hallName,
+        cinemaId: cinemaId,
+        cinemaName: cinemaName,
         seats: seats,
         totalTickets: data.totalSeats || seats.length,
         totalAmount: data.totalAmount || 0,
         status: isValid ? 'valid' : 'invalid',
         originalStatus: (isCompleted || hasCheckedInTicket) ? 'COMPLETED' : data.status,
-        tickets: data.tickets || []
+        tickets: tickets
       });
       toast.success('Tìm thấy vé');
       setIsLoading(false);
@@ -209,11 +251,17 @@ const TicketCheckIn = () => {
       setShowScanner(false);
       toast.success('Quét QR thành công!');
       
-      // Auto search immediately after scan
+      // Kiểm tra staff đã được gán rạp chưa
+      if (!staffCinema || !staffCinema.cinemaId) {
+        toast.error('Bạn chưa được gán vào rạp nào. Vui lòng liên hệ quản lý.');
+        return;
+      }
+      
+      // Auto search immediately after scan with cinema validation
       setIsLoading(true);
       try {
         const token = Cookies.get('accessToken');
-        const response = await fetch(`http://localhost:8080/api/bookings/code/${scannedCode}`, {
+        const response = await fetch(`http://localhost:8080/api/tickets/staff/${staffCinema.cinemaId}/booking-details?bookingCode=${scannedCode}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -221,44 +269,67 @@ const TicketCheckIn = () => {
           }
         });
 
-        if (!response.ok) {
-          if (response.status === 404) {
-            toast.error('Không tìm thấy thông tin vé trong hệ thống');
-          } else {
-            toast.error('Có lỗi xảy ra khi tìm kiếm vé');
-          }
+        const data = await response.json();
+
+        if (!response.ok || data.success === false) {
+          // Hiển thị thông báo lỗi từ backend (vé không thuộc rạp này)
+          toast.error(data.message || 'Có lỗi xảy ra khi tìm kiếm vé');
           setIsLoading(false);
           return;
         }
-
-        const data = await response.json();
+        
+        // Extract cinema info from response
+        let cinemaName = staffCinema.cinemaName;
+        let cinemaId = staffCinema.cinemaId;
+        
+        if (data.showtime?.hall?.cinema) {
+          cinemaName = data.showtime.hall.cinema.cinemaName || cinemaName;
+          cinemaId = data.showtime.hall.cinema.cinemaId || cinemaId;
+        }
+        
+        // Extract ticket info
+        const tickets = data.tickets || [];
         
         // Check if booking is valid for check-in
         const validStatuses = ['CONFIRMED', 'PAID'];
         const isStatusValid = validStatuses.includes(data.status);
+        const isCompleted = data.status === 'COMPLETED';
         
         // Check if any ticket has already been checked in
-        const hasCheckedInTicket = data.tickets && data.tickets.some(t => t.checkedInAt !== null);
+        const hasCheckedInTicket = tickets.some(t => t.checkedInAt !== null && t.checkedInAt !== undefined);
         
         // Valid only if status is valid AND not checked in yet
-        const isValid = isStatusValid && !hasCheckedInTicket;
+        const isValid = isStatusValid && !isCompleted && !hasCheckedInTicket;
+        
+        // Show warning if already checked in
+        if (isCompleted || hasCheckedInTicket) {
+          toast.warning('Vé đã được check-in trước đó! Không thể check-in lại.');
+        }
         
         // Extract seat information from tickets
-        const seats = data.tickets ? data.tickets.map(t => `${t.seatRow}${t.seatNumber}`) : [];
+        const seats = tickets.map(t => t.seat ? `${t.seat.seatRow}${t.seat.seatNumber}` : 'N/A');
+        
+        // Extract movie and showtime info
+        const movieTitle = data.showtime?.movie?.title || 'N/A';
+        const showDate = data.showtime?.showDate || 'N/A';
+        const startTime = data.showtime?.startTime || 'N/A';
+        const hallName = data.showtime?.hall?.hallName || 'N/A';
         
         setTicketInfo({
           bookingCode: data.bookingCode,
           customerName: data.customerName || 'N/A',
-          movieTitle: data.movieTitle || 'N/A',
-          showtime: data.startTime || 'N/A',
-          date: data.showDate || 'N/A',
-          hall: data.hallName || 'N/A',
+          movieTitle: movieTitle,
+          showtime: startTime,
+          date: showDate,
+          hall: hallName,
+          cinemaId: cinemaId,
+          cinemaName: cinemaName,
           seats: seats,
           totalTickets: data.totalSeats || seats.length,
           totalAmount: data.totalAmount || 0,
           status: isValid ? 'valid' : 'invalid',
-          originalStatus: hasCheckedInTicket ? 'CHECKED_IN' : data.status,
-          tickets: data.tickets || []
+          originalStatus: (isCompleted || hasCheckedInTicket) ? 'COMPLETED' : data.status,
+          tickets: tickets
         });
         toast.success('Tìm thấy vé');
         setIsLoading(false);
@@ -284,6 +355,11 @@ const TicketCheckIn = () => {
       <div className="checkin-header">
         <h1>🎫 Xác Nhận Check-in Vé</h1>
         <p>Quét mã QR hoặc nhập mã đặt vé để xác nhận</p>
+        {staffCinema && (
+          <div className="staff-cinema-badge">
+            🏢 Đang làm việc tại: <strong>{staffCinema.cinemaName}</strong>
+          </div>
+        )}
       </div>
 
       <div className="checkin-scanner">
@@ -351,6 +427,10 @@ const TicketCheckIn = () => {
               <div className="detail-row">
                 <span className="label">Phim:</span>
                 <span className="value">{ticketInfo.movieTitle}</span>
+              </div>
+              <div className="detail-row">
+                <span className="label">Rạp:</span>
+                <span className="value cinema-highlight">{ticketInfo.cinemaName}</span>
               </div>
               <div className="detail-row">
                 <span className="label">Ngày chiếu:</span>

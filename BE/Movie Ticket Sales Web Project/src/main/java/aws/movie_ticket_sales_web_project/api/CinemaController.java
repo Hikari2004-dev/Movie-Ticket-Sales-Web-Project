@@ -33,6 +33,27 @@ public class CinemaController {
     }
 
     /**
+     * Get all cinemas (public - active only, for dropdowns)
+     * GET /api/cinemas
+     */
+    @GetMapping
+    public ResponseEntity<ApiResponse<PagedCinemaResponse>> getAllCinemas(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "100") Integer size,
+            @RequestParam(required = false) String search) {
+
+        log.info("Getting all active cinemas - page: {}, size: {}, search: {}", page, size, search);
+
+        ApiResponse<PagedCinemaResponse> response = cinemaService.getAllActiveCinemas(page, size, search);
+
+        if (response.getSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    /**
      * Get all cinemas for a chain (public - active only)
      * GET /api/cinemas/chain/{chainId}
      */

@@ -29,6 +29,7 @@ import StaffDashboard from './components/StaffDashboard';
 import TicketCheckIn from './components/TicketCheckIn';
 import StaffPayment from './components/StaffPayment';
 import StaffPaymentManager from './components/StaffPaymentManager';
+import StaffConcessionOrders from './components/StaffConcessionOrders';
 import AdminPaymentManager from './components/AdminPaymentManager';
 import ComingSoon from './components/ComingSoon';
 import NowShowingPage from './components/NowShowingPage';
@@ -42,6 +43,8 @@ import ConcessionCategoryManagement from './components/ConcessionCategoryManagem
 import ConcessionItemManagement from './components/ConcessionItemManagement';
 import CinemaConcessionManagement from './components/CinemaConcessionManagement';
 import ConcessionOrderManagement from './components/ConcessionOrderManagement';
+import CinemaStaffManagement from './components/CinemaStaffManagement';
+import ForgotPassword from './components/ForgotPassword';
 import { ROLES } from './utils/roleUtils';
 // Import LoadingSpinner.css last to override other loading-spinner styles
 import './components/LoadingSpinner.css';
@@ -50,7 +53,7 @@ import './components/LoadingSpinner.css';
 const ConditionalFooter = () => {
   const location = useLocation();
   // Hide footer on admin, staff, login, and booking-related pages
-  const hideFooterPaths = ['/admin', '/staff', '/system-admin', '/login', '/booking'];
+  const hideFooterPaths = ['/admin', '/staff', '/system-admin', '/login', '/forgot-password', '/booking'];
   const shouldHideFooter = hideFooterPaths.some(path => location.pathname.startsWith(path));
   
   if (shouldHideFooter) return null;
@@ -91,6 +94,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginForm />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/movie/:id" element={<MovieDetail />} />
           <Route path="/booking" element={<BookingPage />} />
           <Route path="/booking/:showtimeId" element={<SeatSelection />} />
@@ -145,6 +149,7 @@ function App() {
             {/* User Management */}
             <Route path="accounts" element={<AccountManagement />} />
             <Route path="staff" element={<ComingSoon feature="Quản Lý Nhân Viên" />} />
+            <Route path="cinema-staffs" element={<CinemaStaffManagement />} />
             
             {/* System & Reports */}
             <Route path="reports" element={<ComingSoon feature="Báo Cáo & Thống Kê" />} />
@@ -171,6 +176,7 @@ function App() {
           }>
             <Route path="dashboard" element={<StaffDashboard />} />
             <Route path="check-in" element={<TicketCheckIn />} />
+            <Route path="concession-orders" element={<StaffConcessionOrders />} />
             <Route path="payment" element={<StaffPayment />} />
             <Route path="payment-manager" element={<StaffPaymentManager />} />
           </Route>

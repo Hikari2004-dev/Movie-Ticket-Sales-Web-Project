@@ -53,6 +53,52 @@ public class CinemaService {
     }
 
     /**
+     * Get all active cinemas (public - for dropdowns)
+     */
+    public ApiResponse<PagedCinemaResponse> getAllActiveCinemas(Integer page, Integer size, String search) {
+        log.info("Getting all active cinemas - page: {}, size: {}, search: {}", page, size, search);
+
+        page = (page != null) ? page : 0;
+        size = (size != null) ? size : 100;
+
+        try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "cinemaName"));
+            Page<Cinema> cinemaPage;
+
+            if (search != null && !search.isEmpty()) {
+                cinemaPage = cinemaRepository.searchActiveByCinemaName(search, pageable);
+            } else {
+                cinemaPage = cinemaRepository.findByIsActiveTrue(pageable);
+            }
+
+            List<CinemaDto> cinemaDtos = cinemaPage.getContent()
+                    .stream()
+                    .map(this::convertToCinemaDto)
+                    .collect(Collectors.toList());
+
+            PagedCinemaResponse response = PagedCinemaResponse.builder()
+                    .totalElements(cinemaPage.getTotalElements())
+                    .totalPages(cinemaPage.getTotalPages())
+                    .currentPage(page)
+                    .pageSize(size)
+                    .data(cinemaDtos)
+                    .build();
+
+            return ApiResponse.<PagedCinemaResponse>builder()
+                    .success(true)
+                    .message("Danh sách rạp được tải thành công")
+                    .data(response)
+                    .build();
+        } catch (Exception e) {
+            log.error("Error getting all active cinemas", e);
+            return ApiResponse.<PagedCinemaResponse>builder()
+                    .success(false)
+                    .message("Lỗi khi tải danh sách rạp: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
      * Get all cinemas for a chain (public - active only)
      */
     public ApiResponse<PagedCinemaResponse> getAllCinemasByChain(Integer chainId, Integer page, Integer size, String search) {

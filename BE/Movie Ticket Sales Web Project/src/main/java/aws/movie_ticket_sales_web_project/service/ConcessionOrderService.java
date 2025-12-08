@@ -26,6 +26,7 @@ public class ConcessionOrderService {
     private final CinemaRepository cinemaRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
+    private final CinemaStaffRepository cinemaStaffRepository;
 
     /**
      * Tạo đơn hàng bắp nước mới
@@ -166,6 +167,30 @@ public class ConcessionOrderService {
     }
 
     /**
+     * Lấy danh sách orders của rạp - dành cho STAFF
+     * Staff chỉ xem được đơn có trạng thái từ CONFIRMED trở đi (không xem được PENDING)
+     */
+    @Transactional(readOnly = true)
+    public List<ConcessionOrderDTO> getCinemaOrdersForStaff(Integer cinemaId, ConcessionOrderStatus status) {
+        List<ConcessionOrder> orders;
+        
+        // Staff không được xem đơn PENDING
+        if (status == ConcessionOrderStatus.PENDING) {
+            throw new RuntimeException("Nhân viên không có quyền xem đơn hàng chờ xác nhận");
+        }
+        
+        if (status != null) {
+            orders = orderRepository.findByCinemaIdAndStatus(cinemaId, status);
+        } else {
+            // Lấy tất cả đơn trừ PENDING
+            orders = orderRepository.findByCinemaIdExcludingStatus(cinemaId, ConcessionOrderStatus.PENDING);
+        }
+        return orders.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Cập nhật trạng thái đơn hàng
      * Yêu cầu: Nếu đơn hàng liên kết với booking, booking phải được thanh toán trước khi xác nhận
      */
@@ -210,6 +235,78 @@ public class ConcessionOrderService {
     }
 
     /**
+     * Cập nhật trạng thái đơn hàng - dành cho STAFF (có validate staff thuộc rạp)
+     * Staff chỉ được cập nhật đơn hàng của rạp mình
+     */
+    @Transactional
+    public ConcessionOrderDTO updateOrderStatusByStaff(Integer orderId, ConcessionOrderStatus newStatus, Integer staffId) {
+        ConcessionOrder order = orderRepository.findByIdWithUser(orderId)
+                .orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại"));
+        
+        // Validate staff/manager thuộc rạp của đơn hàng
+        Integer orderCinemaId = order.getCinema().getId();
+        
+        // Check 1: Staff in cinema_staffs table
+        java.util.Optional<Integer> staffCinemaId = cinemaStaffRepository.getCinemaIdByStaffUserId(staffId);
+        boolean isStaffOfCinema = staffCinemaId.isPresent() && staffCinemaId.get().equals(orderCinemaId);
+        
+        // Check 2: Manager of this cinema (manager_id in cinemas table)
+        boolean isManagerOfCinema = cinemaRepository.findById(orderCinemaId)
+                .map(cinema -> cinema.getManager() != null && cinema.getManager().getId().equals(staffId))
+                .orElse(false);
+        
+        // If user is neither staff nor manager of this cinema, deny access
+        if (!isStaffOfCinema && !isManagerOfCinema) {
+            if (staffCinemaId.isEmpty() && !isManagerOfCinema) {
+                throw new RuntimeException("Bạn chưa được gán vào rạp nào. Vui lòng liên hệ quản lý.");
+            } else {
+                throw new RuntimeException("Bạn không có quyền cập nhật đơn hàng của rạp " + order.getCinema().getCinemaName());
+            }
+        }
+        
+        // Staff chỉ được cập nhật từ PREPARING đến CANCELLED
+        // Không được phép: PENDING -> CONFIRMED (chỉ manager/admin)
+        ConcessionOrderStatus currentStatus = order.getStatus();
+        
+        // Staff không được xác nhận đơn (PENDING -> CONFIRMED)
+        if (currentStatus == ConcessionOrderStatus.PENDING && newStatus == ConcessionOrderStatus.CONFIRMED) {
+            throw new RuntimeException("Nhân viên không có quyền xác nhận đơn hàng. Vui lòng liên hệ quản lý.");
+        }
+        
+        // Staff chỉ được thao tác với đơn đã CONFIRMED trở đi
+        if (currentStatus == ConcessionOrderStatus.PENDING) {
+            throw new RuntimeException("Nhân viên không có quyền thao tác với đơn hàng chờ xác nhận.");
+        }
+        
+        // Validate các trạng thái staff được phép chuyển đổi
+        // CONFIRMED -> PREPARING -> READY -> COMPLETED hoặc -> CANCELLED
+        boolean isValidTransition = false;
+        switch (currentStatus) {
+            case CONFIRMED:
+                isValidTransition = (newStatus == ConcessionOrderStatus.PREPARING || 
+                                    newStatus == ConcessionOrderStatus.CANCELLED);
+                break;
+            case PREPARING:
+                isValidTransition = (newStatus == ConcessionOrderStatus.READY || 
+                                    newStatus == ConcessionOrderStatus.CANCELLED);
+                break;
+            case READY:
+                isValidTransition = (newStatus == ConcessionOrderStatus.COMPLETED || 
+                                    newStatus == ConcessionOrderStatus.CANCELLED);
+                break;
+            default:
+                isValidTransition = false;
+        }
+        
+        if (!isValidTransition) {
+            throw new RuntimeException("Không thể chuyển trạng thái từ " + currentStatus + " sang " + newStatus);
+        }
+        
+        // Reuse logic từ updateOrderStatus
+        return updateOrderStatus(orderId, newStatus);
+    }
+
+    /**
      * Hủy đơn hàng
      */
     @Transactional
@@ -221,13 +318,76 @@ public class ConcessionOrderService {
             throw new RuntimeException("Không thể hủy đơn hàng đã hoàn thành");
         }
         
-        order.setStatus(ConcessionOrderStatus.CANCELLED);
-        order.setNotes((order.getNotes() != null ? order.getNotes() + "\n" : "") 
-                + "Lý do hủy: " + reason);
+        // Chỉ thêm note nếu chưa bị hủy trước đó
+        if (order.getStatus() != ConcessionOrderStatus.CANCELLED) {
+            order.setStatus(ConcessionOrderStatus.CANCELLED);
+            
+            // Tránh duplicate note
+            String currentNotes = order.getNotes() != null ? order.getNotes() : "";
+            String cancelNote = "Lý do hủy: " + reason;
+            if (!currentNotes.contains(cancelNote)) {
+                order.setNotes(currentNotes.isEmpty() ? cancelNote : currentNotes + "\n" + cancelNote);
+            }
+            
+            order.setUpdatedAt(Instant.now());
+            order = orderRepository.save(order);
+            log.info("Cancelled order {}: {}", order.getOrderNumber(), reason);
+        }
+        
+        return convertToDTO(order);
+    }
+
+    /**
+     * Cập nhật ghi chú đơn hàng
+     */
+    @Transactional
+    public ConcessionOrderDTO updateOrderNotes(Integer orderId, String notes) {
+        ConcessionOrder order = orderRepository.findByIdWithUser(orderId)
+                .orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại"));
+        
+        order.setNotes(notes);
         order.setUpdatedAt(Instant.now());
         
         ConcessionOrder updated = orderRepository.save(order);
-        log.info("Cancelled order {}: {}", order.getOrderNumber(), reason);
+        log.info("Updated notes for order {}", order.getOrderNumber());
+        
+        return convertToDTO(updated);
+    }
+
+    /**
+     * Cập nhật ghi chú đơn hàng - dành cho STAFF (có validate staff thuộc rạp)
+     */
+    @Transactional
+    public ConcessionOrderDTO updateOrderNotesByStaff(Integer orderId, String notes, Integer staffId) {
+        ConcessionOrder order = orderRepository.findByIdWithUser(orderId)
+                .orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại"));
+        
+        // Validate staff/manager thuộc rạp của đơn hàng
+        Integer orderCinemaId = order.getCinema().getId();
+        
+        // Check 1: Staff in cinema_staffs table
+        java.util.Optional<Integer> staffCinemaId = cinemaStaffRepository.getCinemaIdByStaffUserId(staffId);
+        boolean isStaffOfCinema = staffCinemaId.isPresent() && staffCinemaId.get().equals(orderCinemaId);
+        
+        // Check 2: Manager of this cinema (manager_id in cinemas table)
+        boolean isManagerOfCinema = cinemaRepository.findById(orderCinemaId)
+                .map(cinema -> cinema.getManager() != null && cinema.getManager().getId().equals(staffId))
+                .orElse(false);
+        
+        // If user is neither staff nor manager of this cinema, deny access
+        if (!isStaffOfCinema && !isManagerOfCinema) {
+            if (staffCinemaId.isEmpty() && !isManagerOfCinema) {
+                throw new RuntimeException("Bạn chưa được gán vào rạp nào. Vui lòng liên hệ quản lý.");
+            } else {
+                throw new RuntimeException("Bạn không có quyền chỉnh sửa đơn hàng của rạp " + order.getCinema().getCinemaName());
+            }
+        }
+        
+        order.setNotes(notes);
+        order.setUpdatedAt(Instant.now());
+        
+        ConcessionOrder updated = orderRepository.save(order);
+        log.info("Staff {} updated notes for order {}", staffId, order.getOrderNumber());
         
         return convertToDTO(updated);
     }

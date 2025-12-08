@@ -2,6 +2,7 @@
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 40px 20px;
+  padding-top: 100px; /* Thêm padding-top để tránh bị header che */
 }
 
 .profile-container {
@@ -445,5 +446,223 @@
 
   .quick-actions {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Password Modal Styles */
+.password-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.password-modal {
+  background: white;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.password-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 25px 30px;
+  border-bottom: 1px solid #eee;
+}
+
+.password-modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.password-modal-header h2 svg {
+  color: #667eea;
+}
+
+.close-modal-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-modal-btn:hover {
+  color: #333;
+}
+
+.password-modal-body {
+  padding: 30px;
+}
+
+.password-field {
+  margin-bottom: 20px;
+}
+
+.password-field:last-child {
+  margin-bottom: 0;
+}
+
+.password-field label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  width: 100%;
+  padding: 14px 50px 14px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 15px;
+  transition: all 0.2s;
+}
+
+.password-input-wrapper input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.password-input-wrapper input::placeholder {
+  color: #aaa;
+}
+
+.toggle-password-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #999;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.toggle-password-btn:hover {
+  color: #667eea;
+}
+
+.password-modal-footer {
+  display: flex;
+  gap: 15px;
+  padding: 20px 30px 30px;
+}
+
+.cancel-password-btn,
+.save-password-btn {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-password-btn {
+  background: #f5f5f5;
+  border: none;
+  color: #666;
+}
+
+.cancel-password-btn:hover:not(:disabled) {
+  background: #e8e8e8;
+}
+
+.save-password-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+}
+
+.save-password-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+
+.cancel-password-btn:disabled,
+.save-password-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.change-password-btn {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+}
+
+.change-password-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(240, 147, 251, 0.4) !important;
+}
+
+/* Mobile responsive for password modal */
+@media (max-width: 480px) {
+  .password-modal {
+    margin: 10px;
+    max-width: none;
+  }
+
+  .password-modal-header {
+    padding: 20px;
+  }
+
+  .password-modal-body {
+    padding: 20px;
+  }
+
+  .password-modal-footer {
+    padding: 15px 20px 25px;
+    flex-direction: column;
+  }
+
+  .cancel-password-btn,
+  .save-password-btn {
+    width: 100%;
   }
 }
