@@ -5,7 +5,7 @@ import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { API_BASE_URL } from '../config/api';
 import { AiOutlineEdit, AiOutlineSave, AiOutlineClose, AiOutlineLock, AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
-import { FaUser, FaEnvelope, FaPhone, FaBirthdayCake, FaVenusMars, FaCrown, FaTicketAlt, FaKey } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaBirthdayCake, FaVenusMars, FaCrown, FaTicketAlt, FaKey, FaStar, FaGift, FaCoins } from 'react-icons/fa';
 import './ProfilePage.css';
 
 const ProfilePage = () => {
@@ -90,9 +90,11 @@ const ProfilePage = () => {
         });
 
         console.log('API Response:', response.data);
+        console.log('Membership data:', response.data.data?.membership);
 
         if (response.data.success) {
           const userData = response.data.data;
+          console.log('User data with membership:', userData);
           // Map userId to id for consistency with localStorage
           const userDataWithId = {
             ...userData,
@@ -217,6 +219,32 @@ const ProfilePage = () => {
     return date.toLocaleDateString('vi-VN');
   };
 
+  // Format số tiền
+  const formatCurrency = (amount) => {
+    if (!amount) return '0 đ';
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+  };
+
+  // Lấy màu cho tier
+  const getTierColor = (tierName) => {
+    const colors = {
+      'BRONZE': '#cd7f32',
+      'SILVER': '#c0c0c0',
+      'GOLD': '#ffd700',
+      'PLATINUM': '#e5e4e2',
+      'DIAMOND': '#b9f2ff'
+    };
+    return colors[tierName] || '#666';
+  };
+
+  // Tính phần trăm tiến độ lên hạng
+  const calculateProgress = (membership) => {
+    if (!membership || !membership.minSpendingForNextTier) return 100;
+    const current = membership.annualSpending || 0;
+    const next = membership.minSpendingForNextTier;
+    return Math.min((current / next) * 100, 100);
+  };
+
   // Hàm xử lý đổi mật khẩu
   const handlePasswordInputChange = (e) => {
     const { name, value } = e.target;
@@ -333,16 +361,96 @@ const ProfilePage = () => {
 
         <div className="profile-content">
           {/* Membership Info */}
-          <div className="membership-card">
-            <div className="membership-icon">
+          <div className="membership-card" style={{ borderColor: getTierColor(user.membership?.tierName) }}>
+            <div className="membership-icon" style={{ color: getTierColor(user.membership?.tierName) }}>
               <FaCrown />
             </div>
             <div className="membership-info">
               <h3>Hạng Thành Viên</h3>
-              <p className="tier-name">{user.tierName || 'Standard'}</p>
-              <p className="member-number">Mã TV: {user.membershipNumber || 'N/A'}</p>
+              <p className="tier-name" style={{ color: getTierColor(user.membership?.tierName) }}>
+                {user.membership?.tierNameDisplay || 'Chưa đăng ký'}
+              </p>
+              <p className="member-number">Mã TV: {user.membership?.membershipNumber || 'N/A'}</p>
             </div>
+            {user.membership && (
+              <div className="membership-badge">
+                <span className={`tier-badge tier-${user.membership?.tierName?.toLowerCase()}`}>
+                  Cấp {user.membership?.tierLevel}
+                </span>
+              </div>
+            )}
           </div>
+
+          {/* Membership Details Card */}
+          {user.membership && (
+            <div className="membership-details-card">
+              <h3><FaStar /> Chi Tiết Hạng Thành Viên</h3>
+              
+              <div className="membership-stats">
+                <div className="stat-item">
+                  <FaCoins className="stat-icon" />
+                  <div className="stat-content">
+                    <span className="stat-label">Điểm khả dụng</span>
+                    <span className="stat-value points">{user.membership.availablePoints?.toLocaleString() || 0}</span>
+                  </div>
+                </div>
+                
+                <div className="stat-item">
+                  <FaTicketAlt className="stat-icon" />
+                  <div className="stat-content">
+                    <span className="stat-label">Vé miễn phí/năm</span>
+                    <span className="stat-value">{user.membership.freeTicketsPerYear || 0}</span>
+                  </div>
+                </div>
+                
+                <div className="stat-item">
+                  <FaStar className="stat-icon" />
+                  <div className="stat-content">
+                    <span className="stat-label">Tỷ lệ tích điểm</span>
+                    <span className="stat-value">{user.membership.pointsEarnRate || 1}x</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="spending-info">
+                <div className="spending-row">
+                  <span>Chi tiêu trong năm:</span>
+                  <span className="spending-value">{formatCurrency(user.membership.annualSpending)}</span>
+                </div>
+                <div className="spending-row">
+                  <span>Tổng chi tiêu:</span>
+                  <span className="spending-value">{formatCurrency(user.membership.lifetimeSpending)}</span>
+                </div>
+              </div>
+
+              {/* Progress to next tier */}
+              {user.membership.nextTierName && (
+                <div className="tier-progress">
+                  <div className="progress-header">
+                    <span>Tiến độ lên hạng <strong>{user.membership.nextTierName}</strong></span>
+                    <span>{formatCurrency(user.membership.annualSpending)} / {formatCurrency(user.membership.minSpendingForNextTier)}</span>
+                  </div>
+                  <div className="progress-bar">
+                    <div 
+                      className="progress-fill" 
+                      style={{ width: `${calculateProgress(user.membership)}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+
+              {/* Birthday Gift */}
+              {user.membership.birthdayGift && (
+                <div className="birthday-gift">
+                  <FaGift className="gift-icon" />
+                  <div className="gift-content">
+                    <span className="gift-label">Quà sinh nhật</span>
+                    <span className="gift-value">{user.membership.birthdayGift}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Profile Details */}
           <div className="profile-details-card">

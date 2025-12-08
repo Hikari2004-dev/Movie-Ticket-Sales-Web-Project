@@ -130,16 +130,17 @@
 
 /* Membership Card */
 .membership-card {
-  background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   border-radius: 20px;
   padding: 30px;
   margin-bottom: 30px;
   display: flex;
   align-items: center;
   gap: 25px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   position: relative;
   overflow: hidden;
+  border-left: 5px solid #ffd700;
 }
 
 .membership-card::before {
@@ -149,7 +150,7 @@
   right: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
   animation: shine 3s infinite;
 }
 
@@ -160,35 +161,218 @@
 
 .membership-icon {
   font-size: 60px;
-  color: rgba(255, 255, 255, 0.9);
+  color: #ffd700;
   z-index: 1;
 }
 
 .membership-info {
   z-index: 1;
+  flex: 1;
 }
 
 .membership-info h3 {
   margin: 0 0 10px 0;
-  color: white;
-  font-size: 18px;
-  font-weight: 600;
-  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .tier-name {
   margin: 0 0 8px 0;
   font-size: 28px;
   font-weight: 700;
-  color: white;
+  color: #ffd700;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 .member-number {
   margin: 0;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.6);
   font-size: 14px;
+}
+
+.membership-badge {
+  z-index: 1;
+}
+
+.tier-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.tier-badge.tier-bronze { background: linear-gradient(135deg, #cd7f32, #8b4513); }
+.tier-badge.tier-silver { background: linear-gradient(135deg, #c0c0c0, #808080); }
+.tier-badge.tier-gold { background: linear-gradient(135deg, #ffd700, #daa520); }
+.tier-badge.tier-platinum { background: linear-gradient(135deg, #e5e4e2, #a9a9a9); }
+.tier-badge.tier-diamond { background: linear-gradient(135deg, #b9f2ff, #00bfff); color: #1a1a2e; }
+
+/* Membership Details Card */
+.membership-details-card {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.membership-details-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 25px 0;
+  color: #333;
+  font-size: 20px;
+  font-weight: 700;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.membership-details-card h3 svg {
+  color: #ffd700;
+}
+
+.membership-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 15px;
+}
+
+.stat-icon {
+  font-size: 24px;
+  color: #e50914;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+}
+
+.stat-value.points {
+  color: #e50914;
+}
+
+.spending-info {
+  background: #f8f9fa;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 25px;
+}
+
+.spending-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.spending-row:last-child {
+  border-bottom: none;
+}
+
+.spending-row span {
+  color: #666;
+  font-size: 14px;
+}
+
+.spending-value {
+  font-weight: 600;
+  color: #333 !important;
+}
+
+.tier-progress {
+  margin-bottom: 25px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #666;
+}
+
+.progress-header strong {
+  color: #e50914;
+}
+
+.progress-bar {
+  height: 12px;
+  background: #e9ecef;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #e50914, #ff6b6b);
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+.birthday-gift {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+  border-radius: 15px;
+  border-left: 4px solid #ffc107;
+}
+
+.gift-icon {
+  font-size: 30px;
+  color: #e50914;
+}
+
+.gift-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.gift-label {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.gift-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
 }
 
 /* Profile Details Card */
@@ -446,6 +630,24 @@
 
   .quick-actions {
     grid-template-columns: 1fr;
+  }
+
+  .membership-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-item {
+    padding: 15px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  .tier-progress .progress-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
   }
 }
 

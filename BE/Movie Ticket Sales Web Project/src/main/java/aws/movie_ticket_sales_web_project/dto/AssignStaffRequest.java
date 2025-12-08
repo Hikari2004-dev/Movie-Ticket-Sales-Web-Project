@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotNull;
-import java.time.Instant;
 
 /**
  * DTO để gán nhân viên vào rạp

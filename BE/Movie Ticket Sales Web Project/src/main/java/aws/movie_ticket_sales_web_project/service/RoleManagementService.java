@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +22,7 @@ public class RoleManagementService {
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
     private final MembershipRepository membershipRepository;
+    private final MembershipTierRepository membershipTierRepository;
 
     /**
      * Check if user has admin role
@@ -380,6 +382,124 @@ public class RoleManagementService {
         } catch (Exception e) {
             log.error("❌ Error activating user {}", userIdToActivate, e);
             return ApiResponse.<String>builder()
+                    .success(false)
+                    .message("Lỗi: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * Get all membership tiers (Admin only)
+     */
+    public ApiResponse<List<MembershipTierDto>> getAllMembershipTiers(Integer requestingUserId) {
+        log.info("Getting all membership tiers, requested by user: {}", requestingUserId);
+
+        if (!isUserAdmin(requestingUserId)) {
+            return ApiResponse.<List<MembershipTierDto>>builder()
+                    .success(false)
+                    .message("Chỉ admin mới có quyền xem danh sách hạng thành viên")
+                    .build();
+        }
+
+        try {
+            List<MembershipTier> tiers = membershipTierRepository.findAll();
+            List<MembershipTierDto> tierDtos = tiers.stream()
+                    .map(tier -> MembershipTierDto.builder()
+                            .tierId(tier.getId())
+                            .tierName(tier.getTierName())
+                            .tierNameDisplay(tier.getTierNameDisplay())
+                            .tierLevel(tier.getTierLevel())
+                            .minAnnualSpending(tier.getMinAnnualSpending())
+                            .pointsEarnRate(tier.getPointsEarnRate())
+                            .freeTicketsPerYear(tier.getFreeTicketsPerYear())
+                            .birthdayGiftDescription(tier.getBirthdayGiftDescription())
+                            .build())
+                    .sorted((a, b) -> a.getTierLevel().compareTo(b.getTierLevel()))
+                    .collect(Collectors.toList());
+
+            return ApiResponse.<List<MembershipTierDto>>builder()
+                    .success(true)
+                    .message("Lấy danh sách hạng thành viên thành công")
+                    .data(tierDtos)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Error getting membership tiers", e);
+            return ApiResponse.<List<MembershipTierDto>>builder()
+                    .success(false)
+                    .message("Lỗi: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * Update user's membership tier manually (Admin only)
+     */
+    @Transactional
+    public ApiResponse<UserInfo> updateMembershipTier(UpdateMembershipTierRequest request, Integer requestingUserId) {
+        log.info("🔄 Updating membership tier for user: {} to tier: {}, requested by: {}", 
+                request.getUserId(), request.getTierName(), requestingUserId);
+
+        if (!isUserAdmin(requestingUserId)) {
+            return ApiResponse.<UserInfo>builder()
+                    .success(false)
+                    .message("Chỉ admin mới có quyền nâng hạng thành viên")
+                    .build();
+        }
+
+        try {
+            // Find user
+            User user = userRepository.findById(request.getUserId())
+                    .orElseThrow(() -> new RuntimeException("User không tồn tại"));
+
+            // Find tier
+            MembershipTier newTier = membershipTierRepository.findByTierName(request.getTierName())
+                    .orElseThrow(() -> new RuntimeException("Hạng thành viên không tồn tại: " + request.getTierName()));
+
+            // Find or create membership
+            Membership membership = membershipRepository.findByUserId(request.getUserId())
+                    .orElse(null);
+
+            if (membership == null) {
+                // Create new membership
+                membership = new Membership();
+                membership.setUser(user);
+                membership.setMembershipNumber("MEM" + String.format("%08d", user.getId()));
+                membership.setTotalPoints(0);
+                membership.setAvailablePoints(0);
+                membership.setLifetimeSpending(java.math.BigDecimal.ZERO);
+                membership.setAnnualSpending(java.math.BigDecimal.ZERO);
+                membership.setTotalVisits(0);
+                membership.setCreatedAt(Instant.now());
+            }
+
+            // Update tier
+            MembershipTier oldTier = membership.getTier();
+            membership.setTier(newTier);
+            membership.setTierStartDate(LocalDate.now());
+            membership.setNextTierReviewDate(LocalDate.now().plusYears(1));
+            membership.setUpdatedAt(Instant.now());
+
+            membershipRepository.save(membership);
+
+            log.info("✅ Successfully updated membership tier for user: {} from {} to {}", 
+                    request.getUserId(), 
+                    oldTier != null ? oldTier.getTierName() : "none", 
+                    newTier.getTierName());
+
+            UserInfo userInfo = convertToUserInfo(user);
+
+            return ApiResponse.<UserInfo>builder()
+                    .success(true)
+                    .message("Nâng hạng thành viên thành công từ " + 
+                            (oldTier != null ? oldTier.getTierNameDisplay() : "chưa có") + 
+                            " lên " + newTier.getTierNameDisplay())
+                    .data(userInfo)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("❌ Error updating membership tier for user: {}", request.getUserId(), e);
+            return ApiResponse.<UserInfo>builder()
                     .success(false)
                     .message("Lỗi: " + e.getMessage())
                     .build();

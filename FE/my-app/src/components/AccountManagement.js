@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaUsers, FaSearch, FaEdit, FaFilter, FaTrash, FaCheckCircle } from 'react-icons/fa';
+import { FaUsers, FaSearch, FaEdit, FaFilter, FaTrash, FaCheckCircle, FaCrown } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import api from '../services/api';
 import './AccountManagement.css';
@@ -10,13 +10,17 @@ const AccountManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [roles, setRoles] = useState([]);
+  const [membershipTiers, setMembershipTiers] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showTierModal, setShowTierModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [newRole, setNewRole] = useState('');
+  const [newTier, setNewTier] = useState('');
 
   useEffect(() => {
     fetchUsers();
     fetchRoles();
+    fetchMembershipTiers();
   }, []);
 
   const fetchUsers = async () => {
@@ -50,6 +54,19 @@ const AccountManagement = () => {
       }
     } catch (error) {
       console.error('Error fetching roles:', error);
+    }
+  };
+
+  const fetchMembershipTiers = async () => {
+    try {
+      const response = await api.get('/admin/membership-tiers');
+      
+      if (response.data.success) {
+        setMembershipTiers(response.data.data);
+        console.log('👑 Membership tiers:', response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching membership tiers:', error);
     }
   };
 
@@ -143,6 +160,41 @@ const AccountManagement = () => {
     }
   };
 
+  const handleEditTier = (user) => {
+    setSelectedUser(user);
+    setNewTier(user.membershipTier || '');
+    setShowTierModal(true);
+  };
+
+  const handleUpdateTier = async () => {
+    if (!newTier) {
+      toast.warning('Vui lòng chọn hạng thành viên');
+      return;
+    }
+
+    try {
+      const response = await api.put('/admin/users/membership-tier', {
+        userId: selectedUser.userId,
+        tierName: newTier
+      });
+
+      if (response.data.success) {
+        toast.success(response.data.message);
+        setShowTierModal(false);
+        fetchUsers();
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.error('Error updating membership tier:', error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('Không thể cập nhật hạng thành viên');
+      }
+    }
+  };
+
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
       user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -178,6 +230,27 @@ const AccountManagement = () => {
         return 'Khách hàng';
       default:
         return role;
+    }
+  };
+
+  const getTierDisplayName = (tierName) => {
+    const tier = membershipTiers.find(t => t.tierName === tierName);
+    return tier?.tierNameDisplay || tierName;
+  };
+
+  const getTierBadgeClass = (tierName) => {
+    switch (tierName?.toUpperCase()) {
+      case 'DIAMOND':
+        return 'tier-diamond';
+      case 'PLATINUM':
+        return 'tier-platinum';
+      case 'GOLD':
+        return 'tier-gold';
+      case 'SILVER':
+        return 'tier-silver';
+      case 'BRONZE':
+      default:
+        return 'tier-bronze';
     }
   };
 
@@ -294,8 +367,8 @@ const AccountManagement = () => {
                   </td>
                   <td className="membership-tier">
                     {user.membershipTier ? (
-                      <span className={`tier-badge tier-${user.membershipTier.toLowerCase()}`}>
-                        {user.membershipTier}
+                      <span className={`tier-badge ${getTierBadgeClass(user.membershipTier)}`}>
+                        {getTierDisplayName(user.membershipTier)}
                       </span>
                     ) : (
                       <span className="text-muted">Chưa có</span>
@@ -325,6 +398,13 @@ const AccountManagement = () => {
                         title="Chỉnh sửa vai trò"
                       >
                         <FaEdit />
+                      </button>
+                      <button 
+                        className="btn-action btn-tier"
+                        onClick={() => handleEditTier(user)}
+                        title="Nâng hạng thành viên"
+                      >
+                        <FaCrown />
                       </button>
                       {(user.isActive === undefined || user.isActive === null || user.isActive) ? (
                         <button 
@@ -415,6 +495,95 @@ const AccountManagement = () => {
                 onClick={handleUpdateRole}
               >
                 Lưu thay đổi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showTierModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2><FaCrown className="modal-icon" /> Nâng hạng thành viên</h2>
+              <button className="close-btn" onClick={() => setShowTierModal(false)}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="user-info-modal">
+                <div className="user-avatar-large">
+                  {selectedUser?.fullName.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h3>{selectedUser?.fullName}</h3>
+                  <p className="text-muted">{selectedUser?.email}</p>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Hạng hiện tại:</label>
+                <div className="current-tier">
+                  {selectedUser?.membershipTier ? (
+                    <span className={`tier-badge ${getTierBadgeClass(selectedUser.membershipTier)}`}>
+                      {getTierDisplayName(selectedUser.membershipTier)}
+                    </span>
+                  ) : (
+                    <span className="text-muted">Chưa có hạng</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Chọn hạng mới:</label>
+                <select 
+                  value={newTier} 
+                  onChange={(e) => setNewTier(e.target.value)}
+                  className="tier-select"
+                >
+                  <option value="">-- Chọn hạng thành viên --</option>
+                  {membershipTiers.map(tier => (
+                    <option key={tier.tierId} value={tier.tierName}>
+                      {tier.tierNameDisplay} (Level {tier.tierLevel})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {newTier && (
+                <div className="tier-preview">
+                  {(() => {
+                    const selectedTier = membershipTiers.find(t => t.tierName === newTier);
+                    if (!selectedTier) return null;
+                    return (
+                      <div className="tier-info-card">
+                        <h4><FaCrown /> {selectedTier.tierNameDisplay}</h4>
+                        <ul>
+                          <li>Tỉ lệ tích điểm: <strong>x{selectedTier.pointsEarnRate}</strong></li>
+                          <li>Vé miễn phí/năm: <strong>{selectedTier.freeTicketsPerYear}</strong></li>
+                          {selectedTier.birthdayGiftDescription && (
+                            <li>Quà sinh nhật: <strong>{selectedTier.birthdayGiftDescription}</strong></li>
+                          )}
+                          <li>Chi tiêu tối thiểu: <strong>{new Intl.NumberFormat('vi-VN').format(selectedTier.minAnnualSpending)}đ</strong></li>
+                        </ul>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="btn-cancel" 
+                onClick={() => setShowTierModal(false)}
+              >
+                Hủy
+              </button>
+              <button 
+                className="btn-save btn-tier-save" 
+                onClick={handleUpdateTier}
+              >
+                <FaCrown /> Nâng hạng
               </button>
             </div>
           </div>

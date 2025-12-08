@@ -166,18 +166,31 @@ public class LoyaltyPointsService {
                     : BigDecimal.ZERO;
             Integer totalVisits = membership.getTotalVisits() != null ? membership.getTotalVisits() : 0;
             
-            // Tìm tier cao hơn phù hợp
+            log.info("Checking tier upgrade for user {}: annualSpending={}, totalVisits={}, currentTier={}", 
+                    membership.getUser().getId(), annualSpending, totalVisits, currentTier.getTierName());
+            
+            // Tìm tier CAO NHẤT mà user đủ điều kiện (sorted descending by tier level)
             membershipTierRepository.findAll().stream()
                     .filter(tier -> tier.getTierLevel() != null && currentTier.getTierLevel() != null)
                     .filter(tier -> tier.getTierLevel() > currentTier.getTierLevel())
                     .filter(tier -> {
-                        boolean spendingQualified = tier.getMinAnnualSpending() != null 
-                                && annualSpending.compareTo(tier.getMinAnnualSpending()) >= 0;
-                        boolean visitsQualified = tier.getMinVisitsPerYear() != null 
-                                && totalVisits >= tier.getMinVisitsPerYear();
-                        return spendingQualified || visitsQualified;
+                        BigDecimal minSpending = tier.getMinAnnualSpending() != null 
+                                ? tier.getMinAnnualSpending() 
+                                : BigDecimal.ZERO;
+                        Integer minVisits = tier.getMinVisitsPerYear() != null 
+                                ? tier.getMinVisitsPerYear() 
+                                : 0;
+                        
+                        boolean spendingQualified = annualSpending.compareTo(minSpending) >= 0;
+                        boolean visitsQualified = minVisits == 0 || totalVisits >= minVisits;
+                        
+                        log.debug("Tier {}: minSpending={}, minVisits={}, spendingQualified={}, visitsQualified={}", 
+                                tier.getTierName(), minSpending, minVisits, spendingQualified, visitsQualified);
+                        
+                        // Đủ điều kiện chi tiêu (điều kiện chính)
+                        return spendingQualified;
                     })
-                    .findFirst()
+                    .max((t1, t2) -> t1.getTierLevel().compareTo(t2.getTierLevel())) // Lấy tier cao nhất
                     .ifPresent(newTier -> {
                         log.info("🎉 Upgrading user {} from {} to {}", 
                                 membership.getUser().getId(), 

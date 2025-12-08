@@ -249,4 +249,61 @@ public class AdminController {
                             .build());
         }
     }
+
+    /**
+     * Get all membership tiers (Admin only)
+     * GET /api/admin/membership-tiers
+     */
+    @GetMapping("/membership-tiers")
+    public ResponseEntity<ApiResponse<List<MembershipTierDto>>> getAllMembershipTiers(
+            @RequestHeader("Authorization") String token) {
+        
+        try {
+            Integer userId = getUserIdFromToken(token);
+            ApiResponse<List<MembershipTierDto>> response = roleManagementService.getAllMembershipTiers(userId);
+
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+        } catch (Exception e) {
+            log.error("Error getting membership tiers", e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.<List<MembershipTierDto>>builder()
+                            .success(false)
+                            .message("Invalid or expired token")
+                            .build());
+        }
+    }
+
+    /**
+     * Update user's membership tier manually (Admin only)
+     * PUT /api/admin/users/membership-tier
+     */
+    @PutMapping("/users/membership-tier")
+    public ResponseEntity<ApiResponse<UserInfo>> updateMembershipTier(
+            @RequestBody UpdateMembershipTierRequest request,
+            @RequestHeader("Authorization") String token) {
+        
+        log.info("🔄 Updating membership tier for user: {} to tier: {}", request.getUserId(), request.getTierName());
+        
+        try {
+            Integer userId = getUserIdFromToken(token);
+            ApiResponse<UserInfo> response = roleManagementService.updateMembershipTier(request, userId);
+
+            if (response.getSuccess()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+        } catch (Exception e) {
+            log.error("Error updating membership tier", e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.<UserInfo>builder()
+                            .success(false)
+                            .message("Invalid or expired token")
+                            .build());
+        }
+    }
 }
