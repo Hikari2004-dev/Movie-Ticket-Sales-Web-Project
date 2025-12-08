@@ -316,11 +316,11 @@
 .stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #333;
+  color: #333 !important;
 }
 
 .stat-value.points {
-  color: #e50914;
+  color: #e50914 !important;
 }
 
 .spending-info {

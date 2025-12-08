@@ -188,6 +188,13 @@ public class UserProfileService {
                     .map(membership -> {
                         MembershipTier tier = membership.getTier();
                         
+                        // Tính availablePoints dựa trên totalPoints (nếu availablePoints = 0)
+                        Integer availablePoints = membership.getAvailablePoints();
+                        if (availablePoints == null || availablePoints == 0) {
+                            // Nếu availablePoints = 0, sử dụng totalPoints làm available
+                            availablePoints = membership.getTotalPoints() != null ? membership.getTotalPoints() : 0;
+                        }
+                        
                         // Tính chi tiêu tối thiểu để lên hạng tiếp
                         BigDecimal minSpendingForNextTier = null;
                         String nextTierName = null;
@@ -212,7 +219,7 @@ public class UserProfileService {
                                 .tierNameDisplay(tier != null ? tier.getTierNameDisplay() : "Thành viên Đồng")
                                 .tierLevel(tier != null ? tier.getTierLevel() : 1)
                                 .totalPoints(membership.getTotalPoints())
-                                .availablePoints(membership.getAvailablePoints())
+                                .availablePoints(availablePoints)
                                 .lifetimeSpending(membership.getLifetimeSpending())
                                 .annualSpending(membership.getAnnualSpending())
                                 .pointsEarnRate(tier != null ? tier.getPointsEarnRate() : BigDecimal.ONE)

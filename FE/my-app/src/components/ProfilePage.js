@@ -382,8 +382,8 @@ const ProfilePage = () => {
             <div className="membership-points">
               <FaCoins className="points-icon" />
               <div className="points-info">
-                <span className="points-value">{user.availablePoints || 0}</span>
-                <span className="points-label">Điểm thưởng</span>
+                <span className="points-value">{user.membership?.availablePoints || 0}</span>
+                <span className="points-label" title="Điểm có thể dùng để chiết khấu hoặc đổi quà">Điểm khả dụng</span>
               </div>
             </div>
           </div>
@@ -394,7 +394,15 @@ const ProfilePage = () => {
               <h3><FaStar /> Chi Tiết Hạng Thành Viên</h3>
               
               <div className="membership-stats">
-                <div className="stat-item">
+                <div className="stat-item" title="Tổng điểm bạn đã tích lũy từ các giao dịch">
+                  <FaCoins className="stat-icon" />
+                  <div className="stat-content">
+                    <span className="stat-label">Tổng điểm</span>
+                    <span className="stat-value points">{user.membership.totalPoints?.toLocaleString() || 0}</span>
+                  </div>
+                </div>
+                
+                <div className="stat-item" title="Điểm có thể sử dụng để chiết khấu hoặc đổi quà ngay">
                   <FaCoins className="stat-icon" />
                   <div className="stat-content">
                     <span className="stat-label">Điểm khả dụng</span>
