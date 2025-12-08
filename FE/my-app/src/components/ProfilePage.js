@@ -379,6 +379,13 @@ const ProfilePage = () => {
                 </span>
               </div>
             )}
+            <div className="membership-points">
+              <FaCoins className="points-icon" />
+              <div className="points-info">
+                <span className="points-value">{user.availablePoints || 0}</span>
+                <span className="points-label">Điểm thưởng</span>
+              </div>
+            </div>
           </div>
 
           {/* Membership Details Card */}

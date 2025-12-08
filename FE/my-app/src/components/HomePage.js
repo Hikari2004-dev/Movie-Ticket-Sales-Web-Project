@@ -53,15 +53,15 @@ const HomePage = () => {
   const promotions = [
     {
       id: 1,
-      image: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=400&h=200&fit=crop'
+      image: '/images/events/events1.png'
     },
     {
       id: 2,
-      image: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=400&h=200&fit=crop'
+      image: '/images/events/events2.png'
     },
     {
       id: 3,
-      image: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=400&h=200&fit=crop'
+      image: '/images/events/events3.png'
     }
   ];
 

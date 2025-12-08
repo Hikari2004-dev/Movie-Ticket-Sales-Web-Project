@@ -66,7 +66,7 @@ public class TicketController {
                 Map<String, Object> showtime = (Map<String, Object>) details.get("showtime");
                 if (showtime.get("hall") != null) {
                     @SuppressWarnings("unchecked")
-                    Map<String, Object> hall = (Map<String, Object>) showtime.get("hall");
+Map<String, Object> hall = (Map<String, Object>) showtime.get("hall");
                     if (hall.get("cinema") != null) {
                         @SuppressWarnings("unchecked")
                         Map<String, Object> cinema = (Map<String, Object>) hall.get("cinema");
@@ -132,8 +132,7 @@ public class TicketController {
     @PreAuthorize("hasAnyRole('CINEMA_STAFF', 'CINEMA_MANAGER', 'SYSTEM_ADMIN')")
     public ResponseEntity<?> getStaffCinema(@RequestParam Integer staffId) {
         log.info("Getting cinema info for user: {}", staffId);
-        
-        // Check 1: Staff in cinema_staffs table
+// Check 1: Staff in cinema_staffs table
         Optional<CinemaStaff> cinemaStaffOpt = cinemaStaffRepository.findByUserId(staffId);
         
         if (cinemaStaffOpt.isPresent()) {
@@ -174,4 +173,3 @@ public class TicketController {
         ));
     }
 }
-

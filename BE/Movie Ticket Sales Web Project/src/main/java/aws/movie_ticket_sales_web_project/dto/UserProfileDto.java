@@ -79,4 +79,9 @@ public class UserProfileDto {
         private String nextTierName;            // Hạng tiếp theo
         private String status;                  // Trạng thái membership (ACTIVE, SUSPENDED, CANCELLED)
     }
+    private Integer availablePoints;
+    
+    private String membershipTier;
+    
+    private String membershipNumber;
 }
