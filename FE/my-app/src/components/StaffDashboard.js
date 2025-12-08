@@ -50,72 +50,72 @@ const StaffDashboard = () => {
   const getActivityIcon = (type) => {
     switch(type) {
       case 'check-in':
-        return <FaCheckCircle className="activity-icon check-in" />;
+        return <FaCheckCircle className="sd-activity-icon check-in" />;
       default:
-        return <FaCheckCircle className="activity-icon" />;
+        return <FaCheckCircle className="sd-activity-icon" />;
     }
   };
 
   return (
     <div className="staff-dashboard">
-      <div className="dashboard-header">
-        <div className="header-content">
+      <div className="sd-dashboard-header">
+        <div className="sd-header-content">
           <h1>🎬 CA LÀM VIỆC</h1>
-          <div className="current-datetime">
-            <div className="current-date">
+          <div className="sd-current-datetime">
+            <div className="sd-current-date">
               <FaCalendarDay /> {formatDate(currentTime)}
             </div>
-            <div className="current-time">
+            <div className="sd-current-time">
               <FaClock /> {formatTime(currentTime)}
             </div>
           </div>
         </div>
-        <div className="shift-info-card">
-          <FaUserClock className="shift-icon" />
-          <div className="shift-details">
-            <span className="shift-label">Giờ làm việc</span>
-            <span className="shift-time">{shiftInfo.startTime} - {shiftInfo.endTime}</span>
+        <div className="sd-shift-info-card">
+          <FaUserClock className="sd-shift-icon" />
+          <div className="sd-shift-details">
+            <span className="sd-shift-label">Giờ làm việc</span>
+            <span className="sd-shift-time">{shiftInfo.startTime} - {shiftInfo.endTime}</span>
           </div>
         </div>
       </div>
 
-      <div className="activity-section">
+      <div className="sd-activity-section">
         <h2>📋 Hoạt Động Hôm Nay</h2>
         
         {activities.length > 0 ? (
-          <div className="activity-list">
+          <div className="sd-activity-list">
             {activities.map((activity, index) => (
-              <div key={index} className="activity-item">
+              <div key={index} className="sd-activity-item">
                 {getActivityIcon(activity.type)}
-                <div className="activity-content">
-                  <div className="activity-title">{activity.title}</div>
-                  <div className="activity-details">{activity.details}</div>
+                <div className="sd-activity-content">
+                  <div className="sd-activity-title">{activity.title}</div>
+                  <div className="sd-activity-details">{activity.details}</div>
                 </div>
-                <div className="activity-time">{activity.time}</div>
+                <div className="sd-activity-time">{activity.time}</div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="activity-empty">
-            <div className="empty-icon">📝</div>
+          <div className="sd-activity-empty">
+            <div className="sd-empty-icon">📝</div>
             <h3>Chưa có hoạt động nào</h3>
             <p>Các hoạt động check-in vé của bạn sẽ được hiển thị ở đây</p>
           </div>
         )}
       </div>
 
-      <div className="stats-section">
+      <div className="sd-stats-section">
         <h2>📊 Thống Kê Ca Làm Việc</h2>
-        <div className="stats-grid">
-          <div className="stat-box">
-            <div className="stat-number">{activities.length}</div>
-            <div className="stat-label">Tổng hoạt động</div>
+        <div className="sd-stats-grid">
+          <div className="sd-stat-box">
+            <div className="sd-stat-number">{activities.length}</div>
+            <div className="sd-stat-label">Tổng hoạt động</div>
           </div>
-          <div className="stat-box">
-            <div className="stat-number">
+          <div className="sd-stat-box">
+            <div className="sd-stat-number">
               {activities.filter(a => a.type === 'check-in').length}
             </div>
-            <div className="stat-label">Vé đã check-in</div>
+            <div className="sd-stat-label">Vé đã check-in</div>
           </div>
         </div>
       </div>

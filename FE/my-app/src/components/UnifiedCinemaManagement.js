@@ -824,9 +824,9 @@ const UnifiedCinemaManagement = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
+        <div className="ucm-modal-overlay">
+          <div className="ucm-modal-content">
+            <div className="ucm-modal-header">
               <h2>
                 {activeTab === 'chains'
                   ? modalMode === 'create'
@@ -836,16 +836,16 @@ const UnifiedCinemaManagement = () => {
                   ? 'Tạo rạp mới'
                   : 'Cập nhật rạp'}
               </h2>
-              <button className="btn-close" onClick={handleCloseModal}>
+              <button className="ucm-btn-close" onClick={handleCloseModal}>
                 <FaTimes />
               </button>
             </div>
 
-            <div className="modal-body">
+            <div className="ucm-modal-body">
               {activeTab === 'chains' ? (
                 // Cinema Chain Form
                 <>
-                  <div className="form-group">
+                  <div className="ucm-form-group">
                     <label>Tên chuỗi rạp *</label>
                     <input
                       type="text"
@@ -855,7 +855,7 @@ const UnifiedCinemaManagement = () => {
                       placeholder="Nhập tên chuỗi rạp"
                     />
                   </div>
-                  <div className="form-group">
+                  <div className="ucm-form-group">
                     <label>Logo URL</label>
                     <input
                       type="text"
@@ -865,7 +865,7 @@ const UnifiedCinemaManagement = () => {
                       placeholder="URL hình ảnh logo"
                     />
                   </div>
-                  <div className="form-group">
+                  <div className="ucm-form-group">
                     <label>Website</label>
                     <input
                       type="text"
@@ -875,7 +875,7 @@ const UnifiedCinemaManagement = () => {
                       placeholder="Website chuỗi rạp"
                     />
                   </div>
-                  <div className="form-group">
+                  <div className="ucm-form-group">
                     <label>Mô tả</label>
                     <textarea
                       name="description"
@@ -889,8 +889,8 @@ const UnifiedCinemaManagement = () => {
               ) : (
                 // Cinema Form
                 <>
-                  <div className="form-row">
-                    <div className="form-group">
+                  <div className="ucm-form-row">
+                    <div className="ucm-form-group">
                       <label>Tên rạp *</label>
                       <input
                         type="text"
@@ -900,7 +900,7 @@ const UnifiedCinemaManagement = () => {
                         placeholder="Nhập tên rạp"
                       />
                     </div>
-                    <div className="form-group">
+                    <div className="ucm-form-group">
                       <label>Thành phố</label>
                       <input
                         type="text"
@@ -911,8 +911,8 @@ const UnifiedCinemaManagement = () => {
                       />
                     </div>
                   </div>
-                  <div className="form-row">
-                    <div className="form-group">
+                  <div className="ucm-form-row">
+                    <div className="ucm-form-group">
                       <label>Địa chỉ</label>
                       <input
                         type="text"
@@ -922,7 +922,7 @@ const UnifiedCinemaManagement = () => {
                         placeholder="Địa chỉ"
                       />
                     </div>
-                    <div className="form-group">
+                    <div className="ucm-form-group">
                       <label>Quận/Huyện</label>
                       <input
                         type="text"
@@ -933,8 +933,8 @@ const UnifiedCinemaManagement = () => {
                       />
                     </div>
                   </div>
-                  <div className="form-row">
-                    <div className="form-group">
+                  <div className="ucm-form-row">
+                    <div className="ucm-form-group">
                       <label>Số điện thoại</label>
                       <input
                         type="text"
@@ -944,7 +944,7 @@ const UnifiedCinemaManagement = () => {
                         placeholder="Số điện thoại"
                       />
                     </div>
-                    <div className="form-group">
+                    <div className="ucm-form-group">
                       <label>Email</label>
                       <input
                         type="email"
@@ -955,8 +955,8 @@ const UnifiedCinemaManagement = () => {
                       />
                     </div>
                   </div>
-                  <div className="form-row">
-                    <div className="form-group">
+                  <div className="ucm-form-row">
+                    <div className="ucm-form-group">
                       <label>Mã số thuế</label>
                       <input
                         type="text"
@@ -966,7 +966,7 @@ const UnifiedCinemaManagement = () => {
                         placeholder="Mã số thuế"
                       />
                     </div>
-                    <div className="form-group">
+                    <div className="ucm-form-group">
                       <label>Tên pháp lý</label>
                       <input
                         type="text"
@@ -977,8 +977,8 @@ const UnifiedCinemaManagement = () => {
                       />
                     </div>
                   </div>
-                  <div className="form-row">
-                    <div className="form-group">
+                  <div className="ucm-form-row">
+                    <div className="ucm-form-group">
                       <label>Vĩ độ</label>
                       <input
                         type="number"
@@ -989,7 +989,7 @@ const UnifiedCinemaManagement = () => {
                         step="0.0001"
                       />
                     </div>
-                    <div className="form-group">
+                    <div className="ucm-form-group">
                       <label>Kinh độ</label>
                       <input
                         type="number"
@@ -1001,8 +1001,8 @@ const UnifiedCinemaManagement = () => {
                       />
                     </div>
                   </div>
-                  <div className="form-row">
-                    <div className="form-group">
+                  <div className="ucm-form-row">
+                    <div className="ucm-form-group">
                       <label>Giờ mở cửa</label>
                       <input
                         type="text"
@@ -1012,7 +1012,7 @@ const UnifiedCinemaManagement = () => {
                         placeholder="Ví dụ: 09:00 - 23:00"
                       />
                     </div>
-                    <div className="form-group">
+                    <div className="ucm-form-group">
                       <label>Tiện nghi</label>
                       <input
                         type="text"
@@ -1026,7 +1026,7 @@ const UnifiedCinemaManagement = () => {
                 </>
               )}
 
-              <div className="form-group checkbox-group">
+              <div className="ucm-form-group ucm-checkbox-group">
                 <label>
                   <input
                     type="checkbox"
@@ -1038,7 +1038,7 @@ const UnifiedCinemaManagement = () => {
               </div>
             </div>
 
-            <div className="modal-footer">
+            <div className="ucm-modal-footer">
               <button className="btn btn-secondary" onClick={handleCloseModal}>
                 <FaTimes /> Đóng
               </button>

@@ -1,9 +1,9 @@
 .hall-management-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 20px;
-  background: #f5f5f5;
-  min-height: calc(100vh - 80px);
+  padding: 24px;
+  background: transparent;
+  min-height: 100%;
 }
 
 /* Header */

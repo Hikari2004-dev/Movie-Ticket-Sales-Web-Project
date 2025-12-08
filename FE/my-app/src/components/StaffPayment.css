@@ -1,25 +1,29 @@
 .staff-payment-container {
-  padding: 30px;
+  padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  min-height: 100%;
+  background: transparent;
 }
 
 .payment-header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
+  padding: 24px 28px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.9);
 }
 
 .payment-header h1 {
-  font-size: 32px;
-  color: #ffffff;
+  font-size: 26px;
+  color: #1e293b;
   margin-bottom: 10px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .payment-header p {
-  color: #e0e0e0;
+  color: #64748b;
   font-size: 16px;
 }
 

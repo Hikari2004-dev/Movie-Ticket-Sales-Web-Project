@@ -1,16 +1,17 @@
 .admin-payment-manager {
-  padding: 0;
-  background: #f8f9fa;
-  min-height: calc(100vh - 70px);
+  padding: 24px;
+  background: transparent;
+  min-height: 100%;
 }
 
 /* Header Section */
 .payment-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2.5rem 2rem;
+  padding: 24px 28px;
   color: white;
-  margin-bottom: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  border-radius: 16px;
 }
 
 .header-content {

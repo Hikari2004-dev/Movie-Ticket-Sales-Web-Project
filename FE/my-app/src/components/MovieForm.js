@@ -228,35 +228,35 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className="mf-modal-overlay">
+      <div className="mf-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="mf-modal-header">
           <h2>{movie ? 'Chỉnh Sửa Phim' : 'Thêm Phim Mới'}</h2>
-          <button className="btn-close" onClick={onClose}>
+          <button className="mf-btn-close" onClick={onClose}>
             <FaTimes />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="movie-form">
+        <form onSubmit={handleSubmit} className="mf-movie-form">
           {/* Tab Navigation */}
-          <div className="tab-navigation">
+          <div className="mf-tab-navigation">
             <button
               type="button"
-              className={`tab-button ${activeTab === 'basic' ? 'active' : ''}`}
+              className={`mf-tab-button ${activeTab === 'basic' ? 'active' : ''}`}
               onClick={() => setActiveTab('basic')}
             >
               Thông tin cơ bản
             </button>
             <button
               type="button"
-              className={`tab-button ${activeTab === 'imdb' ? 'active' : ''}`}
+              className={`mf-tab-button ${activeTab === 'imdb' ? 'active' : ''}`}
               onClick={() => setActiveTab('imdb')}
             >
               Nội dung phim
             </button>
             <button
               type="button"
-              className={`tab-button ${activeTab === 'media' ? 'active' : ''}`}
+              className={`mf-tab-button ${activeTab === 'media' ? 'active' : ''}`}
               onClick={() => setActiveTab('media')}
             >
               Hình ảnh & Video
@@ -265,12 +265,12 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
 
           {/* Tab 1: Thông tin cơ bản */}
           {activeTab === 'basic' && (
-            <div className="tab-content">
-              <div className="form-grid">
-            <div className="form-section">
+            <div className="mf-tab-content">
+              <div className="mf-form-grid">
+            <div className="mf-form-section">
               <h3>Thông tin phim</h3>
               
-              <div className="form-group">
+              <div className="mf-form-group">
                 <label>Tên phim (Tiếng Việt) *</label>
                 <input
                   type="text"
@@ -279,10 +279,10 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                   onChange={handleChange}
                   className={errors.title ? 'error' : ''}
                 />
-                {errors.title && <span className="error-message">{errors.title}</span>}
+                {errors.title && <span className="mf-error-message">{errors.title}</span>}
               </div>
 
-              <div className="form-group">
+              <div className="mf-form-group">
                 <label>Tên phim (Tiếng Anh) *</label>
                 <input
                   type="text"
@@ -291,11 +291,11 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                   onChange={handleChange}
                   className={errors.titleEn ? 'error' : ''}
                 />
-                {errors.titleEn && <span className="error-message">{errors.titleEn}</span>}
+                {errors.titleEn && <span className="mf-error-message">{errors.titleEn}</span>}
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
+              <div className="mf-form-row">
+                <div className="mf-form-group">
                   <label>Thời lượng (phút) *</label>
                   <input
                     type="number"
@@ -305,10 +305,10 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                     min="1"
                     className={errors.duration ? 'error' : ''}
                   />
-                  {errors.duration && <span className="error-message">{errors.duration}</span>}
+                  {errors.duration && <span className="mf-error-message">{errors.duration}</span>}
                 </div>
 
-                <div className="form-group">
+                <div className="mf-form-group">
                   <label>Độ tuổi *</label>
                   <select
                     name="ageRating"
@@ -325,8 +325,8 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
+              <div className="mf-form-row">
+                <div className="mf-form-group">
                   <label>Ngày phát hành *</label>
                   <input
                     type="date"
@@ -335,10 +335,10 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                     onChange={handleChange}
                     className={errors.releaseDate ? 'error' : ''}
                   />
-                  {errors.releaseDate && <span className="error-message">{errors.releaseDate}</span>}
+                  {errors.releaseDate && <span className="mf-error-message">{errors.releaseDate}</span>}
                 </div>
 
-                <div className="form-group">
+                <div className="mf-form-group">
                   <label>Ngày kết thúc</label>
                   <input
                     type="date"
@@ -349,7 +349,7 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                 </div>
               </div>
 
-              <div className="form-group">
+              <div className="mf-form-group">
                 <label>Trạng thái *</label>
                 <select
                   name="status"
@@ -361,7 +361,7 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                 </select>
               </div>
 
-              <div className="form-group checkbox-group">
+              <div className="mf-form-group mf-checkbox-group">
                 <label>
                   <input
                     type="checkbox"
@@ -375,14 +375,14 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
             </div>
 
             {/* Thể loại và định dạng */}
-            <div className="form-section">
+            <div className="mf-form-section">
               <h3>Thể loại & Định dạng</h3>
               
-              <div className="form-group">
+              <div className="mf-form-group">
                 <label>Thể loại *</label>
-                <div className="checkbox-grid">
+                <div className="mf-checkbox-grid">
                   {genres.map(genre => (
-                    <label key={genre.id} className="checkbox-label">
+                    <label key={genre.id} className="mf-checkbox-label">
                       <input
                         type="checkbox"
                         checked={formData.genreIds.includes(genre.id)}
@@ -392,14 +392,14 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                     </label>
                   ))}
                 </div>
-                {errors.genres && <span className="error-message">{errors.genres}</span>}
+                {errors.genres && <span className="mf-error-message">{errors.genres}</span>}
               </div>
 
-              <div className="form-group">
+              <div className="mf-form-group">
                 <label>Định dạng chiếu</label>
-                <div className="checkbox-grid">
+                <div className="mf-checkbox-grid">
                   {['2D', '3D', 'IMAX', '4DX', 'ScreenX'].map(format => (
-                    <label key={format} className="checkbox-label">
+                    <label key={format} className="mf-checkbox-label">
                       <input
                         type="checkbox"
                         checked={formData.availableFormats.includes(format)}
@@ -413,10 +413,10 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
             </div>
 
             {/* Thông tin sản xuất */}
-            <div className="form-section">
+            <div className="mf-form-section">
               <h3>Thông tin sản xuất</h3>
               
-              <div className="form-group">
+              <div className="mf-form-group">
                 <label>Đạo diễn</label>
                 <input
                   type="text"
@@ -426,7 +426,7 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                 />
               </div>
 
-              <div className="form-group">
+              <div className="mf-form-group">
                 <label>Diễn viên</label>
                 <input
                   type="text"
@@ -437,7 +437,7 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                 />
               </div>
 
-              <div className="form-group">
+              <div className="mf-form-group">
                 <label>Nhà sản xuất</label>
                 <input
                   type="text"
@@ -447,8 +447,8 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                 />
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
+              <div className="mf-form-row">
+                <div className="mf-form-group">
                   <label>Quốc gia</label>
                   <input
                     type="text"
@@ -458,7 +458,7 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                   />
                 </div>
 
-                <div className="form-group">
+                <div className="mf-form-group">
                   <label>Ngôn ngữ</label>
                   <input
                     type="text"
@@ -469,7 +469,7 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                 </div>
               </div>
 
-              <div className="form-group">
+              <div className="mf-form-group">
                 <label>Phụ đề</label>
                 <input
                   type="text"
@@ -481,11 +481,11 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
             </div>
 
             {/* Thông tin IMDB */}
-            <div className="form-section">
+            <div className="mf-form-section">
               <h3>Thông tin IMDB</h3>
               
-              <div className="form-row">
-                <div className="form-group">
+              <div className="mf-form-row">
+                <div className="mf-form-group">
                   <label>IMDB Rating</label>
                   <input
                     type="number"
@@ -498,7 +498,7 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                   />
                 </div>
 
-                <div className="form-group">
+                <div className="mf-form-group">
                   <label>IMDB ID</label>
                   <input
                     type="text"
@@ -516,16 +516,16 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
 
             {/* Tab 2: Hình ảnh & Video */}
             {activeTab === 'media' && (
-            <div className="tab-content">
-              <div className="form-grid">
-            <div className="form-section">
+            <div className="mf-tab-content">
+              <div className="mf-form-grid">
+            <div className="mf-form-section">
               <h3>Hình ảnh & Video</h3>
               
-              <div className="form-group">
+              <div className="mf-form-group">
                 <label>Poster *</label>
-                <div className="upload-container">
-                  <div className="upload-buttons">
-                    <label className="btn-upload" style={{ opacity: uploadingPoster ? 0.6 : 1 }}>
+                <div className="mf-upload-container">
+                  <div className="mf-upload-buttons">
+                    <label className="mf-btn-upload" style={{ opacity: uploadingPoster ? 0.6 : 1 }}>
                       <FaUpload /> {uploadingPoster ? 'Đang upload...' : 'Upload Poster'}
                       <input
                         type="file"
@@ -535,7 +535,7 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                         style={{ display: 'none' }}
                       />
                     </label>
-                    <span className="upload-hint">hoặc nhập URL</span>
+                    <span className="mf-upload-hint">hoặc nhập URL</span>
                   </div>
                   <input
                     type="url"
@@ -546,20 +546,20 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                     className={errors.posterUrl ? 'error' : ''}
                   />
                   {formData.posterUrl && (
-                    <div className="image-preview">
+                    <div className="mf-image-preview">
                       <FaImage />
                       <img src={formData.posterUrl} alt="Poster preview" onError={(e) => e.target.style.display = 'none'} />
                     </div>
                   )}
                 </div>
-                {errors.posterUrl && <span className="error-message">{errors.posterUrl}</span>}
+                {errors.posterUrl && <span className="mf-error-message">{errors.posterUrl}</span>}
               </div>
 
-              <div className="form-group">
+              <div className="mf-form-group">
                 <label>Backdrop</label>
-                <div className="upload-container">
-                  <div className="upload-buttons">
-                    <label className="btn-upload" style={{ opacity: uploadingBackdrop ? 0.6 : 1 }}>
+                <div className="mf-upload-container">
+                  <div className="mf-upload-buttons">
+                    <label className="mf-btn-upload" style={{ opacity: uploadingBackdrop ? 0.6 : 1 }}>
                       <FaUpload /> {uploadingBackdrop ? 'Đang upload...' : 'Upload Backdrop'}
                       <input
                         type="file"
@@ -569,7 +569,7 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                         style={{ display: 'none' }}
                       />
                     </label>
-                    <span className="upload-hint">hoặc nhập URL</span>
+                    <span className="mf-upload-hint">hoặc nhập URL</span>
                   </div>
                   <input
                     type="url"
@@ -579,7 +579,7 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                     placeholder="https://example.com/backdrop.jpg"
                   />
                   {formData.backdropUrl && (
-                    <div className="image-preview">
+                    <div className="mf-image-preview">
                       <FaImage />
                       <img src={formData.backdropUrl} alt="Backdrop preview" onError={(e) => e.target.style.display = 'none'} />
                     </div>
@@ -587,7 +587,7 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                 </div>
               </div>
 
-              <div className="form-group">
+              <div className="mf-form-group">
                 <label>URL Trailer (YouTube Embed)</label>
                 <input
                   type="url"
@@ -604,12 +604,12 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
 
             {/* Tab 3: Nội dung phim */}
             {activeTab === 'imdb' && (
-            <div className="tab-content">
-              <div className="form-grid">
-            <div className="form-section">
+            <div className="mf-tab-content">
+              <div className="mf-form-grid">
+            <div className="mf-form-section">
               <h3>Nội dung phim</h3>
               
-              <div className="form-group">
+              <div className="mf-form-group">
                 <label>Nội dung (Tiếng Việt) *</label>
                 <textarea
                   name="synopsis"
@@ -618,10 +618,10 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                   rows="6"
                   className={errors.synopsis ? 'error' : ''}
                 />
-                {errors.synopsis && <span className="error-message">{errors.synopsis}</span>}
+                {errors.synopsis && <span className="mf-error-message">{errors.synopsis}</span>}
               </div>
 
-              <div className="form-group">
+              <div className="mf-form-group">
                 <label>Nội dung (Tiếng Anh)</label>
                 <textarea
                   name="synopsisEn"
@@ -631,7 +631,7 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
                 />
               </div>
 
-              <div className="form-group">
+              <div className="mf-form-group">
                 <label>Cảnh báo nội dung</label>
                 <textarea
                   name="contentWarning"
@@ -645,11 +645,11 @@ const MovieForm = ({ movie, genres, onSubmit, onClose }) => {
             </div>
             )}
 
-          <div className="form-actions">
-            <button type="button" onClick={onClose} className="btn-cancel">
+          <div className="mf-form-actions">
+            <button type="button" onClick={onClose} className="mf-btn-cancel">
               Hủy
             </button>
-            <button type="submit" className="btn-submit" disabled={submitting}>
+            <button type="submit" className="mf-btn-submit" disabled={submitting}>
               {submitting ? 'Đang lưu...' : (movie ? 'Cập nhật' : 'Thêm mới')}
             </button>
           </div>

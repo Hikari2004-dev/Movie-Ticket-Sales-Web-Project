@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
+import './ConcessionItemManagement.css';
 
 const ConcessionItemManagement = () => {
   const [items, setItems] = useState([]);

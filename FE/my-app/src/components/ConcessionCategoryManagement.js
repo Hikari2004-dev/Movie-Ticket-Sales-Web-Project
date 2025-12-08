@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
+import './ConcessionCategoryManagement.css';
 
 const ConcessionCategoryManagement = () => {
   const [categories, setCategories] = useState([]);
@@ -147,70 +148,70 @@ const ConcessionCategoryManagement = () => {
   };
 
   return (
-    <div style={styles.container}>
+    <div className="ccm-container">
       {/* Header */}
-      <div style={styles.header}>
-        <div>
-          <h1 style={styles.title}>🏷️ Quản Lý Danh Mục Bắp Nước</h1>
-          <p style={styles.subtitle}>Quản lý các danh mục sản phẩm bắp nước (Combo, Bắp rang, Nước ngọt...)</p>
+      <div className="ccm-header">
+        <div className="ccm-header-content">
+          <h1>Quản Lý Danh Mục Bắp Nước</h1>
+          <p className="ccm-header-subtitle">Quản lý các danh mục sản phẩm bắp nước (Combo, Bắp rang, Nước ngọt...)</p>
         </div>
-        <button style={styles.createButton} onClick={handleCreate}>
+        <button className="ccm-create-btn" onClick={handleCreate}>
           + Thêm Danh Mục
         </button>
       </div>
 
       {/* Content */}
       {loading ? (
-        <div style={styles.loadingContainer}>
-          <div style={styles.spinner}></div>
+        <div className="ccm-loading">
+          <div className="ccm-spinner"></div>
           <p>Đang tải dữ liệu...</p>
         </div>
       ) : categories.length === 0 ? (
-        <div style={styles.emptyState}>
-          <div style={styles.emptyIcon}>🏷️</div>
+        <div className="ccm-empty">
+          <div className="ccm-empty-icon">🏷️</div>
           <h3>Chưa có danh mục nào</h3>
           <p>Nhấn "Thêm Danh Mục" để tạo danh mục mới</p>
         </div>
       ) : (
-        <div style={styles.tableContainer}>
-          <table style={styles.table}>
+        <div className="ccm-table-container">
+          <table className="ccm-table">
             <thead>
-              <tr style={styles.tableHeaderRow}>
-                <th style={styles.th}>STT</th>
-                <th style={styles.th}>Tên danh mục</th>
-                <th style={styles.th}>Mô tả</th>
-                <th style={styles.th}>Thứ tự</th>
-                <th style={styles.th}>Trạng thái</th>
-                <th style={styles.th}>Thao tác</th>
+              <tr>
+                <th>STT</th>
+                <th>Tên danh mục</th>
+                <th>Mô tả</th>
+                <th>Thứ tự</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
               {categories.map((category, index) => (
-                <tr key={category.id} style={styles.tableRow}>
-                  <td style={styles.td}>{index + 1}</td>
-                  <td style={styles.td}>
-                    <span style={styles.categoryName}>{category.categoryName}</span>
+                <tr key={category.id}>
+                  <td>{index + 1}</td>
+                  <td>
+                    <span className="ccm-category-name">
+                      <span className="ccm-category-icon">🏷️</span>
+                      {category.categoryName}
+                    </span>
                   </td>
-                  <td style={styles.td}>{category.description || '-'}</td>
-                  <td style={styles.td}>{category.displayOrder}</td>
-                  <td style={styles.td}>
-                    <span style={{
-                      ...styles.statusBadge,
-                      backgroundColor: category.isActive ? '#d4edda' : '#f8d7da',
-                      color: category.isActive ? '#155724' : '#721c24'
-                    }}>
+                  <td className="ccm-description">{category.description || '-'}</td>
+                  <td><span className="ccm-order-badge">{category.displayOrder}</span></td>
+                  <td>
+                    <span className={`ccm-status-badge ${category.isActive ? 'active' : 'inactive'}`}>
+                      <span className="ccm-status-dot"></span>
                       {category.isActive ? 'Hoạt động' : 'Tắt'}
                     </span>
                   </td>
-                  <td style={styles.td}>
-                    <div style={styles.actionButtons}>
-                      <button style={styles.editButton} onClick={() => handleEdit(category)}>
+                  <td>
+                    <div className="ccm-actions">
+                      <button className="ccm-btn ccm-btn-edit" onClick={() => handleEdit(category)}>
                         ✏️ Sửa
                       </button>
-                      <button style={styles.toggleButton} onClick={() => handleToggle(category.id)}>
+                      <button className="ccm-btn ccm-btn-toggle" onClick={() => handleToggle(category.id)}>
                         {category.isActive ? '🔒 Tắt' : '🔓 Bật'}
                       </button>
-                      <button style={styles.deleteButton} onClick={() => handleDelete(category.id)}>
+                      <button className="ccm-btn ccm-btn-delete" onClick={() => handleDelete(category.id)}>
                         🗑️ Xóa
                       </button>
                     </div>
@@ -224,57 +225,57 @@ const ConcessionCategoryManagement = () => {
 
       {/* Modal */}
       {showModal && (
-        <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
-          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.modalHeader}>
-              <h2 style={styles.modalTitle}>
+        <div className="ccm-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="ccm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="ccm-modal-header">
+              <h2 className="ccm-modal-title">
                 {modalMode === 'create' ? '✨ Thêm Danh Mục Mới' : '✏️ Chỉnh Sửa Danh Mục'}
               </h2>
-              <button style={styles.closeButton} onClick={() => setShowModal(false)}>✕</button>
+              <button className="ccm-modal-close" onClick={() => setShowModal(false)}>✕</button>
             </div>
 
             <form onSubmit={handleSubmit}>
-              <div style={styles.modalBody}>
-                <div style={styles.formGroup}>
-                  <label style={styles.formLabel}>Tên danh mục *</label>
+              <div className="ccm-modal-body">
+                <div className="ccm-form-group">
+                  <label className="ccm-form-label">Tên danh mục <span className="required">*</span></label>
                   <input
                     type="text"
                     value={formData.categoryName}
                     onChange={(e) => setFormData({...formData, categoryName: e.target.value})}
                     required
-                    style={styles.formInput}
+                    className="ccm-form-input"
                     placeholder="VD: Combo, Bắp rang, Nước ngọt..."
                   />
                 </div>
 
-                <div style={styles.formGroup}>
-                  <label style={styles.formLabel}>Mô tả</label>
+                <div className="ccm-form-group">
+                  <label className="ccm-form-label">Mô tả</label>
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    style={{...styles.formInput, minHeight: '80px', resize: 'vertical'}}
+                    className="ccm-form-input ccm-form-textarea"
                     placeholder="Mô tả về danh mục..."
                   />
                 </div>
 
-                <div style={styles.formRow}>
-                  <div style={styles.formGroup}>
-                    <label style={styles.formLabel}>Thứ tự hiển thị</label>
+                <div className="ccm-form-row">
+                  <div className="ccm-form-group">
+                    <label className="ccm-form-label">Thứ tự hiển thị</label>
                     <input
                       type="number"
                       value={formData.displayOrder}
                       onChange={(e) => setFormData({...formData, displayOrder: parseInt(e.target.value) || 0})}
-                      style={styles.formInput}
+                      className="ccm-form-input"
                       min="0"
                     />
                   </div>
 
-                  <div style={styles.formGroup}>
-                    <label style={styles.formLabel}>Trạng thái</label>
+                  <div className="ccm-form-group">
+                    <label className="ccm-form-label">Trạng thái</label>
                     <select
                       value={formData.isActive}
                       onChange={(e) => setFormData({...formData, isActive: e.target.value === 'true'})}
-                      style={styles.formInput}
+                      className="ccm-form-input"
                     >
                       <option value="true">Hoạt động</option>
                       <option value="false">Tắt</option>
@@ -283,19 +284,19 @@ const ConcessionCategoryManagement = () => {
                 </div>
               </div>
 
-              <div style={styles.modalFooter}>
+              <div className="ccm-modal-footer">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
                   disabled={submitting}
-                  style={styles.cancelButton}
+                  className="ccm-btn-cancel"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  style={styles.submitButton}
+                  className="ccm-btn-submit"
                 >
                   {submitting ? 'Đang lưu...' : (modalMode === 'create' ? '✨ Tạo mới' : '💾 Cập nhật')}
                 </button>
@@ -306,252 +307,6 @@ const ConcessionCategoryManagement = () => {
       )}
     </div>
   );
-};
-
-const styles = {
-  container: {
-    padding: '24px',
-    backgroundColor: '#f0f2f5',
-    minHeight: '100vh',
-    fontFamily: 'Arial, sans-serif'
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '24px',
-    padding: '24px',
-    backgroundColor: '#ffffff',
-    borderRadius: '12px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-  },
-  title: {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#1a1a1a',
-    margin: '0 0 8px 0'
-  },
-  subtitle: {
-    fontSize: '14px',
-    color: '#666',
-    margin: '0'
-  },
-  createButton: {
-    padding: '12px 24px',
-    backgroundColor: '#4CAF50',
-    color: 'white',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer'
-  },
-  loadingContainer: {
-    textAlign: 'center',
-    padding: '60px 32px',
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-  },
-  spinner: {
-    width: '48px',
-    height: '48px',
-    border: '4px solid #f3f3f3',
-    borderTop: '4px solid #4CAF50',
-    borderRadius: '50%',
-    animation: 'spin 1s linear infinite',
-    margin: '0 auto 16px'
-  },
-  emptyState: {
-    textAlign: 'center',
-    padding: '60px 32px',
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-  },
-  emptyIcon: {
-    fontSize: '64px',
-    marginBottom: '16px'
-  },
-  tableContainer: {
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    overflow: 'hidden'
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse'
-  },
-  tableHeaderRow: {
-    backgroundColor: '#f8f9fa',
-    borderBottom: '2px solid #e9ecef'
-  },
-  th: {
-    padding: '16px',
-    textAlign: 'left',
-    fontWeight: '600',
-    fontSize: '13px',
-    color: '#495057',
-    textTransform: 'uppercase'
-  },
-  tableRow: {
-    borderBottom: '1px solid #f0f0f0'
-  },
-  td: {
-    padding: '16px',
-    fontSize: '14px',
-    color: '#333',
-    verticalAlign: 'middle'
-  },
-  categoryName: {
-    fontWeight: '600',
-    color: '#1a1a1a'
-  },
-  statusBadge: {
-    display: 'inline-block',
-    padding: '4px 12px',
-    borderRadius: '20px',
-    fontSize: '12px',
-    fontWeight: '600'
-  },
-  actionButtons: {
-    display: 'flex',
-    gap: '8px'
-  },
-  editButton: {
-    padding: '8px 12px',
-    backgroundColor: '#2196F3',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '12px',
-    fontWeight: '500',
-    cursor: 'pointer'
-  },
-  toggleButton: {
-    padding: '8px 12px',
-    backgroundColor: '#FF9800',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '12px',
-    fontWeight: '500',
-    cursor: 'pointer'
-  },
-  deleteButton: {
-    padding: '8px 12px',
-    backgroundColor: '#f44336',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '12px',
-    fontWeight: '500',
-    cursor: 'pointer'
-  },
-  modalOverlay: {
-    position: 'fixed',
-    top: '0',
-    left: '0',
-    right: '0',
-    bottom: '0',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: '1000'
-  },
-  modal: {
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    width: '90%',
-    maxWidth: '500px',
-    maxHeight: '90vh',
-    overflowY: 'auto',
-    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)'
-  },
-  modalHeader: {
-    padding: '20px 24px',
-    borderBottom: '1px solid #e9ecef',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-  modalTitle: {
-    margin: '0',
-    fontSize: '20px',
-    fontWeight: '700',
-    color: '#1a1a1a'
-  },
-  closeButton: {
-    background: 'transparent',
-    border: 'none',
-    fontSize: '24px',
-    cursor: 'pointer',
-    color: '#666',
-    padding: '0',
-    width: '32px',
-    height: '32px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '4px'
-  },
-  modalBody: {
-    padding: '24px'
-  },
-  formGroup: {
-    marginBottom: '20px',
-    flex: '1'
-  },
-  formLabel: {
-    display: 'block',
-    marginBottom: '8px',
-    fontWeight: '600',
-    color: '#333',
-    fontSize: '14px'
-  },
-  formInput: {
-    width: '100%',
-    padding: '10px 12px',
-    border: '1px solid #ddd',
-    borderRadius: '8px',
-    fontSize: '14px',
-    boxSizing: 'border-box'
-  },
-  formRow: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '16px'
-  },
-  modalFooter: {
-    padding: '16px 24px',
-    borderTop: '1px solid #e9ecef',
-    display: 'flex',
-    gap: '12px',
-    justifyContent: 'flex-end',
-    backgroundColor: '#f8f9fa'
-  },
-  cancelButton: {
-    padding: '10px 20px',
-    backgroundColor: 'white',
-    color: '#333',
-    border: '1px solid #ddd',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer'
-  },
-  submitButton: {
-    padding: '10px 20px',
-    backgroundColor: '#4CAF50',
-    color: 'white',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer'
-  }
 };
 
 export default ConcessionCategoryManagement;

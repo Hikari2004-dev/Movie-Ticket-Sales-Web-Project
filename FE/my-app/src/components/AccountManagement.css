@@ -1,7 +1,7 @@
 .account-management {
-  padding: 2rem;
-  background: #f8f9fa;
-  min-height: 100vh;
+  padding: 24px;
+  background: transparent;
+  min-height: 100%;
 }
 
 .am-page-header {

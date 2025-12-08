@@ -236,19 +236,19 @@ const QuickBookingModal = ({ isOpen, onClose, initialStep = 1 }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <button className="modal-close" onClick={onClose}>
+    <div className="qbm-modal-overlay">
+      <div className="qbm-modal-content">
+        <button className="qbm-modal-close" onClick={onClose}>
           <FaTimes />
         </button>
 
-        <div className="modal-header">
+        <div className="qbm-modal-header">
           <h2>ĐẶT VÉ NHANH</h2>
-          <div className="step-indicators">
+          <div className="qbm-step-indicators">
             {[1, 2, 3, 4].map(step => (
               <div 
                 key={step} 
-                className={`step-indicator ${currentStep >= step ? 'active' : ''} ${currentStep === step ? 'current' : ''}`}
+                className={`qbm-step-indicator ${currentStep >= step ? 'active' : ''} ${currentStep === step ? 'current' : ''}`}
               >
                 {step}
               </div>
@@ -256,24 +256,24 @@ const QuickBookingModal = ({ isOpen, onClose, initialStep = 1 }) => {
           </div>
         </div>
 
-        <div className="modal-body">
+        <div className="qbm-modal-body">
           {/* Bước 1: Chọn Rạp */}
           {currentStep === 1 && (
-            <div className="booking-step-content">
+            <div className="qbm-booking-step-content">
               <h3>Bước 1: Chọn Rạp Chiếu</h3>
               {loading.cinemas ? (
-                <div className="loading-spinner">Đang tải danh sách rạp...</div>
+                <div className="qbm-loading-spinner">Đang tải danh sách rạp...</div>
               ) : (
-                <div className="cinema-grid">
+                <div className="qbm-cinema-grid">
                   {cinemas.map(cinema => (
                     <div
                       key={cinema.id}
-                      className={`cinema-card ${selectedCinema === cinema.id ? 'selected' : ''}`}
+                      className={`qbm-cinema-card ${selectedCinema === cinema.id ? 'selected' : ''}`}
                       onClick={() => handleCinemaSelect(cinema.id)}
                     >
-                      <div className="cinema-name">{cinema.name}</div>
-                      <div className="cinema-location">{cinema.location}</div>
-                      <div className="cinema-address">{cinema.address}</div>
+                      <div className="qbm-cinema-name">{cinema.name}</div>
+                      <div className="qbm-cinema-location">{cinema.location}</div>
+                      <div className="qbm-cinema-address">{cinema.address}</div>
                     </div>
                   ))}
                 </div>
@@ -283,25 +283,25 @@ const QuickBookingModal = ({ isOpen, onClose, initialStep = 1 }) => {
 
           {/* Bước 2: Chọn Phim */}
           {currentStep === 2 && (
-            <div className="booking-step-content">
+            <div className="qbm-booking-step-content">
               <h3>Bước 2: Chọn Phim</h3>
-              <div className="selected-info">
-                <span className="info-label">Rạp đã chọn:</span>
-                <span className="info-value">{getSelectedCinemaName()}</span>
+              <div className="qbm-selected-info">
+                <span className="qbm-info-label">Rạp đã chọn:</span>
+                <span className="qbm-info-value">{getSelectedCinemaName()}</span>
               </div>
               {loading.movies ? (
-                <div className="loading-spinner">Đang tải danh sách phim...</div>
+                <div className="qbm-loading-spinner">Đang tải danh sách phim...</div>
               ) : (
-                <div className="movie-grid">
+                <div className="qbm-movie-grid">
                   {movies.map(movie => (
                     <div
                       key={movie.id}
-                      className={`movie-card ${selectedMovie === movie.id ? 'selected' : ''}`}
+                      className={`qbm-movie-card ${selectedMovie === movie.id ? 'selected' : ''}`}
                       onClick={() => handleMovieSelect(movie.id)}
                     >
-                      <div className="movie-age-rating">{movie.ageRating}</div>
-                      <div className="movie-title">{movie.title}</div>
-                      <div className="movie-details">
+                      <div className="qbm-movie-age-rating">{movie.ageRating}</div>
+                      <div className="qbm-movie-title">{movie.title}</div>
+                      <div className="qbm-movie-details">
                         <span>{movie.genre}</span> • <span>{movie.duration}</span>
                       </div>
                     </div>
@@ -313,24 +313,24 @@ const QuickBookingModal = ({ isOpen, onClose, initialStep = 1 }) => {
 
           {/* Bước 3: Chọn Ngày */}
           {currentStep === 3 && (
-            <div className="booking-step-content">
+            <div className="qbm-booking-step-content">
               <h3>Bước 3: Chọn Ngày Chiếu</h3>
-              <div className="selected-info">
-                <span className="info-label">Phim đã chọn:</span>
-                <span className="info-value">{getSelectedMovieName()}</span>
+              <div className="qbm-selected-info">
+                <span className="qbm-info-label">Phim đã chọn:</span>
+                <span className="qbm-info-value">{getSelectedMovieName()}</span>
               </div>
               {loading.dates ? (
-                <div className="loading-spinner">Đang tải lịch chiếu...</div>
+                <div className="qbm-loading-spinner">Đang tải lịch chiếu...</div>
               ) : (
-                <div className="date-grid">
+                <div className="qbm-date-grid">
                   {availableDates.map(date => (
                     <div
                       key={date.value}
-                      className={`date-card ${selectedDate === date.value ? 'selected' : ''}`}
+                      className={`qbm-date-card ${selectedDate === date.value ? 'selected' : ''}`}
                       onClick={() => handleDateSelect(date.value)}
                     >
-                      <div className="date-day">{date.dayOfWeek}</div>
-                      <div className="date-number">{date.label}</div>
+                      <div className="qbm-date-day">{date.dayOfWeek}</div>
+                      <div className="qbm-date-number">{date.label}</div>
                     </div>
                   ))}
                 </div>
@@ -340,25 +340,25 @@ const QuickBookingModal = ({ isOpen, onClose, initialStep = 1 }) => {
 
           {/* Bước 4: Chọn Giờ */}
           {currentStep === 4 && (
-            <div className="booking-step-content">
+            <div className="qbm-booking-step-content">
               <h3>Bước 4: Chọn Giờ Chiếu</h3>
-              <div className="selected-info">
-                <span className="info-label">Ngày đã chọn:</span>
-                <span className="info-value">{selectedDate}</span>
+              <div className="qbm-selected-info">
+                <span className="qbm-info-label">Ngày đã chọn:</span>
+                <span className="qbm-info-value">{selectedDate}</span>
               </div>
               {loading.times ? (
-                <div className="loading-spinner">Đang tải suất chiếu...</div>
+                <div className="qbm-loading-spinner">Đang tải suất chiếu...</div>
               ) : (
-                <div className="time-grid">
+                <div className="qbm-time-grid">
                   {availableTimes.map(time => (
                     <div
                       key={time.id}
-                      className={`time-card ${selectedTime === time.id ? 'selected' : ''} ${!time.available ? 'disabled' : ''}`}
+                      className={`qbm-time-card ${selectedTime === time.id ? 'selected' : ''} ${!time.available ? 'disabled' : ''}`}
                       onClick={() => time.available && handleTimeSelect(time.id)}
                     >
-                      <div className="time-value">{time.time}</div>
-                      <div className="time-room">{time.roomName}</div>
-                      <div className="time-format">{time.format}</div>
+                      <div className="qbm-time-value">{time.time}</div>
+                      <div className="qbm-time-room">{time.roomName}</div>
+                      <div className="qbm-time-format">{time.format}</div>
                     </div>
                   ))}
                 </div>
@@ -367,20 +367,20 @@ const QuickBookingModal = ({ isOpen, onClose, initialStep = 1 }) => {
           )}
         </div>
 
-        <div className="modal-footer">
+        <div className="qbm-modal-footer">
           <button 
-            className="btn-prev" 
+            className="qbm-btn-prev" 
             onClick={handlePrevStep}
             disabled={currentStep === 1}
           >
             Quay lại
           </button>
           {currentStep < 4 ? (
-            <button className="btn-next" onClick={handleNextStep}>
+            <button className="qbm-btn-next" onClick={handleNextStep}>
               Tiếp tục
             </button>
           ) : (
-            <button className="btn-book" onClick={handleBookTicket}>
+            <button className="qbm-btn-book" onClick={handleBookTicket}>
               Đặt Vé Ngay
             </button>
           )}

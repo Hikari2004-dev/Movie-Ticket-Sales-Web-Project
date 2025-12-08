@@ -53,21 +53,21 @@ const SystemAdminDashboard = () => {
 
   return (
     <div className="system-admin-dashboard">
-      <div className="dashboard-header">
+      <div className="sad-dashboard-header">
         <h1>QUẢN TRỊ HỆ THỐNG</h1>
-        <p className="header-subtitle">Tổng quan toàn bộ hệ thống rạp chiếu phim</p>
+        <p className="sad-header-subtitle">Tổng quan toàn bộ hệ thống rạp chiếu phim</p>
       </div>
 
-      <div className="stats-grid">
+      <div className="sad-stats-grid">
         {statsCards.map((stat, index) => (
-          <div key={index} className="stat-card" style={{ '--card-color': stat.color }}>
-            <div className="stat-icon">
+          <div key={index} className="sad-stat-card" style={{ '--card-color': stat.color }}>
+            <div className="sad-stat-icon">
               <stat.icon />
             </div>
-            <div className="stat-content">
-              <div className="stat-title">{stat.title}</div>
-              <div className="stat-value">{stat.value}</div>
-              <div className="stat-trend">
+            <div className="sad-stat-content">
+              <div className="sad-stat-title">{stat.title}</div>
+              <div className="sad-stat-value">{stat.value}</div>
+              <div className="sad-stat-trend">
                 <FaArrowUp /> Hoạt động tốt
               </div>
             </div>
@@ -75,10 +75,10 @@ const SystemAdminDashboard = () => {
         ))}
       </div>
 
-      <div className="activity-section">
+      <div className="sad-activity-section">
         <h2>Hoạt Động Gần Đây</h2>
-        <div className="activity-placeholder">
-          <FaChartLine className="placeholder-icon" />
+        <div className="sad-activity-placeholder">
+          <FaChartLine className="sad-placeholder-icon" />
           <p>Biểu đồ thống kê sẽ được hiển thị tại đây</p>
         </div>
       </div>

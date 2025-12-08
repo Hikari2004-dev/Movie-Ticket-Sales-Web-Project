@@ -1,8 +1,8 @@
 /* Showtime Management Container */
 .showtime-management {
-  padding: 32px;
-  background: #f7fafc;
-  min-height: 100vh;
+  padding: 24px;
+  background: transparent;
+  min-height: 100%;
 }
 
 /* Page Header */

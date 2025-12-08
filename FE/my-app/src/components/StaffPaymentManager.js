@@ -130,21 +130,21 @@ const StaffPaymentManager = () => {
 
   const getPaymentStatusBadge = (status) => {
     const statusConfig = {
-      'PENDING': { label: 'Chờ thanh toán', className: 'payment-pending' },
-      'PROCESSING': { label: 'Đang xử lý', className: 'payment-processing' },
-      'COMPLETED': { label: 'Đã thanh toán', className: 'payment-completed' },
-      'FAILED': { label: 'Thất bại', className: 'payment-failed' }
+      'PENDING': { label: 'Chờ thanh toán', className: 'spm-payment-pending' },
+      'PROCESSING': { label: 'Đang xử lý', className: 'spm-payment-processing' },
+      'COMPLETED': { label: 'Đã thanh toán', className: 'spm-payment-completed' },
+      'FAILED': { label: 'Thất bại', className: 'spm-payment-failed' }
     };
     
-    const config = statusConfig[status] || { label: status, className: 'payment-default' };
-    return <span className={`payment-status-badge ${config.className}`}>{config.label}</span>;
+    const config = statusConfig[status] || { label: status, className: 'spm-payment-default' };
+    return <span className={`spm-payment-status-badge ${config.className}`}>{config.label}</span>;
   };
 
   if (isLoading) {
     return (
       <div className="staff-payment-manager-page">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
+        <div className="spm-loading-spinner">
+          <div className="spm-spinner"></div>
           <p>Đang tải danh sách booking...</p>
         </div>
       </div>
@@ -170,15 +170,15 @@ const StaffPaymentManager = () => {
 
         {/* Bookings Table */}
         {bookings.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">📭</div>
+          <div className="spm-empty-state">
+            <div className="spm-empty-icon">📭</div>
             <h3>Không có booking chờ thanh toán</h3>
             <p>Tất cả các booking đã được xử lý</p>
           </div>
         ) : (
           <>
-            <div className="table-container">
-              <table className="bookings-table">
+            <div className="spm-table-container">
+              <table className="spm-bookings-table">
                 <thead>
                   <tr>
                     <th>Mã Booking</th>
@@ -197,42 +197,42 @@ const StaffPaymentManager = () => {
                   {bookings.map(booking => (
                     <tr key={booking.bookingId}>
                       <td>
-                        <span className="booking-code">{booking.bookingCode}</span>
+                        <span className="spm-booking-code">{booking.bookingCode}</span>
                       </td>
                       <td>
-                        <div className="customer-info">
-                          <div className="customer-name">{booking.customerName || 'N/A'}</div>
-                          <div className="customer-email">{booking.customerEmail || 'N/A'}</div>
+                        <div className="spm-customer-info">
+                          <div className="spm-customer-name">{booking.customerName || 'N/A'}</div>
+                          <div className="spm-customer-email">{booking.customerEmail || 'N/A'}</div>
                         </div>
                       </td>
-                      <td className="movie-title">{booking.movieTitle || 'N/A'}</td>
+                      <td className="spm-movie-title">{booking.movieTitle || 'N/A'}</td>
                       <td>
-                        <div className="cinema-info">
+                        <div className="spm-cinema-info">
                           <div>{booking.cinemaName || 'N/A'}</div>
-                          <div className="hall-name">{booking.hallName || 'N/A'}</div>
+                          <div className="spm-hall-name">{booking.hallName || 'N/A'}</div>
                         </div>
                       </td>
                       <td>
-                        <div className="showtime-info">
+                        <div className="spm-showtime-info">
                           <div>{booking.showDate || 'N/A'}</div>
-                          <div className="show-time">{booking.startTime || 'N/A'}</div>
+                          <div className="spm-show-time">{booking.startTime || 'N/A'}</div>
                         </div>
                       </td>
-                      <td className="text-center">
-                        <span className="seat-count">{booking.totalSeats || 0}</span>
+                      <td className="spm-text-center">
+                        <span className="spm-seat-count">{booking.totalSeats || 0}</span>
                       </td>
-                      <td className="amount">{formatCurrency(booking.totalAmount || 0)}</td>
+                      <td className="spm-amount">{formatCurrency(booking.totalAmount || 0)}</td>
                       <td>{getPaymentStatusBadge(booking.paymentStatus)}</td>
-                      <td className="booking-date">{formatDate(booking.bookingDate)}</td>
+                      <td className="spm-booking-date">{formatDate(booking.bookingDate)}</td>
                       <td>
                         <button
-                          className="btn-confirm-payment"
+                          className="spm-btn-confirm-payment"
                           onClick={() => handleConfirmPayment(booking.bookingId)}
                           disabled={processingBookingId === booking.bookingId}
                         >
                           {processingBookingId === booking.bookingId ? (
                             <>
-                              <span className="spinner-small"></span>
+                              <span className="spm-spinner-small"></span>
                               Đang xử lý...
                             </>
                           ) : (
@@ -248,19 +248,19 @@ const StaffPaymentManager = () => {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="pagination">
+              <div className="spm-pagination">
                 <button
-                  className="pagination-btn"
+                  className="spm-pagination-btn"
                   onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
                   disabled={currentPage === 0}
                 >
                   « Trước
                 </button>
-                <span className="pagination-info">
+                <span className="spm-pagination-info">
                   Trang {currentPage + 1} / {totalPages}
                 </span>
                 <button
-                  className="pagination-btn"
+                  className="spm-pagination-btn"
                   onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
                   disabled={currentPage === totalPages - 1}
                 >
