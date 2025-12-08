@@ -53,9 +53,11 @@ const CinemaConcessionManagement = () => {
       const data = await response.json();
       if (data.success && data.data) {
         const cinemaList = data.data.data || [];
-        setMyCinemas(cinemaList);
-        if (cinemaList.length > 0) {
-          setSelectedCinema(cinemaList[0].cinemaId.toString());
+        // Chỉ lấy các rạp có isActive = true
+        const activeCinemas = cinemaList.filter(cinema => cinema.isActive === true);
+        setMyCinemas(activeCinemas);
+        if (activeCinemas.length > 0) {
+          setSelectedCinema(activeCinemas[0].cinemaId.toString());
         }
       }
     } catch (error) {
