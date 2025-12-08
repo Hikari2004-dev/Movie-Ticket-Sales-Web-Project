@@ -55,5 +55,9 @@ public class UserProfileDto {
     // Loyalty points
     private Integer loyaltyPoints;
     
+    private Integer availablePoints;
+    
     private String membershipTier;
+    
+    private String membershipNumber;
 }

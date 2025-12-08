@@ -3,8 +3,10 @@ package aws.movie_ticket_sales_web_project.service;
 import aws.movie_ticket_sales_web_project.dto.ChangePasswordRequest;
 import aws.movie_ticket_sales_web_project.dto.UpdateProfileRequest;
 import aws.movie_ticket_sales_web_project.dto.UserProfileDto;
+import aws.movie_ticket_sales_web_project.entity.Membership;
 import aws.movie_ticket_sales_web_project.entity.User;
 import aws.movie_ticket_sales_web_project.entity.UserRole;
+import aws.movie_ticket_sales_web_project.repository.MembershipRepository;
 import aws.movie_ticket_sales_web_project.repository.UserRepository;
 import aws.movie_ticket_sales_web_project.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ public class UserProfileService {
 
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
+    private final MembershipRepository membershipRepository;
     private final PasswordEncoder passwordEncoder;
 
     /**
@@ -151,6 +154,20 @@ public class UserProfileService {
                 .map(ur -> ur.getRole().getRoleName())
                 .collect(Collectors.toList());
         
+        // Lấy thông tin membership và điểm thưởng
+        Integer availablePoints = 0;
+        String membershipTier = "STANDARD";
+        String membershipNumber = null;
+        
+        Membership membership = membershipRepository.findByUserId(user.getId()).orElse(null);
+        if (membership != null) {
+            availablePoints = membership.getAvailablePoints() != null ? membership.getAvailablePoints() : 0;
+            if (membership.getTier() != null) {
+                membershipTier = membership.getTier().getTierName();
+            }
+            membershipNumber = membership.getMembershipNumber();
+        }
+        
         return UserProfileDto.builder()
                 .userId(user.getId())
                 .email(user.getEmail())
@@ -168,8 +185,10 @@ public class UserProfileService {
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .roles(roles)
-                .loyaltyPoints(0) // TODO: Implement loyalty points from separate table
-                .membershipTier("STANDARD") // TODO: Implement membership tier logic
+                .loyaltyPoints(availablePoints)
+                .availablePoints(availablePoints)
+                .membershipTier(membershipTier)
+                .membershipNumber(membershipNumber)
                 .build();
     }
 }

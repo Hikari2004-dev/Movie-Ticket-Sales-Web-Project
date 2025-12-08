@@ -5,7 +5,7 @@ import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { API_BASE_URL } from '../config/api';
 import { AiOutlineEdit, AiOutlineSave, AiOutlineClose, AiOutlineLock, AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
-import { FaUser, FaEnvelope, FaPhone, FaBirthdayCake, FaVenusMars, FaCrown, FaTicketAlt, FaKey } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaBirthdayCake, FaVenusMars, FaCrown, FaTicketAlt, FaKey, FaCoins } from 'react-icons/fa';
 import './ProfilePage.css';
 
 const ProfilePage = () => {
@@ -341,6 +341,13 @@ const ProfilePage = () => {
               <h3>Hạng Thành Viên</h3>
               <p className="tier-name">{user.tierName || 'Standard'}</p>
               <p className="member-number">Mã TV: {user.membershipNumber || 'N/A'}</p>
+            </div>
+            <div className="membership-points">
+              <FaCoins className="points-icon" />
+              <div className="points-info">
+                <span className="points-value">{user.availablePoints || 0}</span>
+                <span className="points-label">Điểm thưởng</span>
+              </div>
             </div>
           </div>
 
