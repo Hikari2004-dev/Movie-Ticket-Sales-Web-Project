@@ -48,16 +48,6 @@ const SystemAdminLayout = () => {
 
   const menuItems = [
     { path: '/system-admin/dashboard', icon: FaTachometerAlt, label: 'Tổng Quan', active: true },
-    { path: '/system-admin/cinemas', icon: FaTheaterMasks, label: 'Quản Lý Rạp', active: false },
-    { path: '/system-admin/movies', icon: FaFilm, label: 'Quản Lý Phim', active: false },
-    { path: '/system-admin/showtimes', icon: FaTicketAlt, label: 'Suất Chiếu', active: false },
-    { path: '/system-admin/accounts', icon: FaUsers, label: 'Tài Khoản', active: false },
-    { path: '/system-admin/staff', icon: FaUserShield, label: 'Nhân Viên', active: false },
-    { path: '/system-admin/promotions', icon: FaGift, label: 'Khuyến Mãi', active: false },
-    { path: '/system-admin/reports', icon: FaChartBar, label: 'Báo Cáo', active: false },
-    { path: '/system-admin/notifications', icon: FaBell, label: 'Thông Báo', active: false },
-    { path: '/system-admin/audit-logs', icon: FaClipboardList, label: 'Nhật Ký', active: false },
-    { path: '/system-admin/settings', icon: FaCog, label: 'Cấu Hình', active: false },
   ];
 
   return (
@@ -76,24 +66,16 @@ const SystemAdminLayout = () => {
         <nav className="system-admin-sidebar-nav">
           <div className="nav-section">
             {!isCollapsed && <div className="nav-section-title">QUẢN TRỊ HỆ THỐNG</div>}
-            {menuItems.map((item) => (
+            {menuItems.filter(item => item.active).map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) => 
-                  `nav-item ${isActive ? 'active' : ''} ${!item.active ? 'disabled' : ''}`
+                  `nav-item ${isActive ? 'active' : ''}`
                 }
-                onClick={(e) => {
-                  if (!item.active) {
-                    e.preventDefault();
-                  }
-                }}
               >
                 <item.icon className="nav-icon" />
                 {!isCollapsed && <span>{item.label}</span>}
-                {!item.active && !isCollapsed && (
-                  <span className="coming-soon-badge">Soon</span>
-                )}
               </NavLink>
             ))}
           </div>

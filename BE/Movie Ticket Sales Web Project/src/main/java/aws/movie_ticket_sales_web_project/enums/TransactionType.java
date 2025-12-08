@@ -6,6 +6,7 @@ package aws.movie_ticket_sales_web_project.enums;
 public enum TransactionType {
     EARN,     // Tích điểm
     REDEEM,   // Đổi điểm
+    REFUND,   // Hoàn điểm (khi huỷ booking)
     EXPIRE,   // Hết hạn
     ADJUST,   // Điều chỉnh
     GIFT      // Tặng điểm

@@ -180,11 +180,26 @@ public class BookingService {
                 }
             }
             
-            // Calculate amounts
+            // Calculate ticket amounts
             BigDecimal subtotal = showtime.getBasePrice().multiply(new BigDecimal(seats.size()));
             BigDecimal serviceFeeTotal = SERVICE_FEE.multiply(new BigDecimal(seats.size()));
             BigDecimal taxAmount = subtotal.multiply(TAX_RATE);
-            BigDecimal totalBeforeDiscount = subtotal.add(serviceFeeTotal).add(taxAmount);
+            BigDecimal ticketTotal = subtotal.add(serviceFeeTotal).add(taxAmount);
+            
+            // Calculate concession total FIRST (to include in points discount calculation)
+            BigDecimal concessionTotal = BigDecimal.ZERO;
+            if (request.getConcessionItems() != null && !request.getConcessionItems().isEmpty()) {
+                for (CreateBookingRequest.ConcessionItemRequest itemReq : request.getConcessionItems()) {
+                    BigDecimal itemTotal = itemReq.getPrice().multiply(new BigDecimal(itemReq.getQuantity()));
+                    concessionTotal = concessionTotal.add(itemTotal);
+                }
+                // Concession does NOT have additional tax (price already includes everything)
+                log.info("📦 Concession subtotal (pre-calculation): {}", concessionTotal);
+            }
+            
+            // Total before discount = ticket total + concession total
+            BigDecimal totalBeforeDiscount = ticketTotal.add(concessionTotal);
+            log.info("💵 Total before discount: {} (tickets: {} + concession: {})", totalBeforeDiscount, ticketTotal, concessionTotal);
             
             // Apply points discount if requested
             BigDecimal discountAmount = BigDecimal.ZERO;
@@ -196,10 +211,10 @@ public class BookingService {
                 if (membership != null) {
                     Integer availablePoints = membership.getAvailablePoints() != null ? membership.getAvailablePoints() : 0;
                     
-                    // Calculate max points that can be used (can't exceed total amount)
+                    // Calculate max discount from requested points
                     BigDecimal maxDiscountFromPoints = new BigDecimal(request.getPointsToUse()).multiply(POINTS_TO_VND_RATE);
                     
-                    // Limit discount to 50% of total amount
+                    // Limit discount to 50% of TOTAL amount (tickets + concession)
                     BigDecimal maxAllowedDiscount = totalBeforeDiscount.multiply(new BigDecimal("0.5"));
                     
                     if (maxDiscountFromPoints.compareTo(maxAllowedDiscount) > 0) {
@@ -215,7 +230,8 @@ public class BookingService {
                     
                     if (pointsUsed > 0) {
                         discountAmount = new BigDecimal(pointsUsed).multiply(POINTS_TO_VND_RATE);
-                        log.info("💰 Applying {} points = {} VND discount for user {}", pointsUsed, discountAmount, user.getId());
+                        log.info("💰 Applying {} points = {} VND discount for user {} (max allowed: {})", 
+                                pointsUsed, discountAmount, user.getId(), maxAllowedDiscount);
                     } else {
                         log.warn("User {} has insufficient points. Available: {}, Requested: {}", 
                                 user.getId(), availablePoints, request.getPointsToUse());
@@ -223,7 +239,9 @@ public class BookingService {
                 }
             }
             
+            // Final total = total before discount - discount amount
             BigDecimal totalAmount = totalBeforeDiscount.subtract(discountAmount);
+            log.info("💳 Final total amount: {} (before discount: {} - discount: {})", totalAmount, totalBeforeDiscount, discountAmount);
             
             // Create booking
             Booking booking = new Booking();
@@ -244,7 +262,7 @@ public class BookingService {
             booking.setStatus(StatusBooking.PENDING);
             booking.setPaymentStatus(PaymentStatus.PENDING);
             booking.setPaymentMethod(request.getPaymentMethod());
-            booking.setHoldExpiresAt(Instant.now().plusSeconds(900)); // 15 minutes hold
+            booking.setHoldExpiresAt(Instant.now().plusSeconds(300)); // 15 minutes hold
             booking.setCreatedAt(Instant.now());
             booking.setUpdatedAt(Instant.now());
             
@@ -320,22 +338,15 @@ public class BookingService {
                     concessionSubtotal = concessionSubtotal.add(orderItem.getTotalPrice());
                 }
                 
-                // Calculate tax (10%)
-                BigDecimal concessionTax = concessionSubtotal.multiply(new BigDecimal("0.10"));
-                BigDecimal concessionTotal = concessionSubtotal.add(concessionTax);
-                
-                // Update order totals
+                // Update order totals (no additional tax - price already includes everything)
                 savedOrder.setSubtotal(concessionSubtotal);
-                savedOrder.setTaxAmount(concessionTax);
-                savedOrder.setTotalAmount(concessionTotal);
+                savedOrder.setTaxAmount(BigDecimal.ZERO);
+                savedOrder.setTotalAmount(concessionSubtotal);
                 savedOrder.setUpdatedAt(Instant.now());
                 concessionOrderRepository.save(savedOrder);
                 
-                // Update booking total to include concession
-                savedBooking.setTotalAmount(savedBooking.getTotalAmount().add(concessionTotal));
-                bookingRepository.save(savedBooking);
-                
-                log.info("Concession order created with total: {}", concessionTotal);
+                // NOTE: Do NOT update booking total here - concession is already included in totalAmount calculation above
+                log.info("Concession order created with total: {} (already included in booking total)", concessionSubtotal);
             }
             
             // Deduct points from user's membership if points were used
@@ -389,7 +400,7 @@ public class BookingService {
             if (request.getStatus() != null) {
                 booking.setStatus(request.getStatus());
                 
-                // If status is CANCELLED, update seat availability
+                // If status is CANCELLED, update seat availability and refund points
                 if (request.getStatus() == StatusBooking.CANCELLED) {
                     List<Ticket> tickets = ticketRepository.findByBookingId(bookingId);
                     Showtime showtime = booking.getShowtime();
@@ -399,6 +410,21 @@ public class BookingService {
                     // Update ticket status
                     tickets.forEach(ticket -> ticket.setStatus(TicketStatus.CANCELLED));
                     ticketRepository.saveAll(tickets);
+                    
+                    // Refund points if any were used
+                    if (booking.getPointsUsed() != null && booking.getPointsUsed() > 0 && booking.getUser() != null) {
+                        boolean pointsRefunded = loyaltyPointsService.refundPoints(
+                                booking.getUser().getId(),
+                                booking.getPointsUsed(),
+                                "Hoàn điểm do huỷ booking " + booking.getBookingCode()
+                        );
+                        if (pointsRefunded) {
+                            log.info("✅ Refunded {} points for cancelled booking {}", 
+                                    booking.getPointsUsed(), booking.getBookingCode());
+                        } else {
+                            log.warn("⚠️ Failed to refund points for booking {}", booking.getBookingCode());
+                        }
+                    }
                 }
                 
                 // If status is PAID, update payment info
@@ -456,6 +482,21 @@ public class BookingService {
             
             if (booking.getStatus() == StatusBooking.PAID) {
                 throw new RuntimeException("Cannot cancel a paid booking. Please request a refund.");
+            }
+            
+            // Refund points if any were used
+            if (booking.getPointsUsed() != null && booking.getPointsUsed() > 0 && booking.getUser() != null) {
+                boolean pointsRefunded = loyaltyPointsService.refundPoints(
+                        booking.getUser().getId(),
+                        booking.getPointsUsed(),
+                        "Hoàn điểm do huỷ booking " + booking.getBookingCode()
+                );
+                if (pointsRefunded) {
+                    log.info("✅ Refunded {} points for cancelled booking {}", 
+                            booking.getPointsUsed(), booking.getBookingCode());
+                } else {
+                    log.warn("⚠️ Failed to refund points for booking {}", booking.getBookingCode());
+                }
             }
             
             // Update booking status

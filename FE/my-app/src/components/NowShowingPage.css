@@ -126,7 +126,8 @@
   border-color: #ffc107;
 }
 
-.movie-poster {
+.now-showing-page .movie-poster,
+.coming-soon-page .movie-poster {
   position: relative;
   width: 100%;
   padding-top: 140%;
@@ -134,7 +135,8 @@
   background: #000;
 }
 
-.movie-poster img {
+.now-showing-page .movie-poster img,
+.coming-soon-page .movie-poster img {
   position: absolute;
   top: 0;
   left: 0;
@@ -214,11 +216,13 @@
 }
 
 /* Movie Info */
-.movie-info {
+.now-showing-page .movie-info,
+.coming-soon-page .movie-info {
   padding: 20px;
 }
 
-.movie-info h3 {
+.now-showing-page .movie-info h3,
+.coming-soon-page .movie-info h3 {
   color: white;
   font-size: 16px;
   font-weight: 600;

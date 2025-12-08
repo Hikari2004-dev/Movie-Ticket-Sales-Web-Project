@@ -217,18 +217,18 @@
   box-shadow: 0 0 0 1px #667eea;
 }
 
-.movie-card img {
+.quick-booking-modal .movie-card img {
   width: 100%;
   aspect-ratio: 2/3;
   object-fit: cover;
 }
 
-.movie-info {
+.quick-booking-modal .movie-info {
   padding: 8px;
   background: rgba(0, 0, 0, 0.3);
 }
 
-.movie-info h4 {
+.quick-booking-modal .movie-info h4 {
   color: #fff;
   font-size: 13px;
   font-weight: 600;

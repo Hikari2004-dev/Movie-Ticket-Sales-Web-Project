@@ -137,10 +137,10 @@ const ManagerShowtimeManagement = () => {
     }
   };
 
-  // Fetch movies
+  // Fetch movies (only NOW_SHOWING)
   const fetchMovies = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/movies`, {
+      const response = await fetch(`${API_BASE_URL}/movies?status=NOW_SHOWING`, {
         headers: { 'Content-Type': 'application/json' }
       });
 

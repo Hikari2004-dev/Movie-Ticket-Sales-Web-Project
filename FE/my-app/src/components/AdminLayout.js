@@ -56,26 +56,23 @@ const AdminLayout = () => {
 
   const menuItems = [
     // Core Management
-    {
-      title: 'Dashboard',
-      icon: <FaChartLine />,
-      path: '/admin/dashboard',
-      description: 'Tổng quan hệ thống',
-      section: 'core'
-    },
+    // Ẩn "Quản lý phim" nếu là cinema manager
     {
       title: 'Quản lý phim',
       icon: <FaFilm />,
       path: '/admin/movies',
       description: 'Thêm, sửa, xóa phim',
-      section: 'core'
+      section: 'core',
+      hidden: isCinemaManager
     },
+    // Ẩn "Quản lý chuỗi rạp" nếu là cinema manager
     {
       title: 'Quản lý chuỗi rạp',
       icon: <FaBuilding />,
       path: '/admin/cinema-management',
       description: 'Quản lý chuỗi rạp chiếu phim',
-      section: 'core'
+      section: 'core',
+      hidden: isCinemaManager
     },
     {
       title: 'Quản lý suất chiếu',
@@ -84,24 +81,16 @@ const AdminLayout = () => {
       description: isCinemaManager ? 'Quản lý suất chiếu rạp của bạn' : 'Lịch chiếu phim',
       section: 'core'
     },
-    
     // Booking & Sales
+    // Ẩn "Quản lý thanh toán" nếu là cinema manager
     {
       title: 'Quản lý thanh toán',
       icon: <FaTicketAlt />,
       path: '/admin/payment-manager',
       description: 'Quản lý thanh toán',
-      section: 'sales'
+      section: 'sales',
+      hidden: isCinemaManager
     },
-    {
-      title: 'Khuyến mãi',
-      icon: <FaTags />,
-      path: '/admin/promotions',
-      description: 'Mã giảm giá & ưu đãi',
-      disabled: true,
-      section: 'sales'
-    },
-    
     // Concession Management
     {
       title: 'Danh mục bắp nước',
@@ -133,56 +122,15 @@ const AdminLayout = () => {
       description: 'Quản lý đơn hàng bắp nước',
       section: 'concession'
     },
-    
     // User Management
+    // Ẩn "Quản lý tài khoản" nếu là cinema manager
     {
       title: 'Quản lý tài khoản',
       icon: <FaUsers />,
       path: '/admin/accounts',
       description: 'Quản lý tài khoản người dùng',
-      section: 'users'
-    },
-    {
-      title: 'Quản lý nhân viên',
-      icon: <FaUserShield />,
-      path: '/admin/staff',
-      description: 'Quản lý nhân viên',
-      disabled: true,
-      section: 'users'
-    },
-    
-    // System & Reports
-    {
-      title: 'Báo cáo & Thống kê',
-      icon: <FaCalendarAlt />,
-      path: '/admin/reports',
-      description: 'Thống kê doanh thu',
-      disabled: true,
-      section: 'system'
-    },
-    {
-      title: 'Thông báo hệ thống',
-      icon: <FaBell />,
-      path: '/admin/notifications',
-      description: 'Quản lý thông báo',
-      disabled: true,
-      section: 'system'
-    },
-    {
-      title: 'Nhật ký hệ thống',
-      icon: <FaClipboardList />,
-      path: '/admin/audit-logs',
-      description: 'Lịch sử hoạt động',
-      disabled: true,
-      section: 'system'
-    },
-    {
-      title: 'Cấu hình',
-      icon: <FaCog />,
-      path: '/admin/settings',
-      description: 'Cài đặt hệ thống',
-      disabled: true,
-      section: 'system'
+      section: 'users',
+      hidden: isCinemaManager
     }
   ];
 
@@ -211,24 +159,17 @@ const AdminLayout = () => {
         <nav className="sidebar-nav">
           {/* Core Management Section */}
           {sidebarOpen && <div className="nav-section-title">QUẢN LÝ CHÍNH</div>}
-          {menuItems.filter(item => item.section === 'core').map((item, index) => (
+          {menuItems.filter(item => item.section === 'core' && !item.hidden).map((item, index) => (
             <Link
               key={`core-${index}`}
-              to={item.disabled ? '#' : item.path}
-              className={`nav-item ${isActive(item.path) ? 'active' : ''} ${item.disabled ? 'disabled' : ''}`}
-              title={item.disabled ? 'Chức năng đang phát triển' : item.description}
-              onClick={(e) => {
-                if (item.disabled) {
-                  e.preventDefault();
-                  toast.info('Chức năng đang được phát triển');
-                }
-              }}
+              to={item.path}
+              className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
+              title={item.description}
             >
               <span className="nav-icon">{item.icon}</span>
               {sidebarOpen && (
                 <div className="nav-content">
                   <span className="nav-title">{item.title}</span>
-                  {item.disabled && <span className="coming-soon">Soon</span>}
                 </div>
               )}
             </Link>
@@ -236,31 +177,24 @@ const AdminLayout = () => {
 
           {/* Sales Section */}
           {sidebarOpen && <div className="nav-section-title">BÁN HÀNG</div>}
-          {menuItems.filter(item => item.section === 'sales').map((item, index) => (
+          {menuItems.filter(item => item.section === 'sales' && !item.hidden).map((item, index) => (
             <Link
               key={`sales-${index}`}
-              to={item.disabled ? '#' : item.path}
-              className={`nav-item ${isActive(item.path) ? 'active' : ''} ${item.disabled ? 'disabled' : ''}`}
-              title={item.disabled ? 'Chức năng đang phát triển' : item.description}
-              onClick={(e) => {
-                if (item.disabled) {
-                  e.preventDefault();
-                  toast.info('Chức năng đang được phát triển');
-                }
-              }}
+              to={item.path}
+              className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
+              title={item.description}
             >
               <span className="nav-icon">{item.icon}</span>
               {sidebarOpen && (
                 <div className="nav-content">
                   <span className="nav-title">{item.title}</span>
-                  {item.disabled && <span className="coming-soon">Soon</span>}
                 </div>
               )}
             </Link>
           ))}
 
           {/* Concession Section */}
-          {sidebarOpen && <div className="nav-section-title">BẮP NƯỚC</div>}
+          {sidebarOpen && !isCinemaManager && <div className="nav-section-title">BẮP NƯỚC</div>}
           {menuItems.filter(item => item.section === 'concession').filter(item => {
             // Filter out admin-only items for non-admins
             if (item.adminOnly && !isSystemAdmin) return false;
@@ -268,75 +202,40 @@ const AdminLayout = () => {
           }).map((item, index) => (
             <Link
               key={`concession-${index}`}
-              to={item.disabled ? '#' : item.path}
-              className={`nav-item ${isActive(item.path) ? 'active' : ''} ${item.disabled ? 'disabled' : ''}`}
-              title={item.disabled ? 'Chức năng đang phát triển' : item.description}
-              onClick={(e) => {
-                if (item.disabled) {
-                  e.preventDefault();
-                  toast.info('Chức năng đang được phát triển');
-                }
-              }}
+              to={item.path}
+              className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
+              title={item.description}
             >
               <span className="nav-icon">{item.icon}</span>
               {sidebarOpen && (
                 <div className="nav-content">
                   <span className="nav-title">{item.title}</span>
-                  {item.disabled && <span className="coming-soon">Soon</span>}
                 </div>
               )}
             </Link>
           ))}
 
           {/* Users Section */}
-          {sidebarOpen && <div className="nav-section-title">NGƯỜI DÙNG</div>}
-          {menuItems.filter(item => item.section === 'users').map((item, index) => (
+          {sidebarOpen && !isCinemaManager && <div className="nav-section-title">NGƯỜI DÙNG</div>}
+          {menuItems.filter(item => item.section === 'users' && !item.hidden).map((item, index) => (
             <Link
               key={`users-${index}`}
-              to={item.disabled ? '#' : item.path}
-              className={`nav-item ${isActive(item.path) ? 'active' : ''} ${item.disabled ? 'disabled' : ''}`}
-              title={item.disabled ? 'Chức năng đang phát triển' : item.description}
-              onClick={(e) => {
-                if (item.disabled) {
-                  e.preventDefault();
-                  toast.info('Chức năng đang được phát triển');
-                }
-              }}
+              to={item.path}
+              className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
+              title={item.description}
             >
               <span className="nav-icon">{item.icon}</span>
               {sidebarOpen && (
                 <div className="nav-content">
                   <span className="nav-title">{item.title}</span>
-                  {item.disabled && <span className="coming-soon">Soon</span>}
                 </div>
               )}
             </Link>
           ))}
 
           {/* System Section */}
-          {sidebarOpen && <div className="nav-section-title">HỆ THỐNG</div>}
-          {menuItems.filter(item => item.section === 'system').map((item, index) => (
-            <Link
-              key={`system-${index}`}
-              to={item.disabled ? '#' : item.path}
-              className={`nav-item ${isActive(item.path) ? 'active' : ''} ${item.disabled ? 'disabled' : ''}`}
-              title={item.disabled ? 'Chức năng đang phát triển' : item.description}
-              onClick={(e) => {
-                if (item.disabled) {
-                  e.preventDefault();
-                  toast.info('Chức năng đang được phát triển');
-                }
-              }}
-            >
-              <span className="nav-icon">{item.icon}</span>
-              {sidebarOpen && (
-                <div className="nav-content">
-                  <span className="nav-title">{item.title}</span>
-                  {item.disabled && <span className="coming-soon">Soon</span>}
-                </div>
-              )}
-            </Link>
-          ))}
+          {/* Đã xoá dòng chữ HỆ THỐNG */}
+          {menuItems.filter(item => item.section === 'system').map((item, index) => null)}
         </nav>
 
         <div className="sidebar-footer">

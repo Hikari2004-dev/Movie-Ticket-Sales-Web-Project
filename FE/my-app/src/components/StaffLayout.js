@@ -42,9 +42,7 @@ const StaffLayout = () => {
   };
 
   const menuItems = [
-    { path: '/staff/dashboard', icon: FaClock, label: 'Ca Làm Việc', active: true },
     { path: '/staff/check-in', icon: FaCheckCircle, label: 'Xác Nhận Vé', active: true },
-    { path: '/staff/payment-manager', icon: FaTicketAlt, label: 'Quản Lý Thanh Toán', active: true },
   ];
 
   return (
@@ -63,24 +61,16 @@ const StaffLayout = () => {
         <nav className="staff-sidebar-nav">
           <div className="nav-section">
             {!isCollapsed && <div className="nav-section-title">NHÂN VIÊN RẠP</div>}
-            {menuItems.map((item) => (
+            {menuItems.filter(item => item.active).map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) => 
-                  `nav-item ${isActive ? 'active' : ''} ${!item.active ? 'disabled' : ''}`
+                  `nav-item ${isActive ? 'active' : ''}`
                 }
-                onClick={(e) => {
-                  if (!item.active) {
-                    e.preventDefault();
-                  }
-                }}
               >
                 <item.icon className="nav-icon" />
                 {!isCollapsed && <span>{item.label}</span>}
-                {!item.active && !isCollapsed && (
-                  <span className="coming-soon-badge">Soon</span>
-                )}
               </NavLink>
             ))}
           </div>

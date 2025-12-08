@@ -36,6 +36,22 @@ public class CinemaConcessionController {
     }
 
     /**
+     * Lấy TẤT CẢ items tại rạp, kể cả bị khóa (cho Manager)
+     * GET /api/cinemas/1/concessions/all
+     */
+    @GetMapping("/all")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'CHAIN_ADMIN', 'CINEMA_MANAGER')")
+    public ResponseEntity<List<CinemaConcessionItemDTO>> getAllItems(
+            @PathVariable Integer cinemaId) {
+        
+        log.info("Fetching ALL concession items (including locked) for cinema: {}", cinemaId);
+        List<CinemaConcessionItemDTO> items = cinemaConcessionService
+                .getAllItemsByCinema(cinemaId);
+        
+        return ResponseEntity.ok(items);
+    }
+
+    /**
      * Lấy items theo category tại rạp
      * GET /api/cinemas/1/concessions/category/2
      */

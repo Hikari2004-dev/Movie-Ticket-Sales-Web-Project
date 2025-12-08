@@ -242,4 +242,56 @@ public class LoyaltyPointsService {
             return false;
         }
     }
+    
+    /**
+     * Hoàn trả điểm khi booking bị huỷ
+     * @param userId ID của user
+     * @param points Số điểm cần hoàn trả
+     * @param description Mô tả giao dịch
+     * @return true nếu hoàn trả thành công
+     */
+    @Transactional
+    public boolean refundPoints(Integer userId, Integer points, String description) {
+        if (points == null || points <= 0) {
+            log.info("No points to refund for user {}", userId);
+            return true; // Nothing to refund
+        }
+        
+        try {
+            Membership membership = membershipRepository.findByUserId(userId)
+                    .orElseThrow(() -> new RuntimeException("Membership not found"));
+            
+            Integer availablePoints = membership.getAvailablePoints() != null 
+                    ? membership.getAvailablePoints() 
+                    : 0;
+            
+            // Hoàn trả điểm
+            membership.setAvailablePoints(availablePoints + points);
+            membership.setUpdatedAt(Instant.now());
+            membershipRepository.save(membership);
+            
+            // Tạo transaction log
+            PointsTransaction transaction = new PointsTransaction();
+            transaction.setUser(new aws.movie_ticket_sales_web_project.entity.User());
+            transaction.getUser().setId(userId);
+            transaction.setTransactionType(TransactionType.REFUND);
+            transaction.setPointsAmount(points); // Số dương vì hoàn trả
+            transaction.setSourceType(SourceType.BOOKING);
+            transaction.setDescription(description);
+            transaction.setBalanceBefore(availablePoints);
+            transaction.setBalanceAfter(membership.getAvailablePoints());
+            transaction.setCreatedAt(Instant.now());
+            
+            pointsTransactionRepository.save(transaction);
+            
+            log.info("✅ User {} refunded {} points. New balance: {}", 
+                    userId, points, membership.getAvailablePoints());
+            
+            return true;
+            
+        } catch (Exception e) {
+            log.error("Error refunding points for user {}: {}", userId, e.getMessage(), e);
+            return false;
+        }
+    }
 }

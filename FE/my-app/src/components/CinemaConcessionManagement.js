@@ -105,7 +105,8 @@ const CinemaConcessionManagement = () => {
     
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/cinemas/${selectedCinema}/concessions`, {
+      // Sử dụng endpoint /all để lấy tất cả items kể cả bị khóa
+      const response = await fetch(`${API_BASE_URL}/cinemas/${selectedCinema}/concessions/all`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -136,7 +137,7 @@ const CinemaConcessionManagement = () => {
   const handleEditItem = (item) => {
     setSelectedItem(item);
     setEditFormData({
-      customPrice: item.customPrice || item.basePrice || '',
+      customPrice: item.cinemaPrice || item.effectivePrice || item.defaultPrice || item.basePrice || '',
       stockQuantity: item.stockQuantity || 0
     });
     setShowEditModal(true);
@@ -434,15 +435,15 @@ const CinemaConcessionManagement = () => {
                     </div>
                   </td>
                   <td style={styles.td}>{item.categoryName || '-'}</td>
-                  <td style={styles.td}>{formatCurrency(item.basePrice || 0)}</td>
+                  <td style={styles.td}>{formatCurrency(item.defaultPrice || item.basePrice || 0)}</td>
                   <td style={styles.td}>
                     <span style={{
                       fontWeight: '700',
-                      color: item.customPrice ? '#e53935' : '#333'
+                      color: item.cinemaPrice ? '#e53935' : '#333'
                     }}>
-                      {formatCurrency(item.customPrice || item.basePrice || 0)}
+                      {formatCurrency(item.effectivePrice || item.cinemaPrice || item.defaultPrice || item.basePrice || 0)}
                     </span>
-                    {item.customPrice && item.customPrice !== item.basePrice && (
+                    {item.discounted && (
                       <span style={styles.customPriceBadge}>Giá riêng</span>
                     )}
                   </td>

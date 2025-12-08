@@ -26,12 +26,25 @@ public class CinemaConcessionService {
     private final ConcessionItemRepository concessionItemRepository;
 
     /**
-     * Lấy tất cả items có bán tại rạp
+     * Lấy tất cả items có bán tại rạp (cho customer)
      */
     @Transactional(readOnly = true)
     public List<CinemaConcessionItemDTO> getAvailableItemsByCinema(Integer cinemaId) {
         List<CinemaConcessionItem> items = cinemaConcessionItemRepository
                 .findAvailableItemsByCinemaId(cinemaId);
+        
+        return items.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Lấy TẤT CẢ items tại rạp, kể cả bị khóa (cho Manager)
+     */
+    @Transactional(readOnly = true)
+    public List<CinemaConcessionItemDTO> getAllItemsByCinema(Integer cinemaId) {
+        List<CinemaConcessionItem> items = cinemaConcessionItemRepository
+                .findAllByCinemaId(cinemaId);
         
         return items.stream()
                 .map(this::convertToDTO)

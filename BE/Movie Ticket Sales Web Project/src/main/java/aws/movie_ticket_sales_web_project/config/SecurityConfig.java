@@ -68,10 +68,22 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("*")); // Changed from setAllowedOrigins
+        // PRODUCTION: Specify allowed origins instead of "*"
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+            "http://localhost:3000",      // Local development
+            "http://localhost:8080",      // Backend local
+            "https://your-domain.com",    // TODO: Replace with actual production domain
+            "https://*.your-domain.com"   // TODO: Replace with actual production subdomain
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(false); // Don't set to true with allowedOriginPatterns("*")
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization", 
+            "Content-Type", 
+            "Accept", 
+            "Origin", 
+            "X-Requested-With"
+        ));
+        configuration.setAllowCredentials(true); // Enable for JWT cookies if needed
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setMaxAge(3600L);
 
@@ -216,37 +228,49 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/concessions/orders/*/cancel").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/concessions/orders/**").authenticated()
 
-                        // Payment endpoints - MUST BE BEFORE OTHER RULES
-                        // TODO: Enable authentication in production - change .permitAll() to .authenticated()
-                        .requestMatchers("/api/payments/**").permitAll()
+                        // ==================== PAYMENT ENDPOINTS ====================
+                        // PRODUCTION: Require authentication for all payment operations
+                        .requestMatchers(HttpMethod.POST, "/api/payments/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/payments/**").authenticated()
 
-                        // AI Chatbot endpoints - public access
+                        // ==================== AI CHATBOT ====================
+                        // Public access for chatbot
                         .requestMatchers("/api/chat/**").permitAll()
 
-                        // Test endpoints (REMOVE IN PRODUCTION)
-                        .requestMatchers("/api/test/**").permitAll()
-                        .requestMatchers("/api/debug/**").authenticated()
+                        // ==================== USER MANAGEMENT ====================
+                        // Admin only - user management
+                        .requestMatchers(HttpMethod.GET, "/api/users").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users/search").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/*/roles").hasRole("SYSTEM_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/*/status").hasAnyRole("SYSTEM_ADMIN", "CHAIN_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/users/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/users/**").authenticated()
 
-                        // Admin-only endpoints
+                        // ==================== ADMIN ENDPOINTS ====================
                         .requestMatchers("/api/admin/**").hasAnyRole("SYSTEM_ADMIN", "ADMIN")
 
-                        // Staff ticket endpoints (staff, manager, admin)
-                        .requestMatchers("/api/tickets/staff/**").hasAnyRole("CINEMA_STAFF", "CINEMA_MANAGER", "SYSTEM_ADMIN", "ADMIN")
+                        // ==================== STAFF ENDPOINTS ====================
+                        // Staff ticket management (staff, manager, admin)
+                        .requestMatchers("/api/tickets/staff/**").hasAnyRole("CINEMA_STAFF", "CINEMA_MANAGER", "CHAIN_ADMIN", "SYSTEM_ADMIN")
                         
-                        // Check-in endpoints (staff only)
-                        .requestMatchers("/api/tickets/check-in").hasAnyRole("CINEMA_STAFF", "CINEMA_MANAGER", "SYSTEM_ADMIN", "ADMIN")
+                        // Check-in (staff and above)
+                        .requestMatchers("/api/tickets/check-in").hasAnyRole("CINEMA_STAFF", "CINEMA_MANAGER", "CHAIN_ADMIN", "SYSTEM_ADMIN")
 
-                        // Refund endpoints (manager/admin only)
-                        .requestMatchers("/api/refunds/**").hasAnyRole("CINEMA_MANAGER", "SYSTEM_ADMIN")
+                        // ==================== MANAGER ENDPOINTS ====================
+                        // Refund operations (manager and above)
+                        .requestMatchers("/api/refunds/**").hasAnyRole("CINEMA_MANAGER", "CHAIN_ADMIN", "SYSTEM_ADMIN")
 
-                        // Report endpoints (admin only)
-                        .requestMatchers("/api/reports/**").hasRole("SYSTEM_ADMIN")
+                        // ==================== REPORTS ====================
+                        // Reports (admin only)
+                        .requestMatchers("/api/reports/**").hasAnyRole("CHAIN_ADMIN", "SYSTEM_ADMIN")
 
-                        // Static resources
+                        // ==================== STATIC RESOURCES ====================
                         .requestMatchers(HttpMethod.GET, "/", "/favicon.ico", "/static/**", "/images/**", "/css/**",
-                                "/js/**")
+                                "/js/**", "/uploads/**")
                         .permitAll()
 
+                        // ==================== DEFAULT ====================
                         // All other requests need authentication
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

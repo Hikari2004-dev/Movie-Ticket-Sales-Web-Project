@@ -290,7 +290,7 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
-.movie-poster {
+.movie-management-container .movie-poster {
   position: relative;
   width: 100%;
   padding-top: 150%;
@@ -298,7 +298,7 @@
   background: #f0f0f0;
 }
 
-.movie-poster img {
+.movie-management-container .movie-poster img {
   position: absolute;
   top: 0;
   left: 0;
@@ -355,11 +355,11 @@
   transform: scale(1.1);
 }
 
-.movie-info {
+.movie-management-container .movie-info {
   padding: 1rem;
 }
 
-.movie-info h3 {
+.movie-management-container .movie-info h3 {
   font-size: 1.1rem;
   margin: 0 0 0.25rem 0;
   color: #333;

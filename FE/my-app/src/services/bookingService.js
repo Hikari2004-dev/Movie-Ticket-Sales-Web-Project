@@ -170,10 +170,10 @@ const bookingService = {
     }
   },
 
-  // Hủy booking
+  // Hủy booking (đúng endpoint backend)
   cancelBooking: async (bookingId) => {
     try {
-      const response = await bookingApi.delete(`/${bookingId}`);
+      const response = await bookingApi.post(`/${bookingId}/cancel`);
       return response.data;
     } catch (error) {
       console.error('❌ Error canceling booking:', error);
