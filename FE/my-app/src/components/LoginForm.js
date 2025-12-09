@@ -12,7 +12,7 @@ import { getDashboardPath, getRoleDisplayName, getHighestRole } from '../utils/r
 import './LoginForm.css';
 
 // API Base URL
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
 // Schema validation
 const loginSchema = yup.object().shape({

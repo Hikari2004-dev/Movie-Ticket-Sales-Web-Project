@@ -1,8 +1,9 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const API_URL = 'http://localhost:8080/api/booking';
-const BOOKING_API_URL = 'http://localhost:8080/api/bookings';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+const API_URL = `${API_BASE}/booking`;
+const BOOKING_API_URL = `${API_BASE}/bookings`;
 
 // Cấu hình axios instance
 const api = axios.create({
@@ -135,7 +136,7 @@ const bookingService = {
     try {
       console.log('🎫 Creating booking with data:', bookingData);
       // Sử dụng axios trực tiếp không có interceptor để tránh gửi token invalid
-      const response = await axios.post('http://localhost:8080/api/bookings', bookingData, {
+      const response = await axios.post(`${API_BASE}/bookings`, bookingData, {
         headers: {
           'Content-Type': 'application/json'
         }

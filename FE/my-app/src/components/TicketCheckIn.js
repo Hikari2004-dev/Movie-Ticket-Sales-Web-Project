@@ -4,6 +4,8 @@ import { Scanner } from '@yudiel/react-qr-scanner';
 import Cookies from 'js-cookie';
 import './TicketCheckIn.css';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+
 const TicketCheckIn = () => {
   const [bookingCode, setBookingCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -21,7 +23,7 @@ const TicketCheckIn = () => {
         
         if (!staffId) return;
         
-        const response = await fetch(`http://localhost:8080/api/tickets/staff/my-cinema?staffId=${staffId}`, {
+        const response = await fetch(`${API_BASE_URL}/tickets/staff/my-cinema?staffId=${staffId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -70,7 +72,7 @@ const TicketCheckIn = () => {
     try {
       // Call API to get booking details with cinema validation
       const token = Cookies.get('accessToken');
-      const response = await fetch(`http://localhost:8080/api/tickets/staff/${staffCinema.cinemaId}/booking-details?bookingCode=${bookingCode}`, {
+      const response = await fetch(`${API_BASE_URL}/tickets/staff/${staffCinema.cinemaId}/booking-details?bookingCode=${bookingCode}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -187,7 +189,7 @@ const TicketCheckIn = () => {
 
       // Call API to confirm check-in
       const token = Cookies.get('accessToken');
-      const response = await fetch('http://localhost:8080/api/tickets/check-in', {
+      const response = await fetch(`${API_BASE_URL}/tickets/check-in`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -261,7 +263,7 @@ const TicketCheckIn = () => {
       setIsLoading(true);
       try {
         const token = Cookies.get('accessToken');
-        const response = await fetch(`http://localhost:8080/api/tickets/staff/${staffCinema.cinemaId}/booking-details?bookingCode=${scannedCode}`, {
+        const response = await fetch(`${API_BASE_URL}/tickets/staff/${staffCinema.cinemaId}/booking-details?bookingCode=${scannedCode}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,

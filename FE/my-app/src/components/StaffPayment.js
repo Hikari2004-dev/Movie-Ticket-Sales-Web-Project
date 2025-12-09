@@ -10,6 +10,8 @@ import {
   FaCheckCircle
 } from 'react-icons/fa';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+
 const StaffPayment = () => {
   const [bookingCode, setBookingCode] = useState('');
   const [bookingInfo, setBookingInfo] = useState(null);
@@ -39,7 +41,7 @@ const StaffPayment = () => {
     try {
       // Call API to get booking details from database
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/bookings/code/${bookingCode}`, {
+      const response = await fetch(`${API_BASE_URL}/bookings/code/${bookingCode}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -84,7 +86,7 @@ const StaffPayment = () => {
     try {
       // Call API to confirm payment
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/payments/confirm', {
+      const response = await fetch(`${API_BASE_URL}/payments/confirm`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

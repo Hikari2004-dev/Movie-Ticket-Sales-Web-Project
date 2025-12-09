@@ -17,7 +17,7 @@ import {
 } from 'react-icons/fa';
 import './StaffConcessionOrders.css';
 
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:8080';
 
 const StaffConcessionOrders = () => {
   const [orders, setOrders] = useState([]);

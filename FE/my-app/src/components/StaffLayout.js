@@ -18,6 +18,7 @@ import {
 import './StaffLayout.css';
 import Cookies from 'js-cookie';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 const StaffLayout = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [staffCinema, setStaffCinema] = useState(null);
@@ -46,7 +47,7 @@ const StaffLayout = () => {
       if (!user.userId || !token) return;
 
       const response = await fetch(
-        `http://localhost:8080/api/tickets/staff/my-cinema?staffId=${user.userId}`,
+        `${API_BASE_URL}/tickets/staff/my-cinema?staffId=${user.userId}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       

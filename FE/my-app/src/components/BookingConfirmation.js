@@ -8,6 +8,8 @@ import { calculateBookingPrice, formatPrice as formatCurrency, SERVICE_FEE_PER_T
 import ConcessionSelection from './ConcessionSelection';
 import './BookingConfirmation.css';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+
 const BookingConfirmation = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -213,7 +215,7 @@ const BookingConfirmation = () => {
 
     // IMPORTANT: Re-verify seats are still held before booking
     try {
-      const verifyUrl = `http://localhost:8080/api/seats/verify-hold?showtimeId=${bookingData.showtimeId}&sessionId=${sessionId}&seatIds=${bookingData.seatIds.join(',')}`;
+      const verifyUrl = `${API_BASE_URL}/seats/verify-hold?showtimeId=${bookingData.showtimeId}&sessionId=${sessionId}&seatIds=${bookingData.seatIds.join(',')}`;
       console.log('🔍 Verifying seat holds:', verifyUrl);
       
       const verifyResponse = await fetch(verifyUrl);

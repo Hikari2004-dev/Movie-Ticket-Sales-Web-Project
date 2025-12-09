@@ -6,6 +6,9 @@ import Cookies from 'js-cookie';
 import { FaTicketAlt, FaCalendar, FaClock, FaMapMarkerAlt, FaChair, FaQrcode, FaUtensils } from 'react-icons/fa';
 import './BookingHistory.css';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+const API_HOST = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:8080';
+
 const BookingHistory = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
@@ -144,7 +147,7 @@ const BookingHistory = () => {
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/concessions/orders/booking/${bookingId}`,
+        `${API_BASE_URL}/concessions/orders/booking/${bookingId}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -197,7 +200,7 @@ const BookingHistory = () => {
         return booking.qrCode;
       }
       // If qrCode is a relative path, prepend base URL
-      return `http://localhost:8080${booking.qrCode}`;
+      return `${API_HOST}${booking.qrCode}`;
     }
     return null;
   };

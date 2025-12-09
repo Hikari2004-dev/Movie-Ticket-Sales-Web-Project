@@ -4,6 +4,8 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './GeminiChatbot.css';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+
 const GeminiChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -74,7 +76,7 @@ const GeminiChatbot = () => {
       }
 
       // Call backend API
-      const response = await axios.post('http://localhost:8080/api/chat', {
+      const response = await axios.post(`${API_BASE_URL}/chat`, {
         message: userMsg,
         userId: userId
       }, { headers });

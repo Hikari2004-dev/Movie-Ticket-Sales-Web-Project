@@ -1,7 +1,8 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const PAYMENT_API_URL = 'http://localhost:8080/api/payments';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+const PAYMENT_API_URL = `${API_BASE}/payments`;
 
 // Cấu hình axios instance
 const api = axios.create({

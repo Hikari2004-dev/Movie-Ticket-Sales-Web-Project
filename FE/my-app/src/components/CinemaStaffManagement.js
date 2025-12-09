@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 import { FaUserPlus, FaTrash, FaSearch, FaBuilding, FaUserTie, FaSync } from 'react-icons/fa';
 import './CinemaStaffManagement.css';
 
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:8080';
 
 const CinemaStaffManagement = () => {
   const [staffList, setStaffList] = useState([]);

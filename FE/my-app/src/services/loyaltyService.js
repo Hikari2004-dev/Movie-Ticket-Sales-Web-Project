@@ -1,7 +1,8 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const API_BASE_URL = 'http://localhost:8080/api/loyalty';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+const API_BASE_URL = `${API_BASE}/loyalty`;
 
 const getAuthHeader = () => {
     const token = Cookies.get('accessToken');

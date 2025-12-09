@@ -1,9 +1,12 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
+// Lấy API URL từ biến môi trường, fallback về localhost cho development
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+
 // Tạo instance axios
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api', // Thay đổi URL theo backend của bạn
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
