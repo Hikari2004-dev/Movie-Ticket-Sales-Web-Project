@@ -5,6 +5,9 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import './AdminPaymentManager.css';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+
+
 const AdminPaymentManager = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
@@ -17,7 +20,7 @@ const AdminPaymentManager = () => {
 
   // Axios instance với auth
   const api = axios.create({
-    baseURL: 'http://localhost:8080/api',
+    baseURL: `${API_BASE_URL}`,
     headers: {
       'Content-Type': 'application/json'
     }

@@ -470,6 +470,9 @@ sudo systemctl status movie-ticket-api
 sudo journalctl -u movie-ticket-api -f
 ```
 
+sudo systemctl restart movie-ticket-api
+
+
 ### 6.6 Test Backend API
 ```bash
 # Test health endpoint
