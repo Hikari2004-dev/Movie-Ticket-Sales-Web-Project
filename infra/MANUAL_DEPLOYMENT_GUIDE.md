@@ -289,7 +289,7 @@ sudo yum install mariadb105 -y
 
 ### 5.4 Test kết nối RDS
 ```bash
-mysql -h movie-ticket-db.xxxxxxxxxxxx.ap-southeast-1.rds.amazonaws.com -u admin -p
+mysql -h movie-ticket-db1.cx82iycucox6.ap-southeast-1.rds.amazonaws.com-u admin -p
 # Nhập password đã tạo
 
 # Trong MySQL prompt:
