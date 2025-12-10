@@ -72,7 +72,7 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(Arrays.asList(
             "http://localhost:3000",      // Local development
             "http://localhost:8080",      // Backend local
-            "https://your-domain.com",    // TODO: Replace with actual production domain
+            "http://q2k.click",    // TODO: Replace with actual production domain
             "https://*.your-domain.com"   // TODO: Replace with actual production subdomain
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
