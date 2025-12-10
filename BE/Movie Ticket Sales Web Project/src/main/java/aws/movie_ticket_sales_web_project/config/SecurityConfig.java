@@ -68,12 +68,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // PRODUCTION: Specify allowed origins instead of "*"
+        // Allow all origins for development/production flexibility
         configuration.setAllowedOriginPatterns(Arrays.asList(
             "http://localhost:3000",      // Local development
             "http://localhost:8080",      // Backend local
-            "https://your-domain.com",    // TODO: Replace with actual production domain
-            "https://*.your-domain.com"   // TODO: Replace with actual production subdomain
+            "http://47.130.182.70:*",     // EC2 IP with any port
+            "http://47.130.182.70:80",    // EC2 Frontend
+            "http://47.130.182.70:8080",  // EC2 Backend
+            "*"                           // Allow all for development
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList(
