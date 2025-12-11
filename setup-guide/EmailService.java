@@ -17,11 +17,6 @@ import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Email Service using SNS -> Lambda -> SES architecture
- * Instead of sending emails directly via SMTP, this service publishes messages to SNS
- * A Lambda function subscribes to the SNS topic and sends emails via SES
- */
 @Service
 @Slf4j
 public class EmailService {
@@ -34,9 +29,6 @@ public class EmailService {
     
     @Value("${aws.region:ap-southeast-1}")
     private String awsRegion;
-    
-    @Value("${spring.mail.username:noreply@movieticket.com}")
-    private String fromEmail;
     
     @Value("${email.service.enabled:true}")
     private boolean emailServiceEnabled;
@@ -62,10 +54,6 @@ public class EmailService {
         }
     }
     
-    /**
-     * Send booking confirmation email (async)
-     * Publishes message to SNS Topic for Lambda to process
-     */
     @Async
     public void sendBookingConfirmation(Booking booking) {
         if (!emailServiceEnabled) {
@@ -85,7 +73,7 @@ public class EmailService {
             templateData.put("startTime", booking.getShowtime().getStartTime().toString());
             templateData.put("totalSeats", booking.getTotalSeats());
             templateData.put("totalAmount", booking.getTotalAmount().longValue());
-            templateData.put("qrCodeUrl", booking.getQrCode());
+            templateData.put("qrCodeUrl", booking.getQrCode()); // QR Code URL từ S3
             
             EmailRequest emailRequest = EmailRequest.builder()
                     .emailType(EmailRequest.EmailType.BOOKING_CONFIRMATION)
@@ -102,41 +90,6 @@ public class EmailService {
         }
     }
     
-    /**
-     * Send refund confirmation email
-     */
-    @Async
-    public void sendRefundConfirmation(Booking booking) {
-        if (!emailServiceEnabled) {
-            log.warn("Email service is disabled. Skipping refund confirmation for: {}", booking.getBookingCode());
-            return;
-        }
-        
-        try {
-            Map<String, Object> templateData = new HashMap<>();
-            templateData.put("customerName", booking.getCustomerName());
-            templateData.put("customerEmail", booking.getCustomerEmail());
-            templateData.put("bookingCode", booking.getBookingCode());
-            templateData.put("refundAmount", booking.getTotalAmount().longValue());
-            
-            EmailRequest emailRequest = EmailRequest.builder()
-                    .emailType(EmailRequest.EmailType.REFUND_CONFIRMATION)
-                    .toEmail(booking.getCustomerEmail())
-                    .subject("Xác nhận hoàn tiền - " + booking.getBookingCode())
-                    .templateData(templateData)
-                    .build();
-            
-            publishToSns(emailRequest);
-            log.info("Refund confirmation email request published to SNS for: {}", booking.getCustomerEmail());
-            
-        } catch (Exception e) {
-            log.error("Error publishing refund email to SNS for booking: {}", booking.getBookingCode(), e);
-        }
-    }
-    
-    /**
-     * Gửi email reset password với mã xác nhận
-     */
     @Async
     public void sendPasswordResetEmail(String toEmail, String resetCode, String fullName) {
         if (!emailServiceEnabled) {
@@ -166,9 +119,6 @@ public class EmailService {
         }
     }
     
-    /**
-     * Publish email request to SNS Topic
-     */
     private void publishToSns(EmailRequest emailRequest) throws JsonProcessingException {
         if (snsClient == null) {
             throw new RuntimeException("SNS Client is not initialized");
